@@ -2132,7 +2132,7 @@ export default function App() {
       )} 
 
       {/* Admin Login Dialog Overlay */}
-      {isLoggingIn && (
+      {/*isLoggingIn && (
         <AdminLogin
           accentColor={appearance.accentColor}
           onLoginSuccess={(user) => {
@@ -2146,7 +2146,7 @@ export default function App() {
             setIsLoggingIn(false);
           }}
         />
-      )}
+      )*/}
 
       {/* Global Application Footer - ONLY shown in Admin panel to keep public profile absolute pure distraction-free */}
       {isAdminMode ? (
