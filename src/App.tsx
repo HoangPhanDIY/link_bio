@@ -2109,7 +2109,7 @@ export default function App() {
       </main>
 
       {/* Floating Toggle Admin panel button */}
-      {!isAdminMode && (
+      {/*!isAdminMode && (
         <button
           onClick={() => {
             if (isAuthenticated) {
@@ -2129,7 +2129,7 @@ export default function App() {
           />
           <span>Bảng Quản Trị</span>
         </button>
-      )} 
+      )*/} 
 
       {/* Admin Login Dialog Overlay */}
       {/*isLoggingIn && (
