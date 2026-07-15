@@ -143,3 +143,12 @@ export interface DBDonation {
   trang_thai: number; // 0: Pending, 1: Completed
   ngay_tao?: string;
 }
+
+export interface DBPost {
+  id: string;
+  noi_dung: string;
+  url_hinh_anh: string | null;
+  lien_ket_id: string | null;
+  ngay_tao?: string;
+}
+

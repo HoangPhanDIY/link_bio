@@ -149,6 +149,14 @@ CREATE TABLE IF NOT EXISTS ung_ho (
     ngay_tao TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+-- 15. Table bai_viet (Posts / Statuses)
+CREATE TABLE IF NOT EXISTS bai_viet (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    noi_dung TEXT NOT NULL,
+    url_hinh_anh TEXT,
+    ngay_tao TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
 -- ====================================================================
 -- DISABLE ROW LEVEL SECURITY (RLS) FOR ALL TABLES
 -- (Allows instant add, edit, and delete operations from the preview app)
@@ -167,6 +175,7 @@ ALTER TABLE chi_tiet_phu_hieu_giao_an DISABLE ROW LEVEL SECURITY;
 ALTER TABLE nhat_ky_click DISABLE ROW LEVEL SECURITY;
 ALTER TABLE tin_nhan DISABLE ROW LEVEL SECURITY;
 ALTER TABLE ung_ho DISABLE ROW LEVEL SECURITY;
+ALTER TABLE bai_viet DISABLE ROW LEVEL SECURITY;
 
 -- ====================================================================
 -- SEED DATA (IF EMPTY)

@@ -18,6 +18,7 @@ import BrandIcon from "./components/BrandIcon";
 import AdminLogin from "./components/AdminLogin";
 import MessagesTab from "./components/MessagesTab";
 import DonationsTab from "./components/DonationsTab";
+import PostsTab from "./components/PostsTab";
 import { dbService } from "./dbService";
 import {
   DBUser,
@@ -31,6 +32,7 @@ import {
   DBBuildGuide,
   DBMessage,
   DBDonation,
+  DBPost,
 } from "./supabase";
 
 const STORAGE_KEY_LINKS = "vivid_persona_links";
@@ -43,12 +45,94 @@ type TabType =
   | "appearance"
   | "guides"
   | "messages"
-  | "donations";
+  | "donations"
+  | "posts";
 
 declare global {
   interface Window {
     showNotification?: (message: string, type?: "success" | "error" | "info") => void;
   }
+}
+
+let cachedVisitorInfo: string | null = null;
+
+async function getVisitorInfo(): Promise<string> {
+  if (cachedVisitorInfo) return cachedVisitorInfo;
+  
+  // Clean device detection as a fallback
+  const userAgent = navigator.userAgent || "";
+  let deviceType = "Desktop";
+  if (/mobile/i.test(userAgent)) {
+    deviceType = "Mobile";
+  } else if (/tablet|ipad/i.test(userAgent)) {
+    deviceType = "Tablet";
+  }
+
+  // 1. Try api.ip.sb (Excellent free service, fully HTTPS & CORS-compliant)
+  try {
+    const res = await fetch("https://api.ip.sb/geoip");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ip) {
+        const city = data.city || "Unknown City";
+        const country = data.country || "Vietnam";
+        cachedVisitorInfo = `${data.ip} (${city}, ${country})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch from api.ip.sb", e);
+  }
+
+  // 2. Try ipapi.co (HTTPS support, occasionally rate-limited)
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ip) {
+        const city = data.city || "Unknown City";
+        const country = data.country_name || "Vietnam";
+        cachedVisitorInfo = `${data.ip} (${city}, ${country})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch from ipapi.co", e);
+  }
+
+  // 3. Try db-ip.com (HTTPS support, very reliable fallback)
+  try {
+    const res = await fetch("https://api.db-ip.com/v2/free/self");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ipAddress) {
+        const city = data.city || "Unknown City";
+        const country = data.countryName || "Vietnam";
+        cachedVisitorInfo = `${data.ipAddress} (${city}, ${country})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch from db-ip.com", e);
+  }
+
+  // 4. Fallback to raw IP via ipify (very reliable but no geolocation)
+  try {
+    const res = await fetch("https://api64.ipify.org?format=json");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ip) {
+        cachedVisitorInfo = `${data.ip} (${deviceType})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch raw IP from ipify", e);
+  }
+
+  // Final fallback to device type
+  cachedVisitorInfo = deviceType;
+  return deviceType;
 }
 
 const isCustomIcon = (icon: string) => {
@@ -81,6 +165,7 @@ export default function App() {
   const [messages, setMessages] = useState<DBMessage[]>([]);
   const [clickLogs, setClickLogs] = useState<any[]>([]);
   const [donations, setDonations] = useState<DBDonation[]>([]);
+  const [posts, setPosts] = useState<DBPost[]>([]);
 
   // Lazy load flags & status indicators
   const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
@@ -92,6 +177,8 @@ export default function App() {
   const [hasLoadedMessages, setHasLoadedMessages] = useState<boolean>(false);
   const [isDonationsLoading, setIsDonationsLoading] = useState<boolean>(false);
   const [hasLoadedDonations, setHasLoadedDonations] = useState<boolean>(false);
+  const [isPostsLoading, setIsPostsLoading] = useState<boolean>(false);
+  const [hasLoadedPosts, setHasLoadedPosts] = useState<boolean>(false);
 
   // States for donation process
   const [donateStep, setDonateStep] = useState<"form" | "qr">("form");
@@ -111,6 +198,7 @@ export default function App() {
 
   // Navigation tab state: 'dashboard' | 'links' | 'appearance' | 'guides' | 'messages'
   const [activeTab, setActiveTab] = useState<TabType>("links");
+  const [isAdminNavOpen, setIsAdminNavOpen] = useState<boolean>(false);
 
   // Contact Form input states for the public view
   const [visitorName, setVisitorName] = useState("");
@@ -119,7 +207,7 @@ export default function App() {
   const [subscribedMessage, setSubscribedMessage] = useState<string | null>(
     null,
   );
-  const [publicTab, setPublicTab] = useState<"links" | "guides" | "donate">(
+  const [publicTab, setPublicTab] = useState<"links" | "guides" | "donate" | "posts">(
     "links",
   );
   const [copiedText, setCopiedText] = useState<string | null>(null);
@@ -278,28 +366,83 @@ export default function App() {
     }
 
     initAndLoadDb();
+    // Warm up the geoIP resolver immediately on startup
+    getVisitorInfo().catch((err) => console.warn("Failed to pre-resolve visitor info on mount:", err));
   }, []);
 
-  // Lazy load Click Logs when entering dashboard tab
+  // Lazy load Dashboard data (Click Logs, Messages, Donations, Posts) when entering dashboard tab
   useEffect(() => {
-    if (activeTab === "dashboard" && !hasLoadedClickLogs) {
-      async function fetchClickLogs() {
+    if (activeTab === "dashboard") {
+      async function fetchDashboardData() {
         setIsClickLogsLoading(true);
         try {
-          const dbClicks = await dbService.getClickLogs();
-          if (dbClicks) {
-            setClickLogs(dbClicks);
+          const promises: Promise<any>[] = [];
+          
+          if (!hasLoadedClickLogs) {
+            promises.push(dbService.getClickLogs().then(data => {
+              setClickLogs(data || []);
+              setHasLoadedClickLogs(true);
+            }).catch(e => console.warn("Fetch clicks failed", e)));
+          }
+          
+          if (!hasLoadedMessages) {
+            promises.push(dbService.getMessages().then(data => {
+              setMessages(data || []);
+              setHasLoadedMessages(true);
+            }).catch(e => console.warn("Fetch messages failed", e)));
+          }
+          
+          if (!hasLoadedDonations) {
+            promises.push(dbService.getDonations().then(data => {
+              setDonations(data || []);
+              setHasLoadedDonations(true);
+            }).catch(e => console.warn("Fetch donations failed", e)));
+          }
+          
+          if (!hasLoadedPosts) {
+            promises.push(dbService.getPosts().then(data => {
+              setPosts(data || []);
+              setHasLoadedPosts(true);
+            }).catch(e => console.warn("Fetch posts failed", e)));
+          }
+          
+          if (promises.length > 0) {
+            await Promise.all(promises);
           }
         } catch (err) {
-          console.warn("Could not fetch click logs from DB:", err);
+          console.warn("Could not fetch full dashboard data from DB:", err);
         } finally {
           setIsClickLogsLoading(false);
-          setHasLoadedClickLogs(true);
         }
       }
-      fetchClickLogs();
+      fetchDashboardData();
     }
-  }, [activeTab, hasLoadedClickLogs]);
+  }, [activeTab, hasLoadedClickLogs, hasLoadedMessages, hasLoadedDonations, hasLoadedPosts]);
+
+  // Lazy load Posts when entering posts tab in Admin or Public view
+  useEffect(() => {
+    const isPostsTabActive =
+      (isAdminMode && activeTab === "posts") ||
+      (!isAdminMode && publicTab === "posts");
+      
+    if (isPostsTabActive && !hasLoadedPosts) {
+      async function fetchPosts() {
+        setIsPostsLoading(true);
+        try {
+          const dbPosts = await dbService.getPosts();
+          if (dbPosts) {
+            setPosts(dbPosts);
+          }
+        } catch (err) {
+          console.warn("Could not fetch posts from DB:", err);
+        } finally {
+          setIsPostsLoading(false);
+          setHasLoadedPosts(true);
+        }
+      }
+      fetchPosts();
+    }
+  }, [activeTab, publicTab, isAdminMode, hasLoadedPosts]);
 
   // Lazy load Messages when entering messages tab
   useEffect(() => {
@@ -381,9 +524,23 @@ export default function App() {
 
   // Click simulation: triggers when clicking a link inside the interactive phone preview
   const handleLinkClick = async (linkId: string) => {
+    let visitorInfo = "Desktop";
+    const userAgent = navigator.userAgent || "";
+    if (/mobile/i.test(userAgent)) {
+      visitorInfo = "Mobile";
+    } else if (/tablet|ipad/i.test(userAgent)) {
+      visitorInfo = "Tablet";
+    }
+
+    try {
+      visitorInfo = await getVisitorInfo();
+    } catch (e) {
+      console.warn("Error getting visitor info:", e);
+    }
+
     // 1. Track click in DB
     dbService
-      .trackLinkClick(linkId)
+      .trackLinkClick(linkId, visitorInfo)
       .catch((err) => console.warn("Could not track click in DB", err));
 
     // Update clickLogs state immediately to reflect in real-time
@@ -392,7 +549,7 @@ export default function App() {
       {
         id: `click-${Date.now()}-${Math.random()}`,
         duong_dan_id: linkId,
-        thiet_bi: "Desktop",
+        thiet_bi: visitorInfo,
         thoi_gian: new Date().toISOString(),
       },
     ]);
@@ -434,7 +591,39 @@ export default function App() {
     );
   };
 
-  // Add new custom link
+  const handleAddPost = async (content: string, imageUrl: string | null, lienKetId: string | null) => {
+    try {
+      const newPost = await dbService.savePost({
+        noi_dung: content,
+        url_hinh_anh: imageUrl,
+        lien_ket_id: lienKetId,
+      });
+      if (newPost) {
+        setPosts((prev) => [newPost, ...prev]);
+        showNotification("Đăng status thành công!", "success");
+      } else {
+        showNotification("Đăng status thất bại! Lỗi kết nối hoặc RLS chưa được tắt trong Supabase.", "error");
+      }
+    } catch (err) {
+      console.error("Failed to save post:", err);
+      showNotification("Đăng status thất bại!", "error");
+    }
+  };
+
+  const handleDeletePost = async (id: string) => {
+    try {
+      const success = await dbService.deletePost(id);
+      if (success) {
+        setPosts((prev) => prev.filter((p) => p.id !== id));
+        showNotification("Xóa status thành công!", "success");
+      } else {
+        showNotification("Xóa status thất bại!", "error");
+      }
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      showNotification("Xóa status thất bại!", "error");
+    }
+  };
   const handleAddLink = async (title: string, url: string, icon: string) => {
     const tempId = `link-${Date.now()}`;
     const newLink: BioLink = {
@@ -1098,50 +1287,62 @@ export default function App() {
             </div>
 
             {/* Center Tabs Navigation */}
-            <nav className="flex items-center gap-1.5 sm:gap-4">
+            {/* Desktop Navigation Row (lg and up) */}
+            <nav className="hidden lg:flex items-center gap-2">
               <button
                 onClick={() => setActiveTab("dashboard")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === "dashboard"
-                    ? "bg-slate-100 text-slate-800"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <LucideIcon name="Activity" size={14} />
-                <span className="hidden sm:inline">Bảng điều khiển</span>
+                <span>Bảng điều khiển</span>
               </button>
               <button
                 onClick={() => setActiveTab("links")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === "links"
-                    ? "bg-slate-100 text-slate-800"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <LucideIcon name="Link2" size={14} />
-                <span className="hidden sm:inline">Liên kết</span>
+                <span>Liên kết</span>
               </button>
               <button
                 onClick={() => setActiveTab("appearance")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === "appearance"
-                    ? "bg-slate-100 text-slate-800"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <LucideIcon name="Palette" size={14} />
-                <span className="hidden sm:inline">Giao diện</span>
+                <span>Giao diện</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("posts")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === "posts"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                <LucideIcon name="FileText" size={14} />
+                <span>Bài viết (Status)</span>
               </button>
               <button
                 onClick={() => setActiveTab("messages")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer relative ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer relative ${
                   activeTab === "messages"
-                    ? "bg-slate-100 text-slate-800"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <LucideIcon name="MessageSquare" size={14} />
-                <span className="hidden sm:inline">Tin nhắn</span>
+                <span>Tin nhắn</span>
                 {messages.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold">
                     {messages.length}
@@ -1150,14 +1351,14 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab("donations")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer relative ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer relative ${
                   activeTab === "donations"
-                    ? "bg-slate-100 text-slate-800"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <LucideIcon name="Heart" size={14} />
-                <span className="hidden sm:inline">Ủng hộ (Donate)</span>
+                <span>Ủng hộ (Donate)</span>
                 {donations.filter((d) => d.trang_thai === 0).length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold animate-pulse">
                     {donations.filter((d) => d.trang_thai === 0).length}
@@ -1166,16 +1367,182 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab("guides")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === "guides"
-                    ? "bg-slate-100 text-slate-800"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 <LucideIcon name="Shield" size={14} />
-                <span className="hidden sm:inline">Giáo án & Đồ Game</span>
+                <span>Giáo án & Đồ Game</span>
               </button>
             </nav>
+
+            {/* Mobile Dropdown Navigation (below lg) */}
+            <div className="lg:hidden relative">
+              <button
+                onClick={() => setIsAdminNavOpen(!isAdminNavOpen)}
+                className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-xl bg-white shadow-xs text-xs font-black cursor-pointer text-slate-700 hover:bg-slate-50"
+              >
+                {activeTab === "dashboard" && (
+                  <>
+                    <LucideIcon name="Activity" size={14} className="text-indigo-500" />
+                    <span>Bảng điều khiển</span>
+                  </>
+                )}
+                {activeTab === "links" && (
+                  <>
+                    <LucideIcon name="Link2" size={14} className="text-emerald-500" />
+                    <span>Liên kết</span>
+                  </>
+                )}
+                {activeTab === "appearance" && (
+                  <>
+                    <LucideIcon name="Palette" size={14} className="text-amber-500" />
+                    <span>Giao diện</span>
+                  </>
+                )}
+                {activeTab === "posts" && (
+                  <>
+                    <LucideIcon name="FileText" size={14} className="text-sky-500" />
+                    <span>Bài viết (Status)</span>
+                  </>
+                )}
+                {activeTab === "messages" && (
+                  <>
+                    <LucideIcon name="MessageSquare" size={14} className="text-rose-500" />
+                    <span>Tin nhắn</span>
+                    {messages.length > 0 && (
+                      <span className="bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold ml-1">
+                        {messages.length}
+                      </span>
+                    )}
+                  </>
+                )}
+                {activeTab === "donations" && (
+                  <>
+                    <LucideIcon name="Heart" size={14} className="text-red-500" />
+                    <span>Ủng hộ (Donate)</span>
+                    {donations.filter((d) => d.trang_thai === 0).length > 0 && (
+                      <span className="bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold ml-1">
+                        {donations.filter((d) => d.trang_thai === 0).length}
+                      </span>
+                    )}
+                  </>
+                )}
+                {activeTab === "guides" && (
+                  <>
+                    <LucideIcon name="Shield" size={14} className="text-teal-500" />
+                    <span>Giáo án & Đồ Game</span>
+                  </>
+                )}
+                <LucideIcon name="ChevronDown" size={12} className="text-slate-400" />
+              </button>
+
+              {isAdminNavOpen && (
+                <>
+                  {/* Overlay click-out blocker */}
+                  <div
+                    className="fixed inset-0 z-40 bg-transparent"
+                    onClick={() => setIsAdminNavOpen(false)}
+                  />
+
+                  {/* Dropdown popup */}
+                  <div className="absolute left-0 mt-2 w-52 bg-white border border-slate-150 rounded-2xl shadow-xl z-50 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <button
+                      onClick={() => {
+                        setActiveTab("dashboard");
+                        setIsAdminNavOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
+                    >
+                      <LucideIcon name="Activity" size={14} className="text-indigo-500" />
+                      <span>Bảng điều khiển</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("links");
+                        setIsAdminNavOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
+                    >
+                      <LucideIcon name="Link2" size={14} className="text-emerald-500" />
+                      <span>Liên kết</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("appearance");
+                        setIsAdminNavOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
+                    >
+                      <LucideIcon name="Palette" size={14} className="text-amber-500" />
+                      <span>Giao diện</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("posts");
+                        setIsAdminNavOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
+                    >
+                      <LucideIcon name="FileText" size={14} className="text-sky-500" />
+                      <span>Bài viết (Status)</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("messages");
+                        setIsAdminNavOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer justify-between"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <LucideIcon name="MessageSquare" size={14} className="text-rose-500" />
+                        <span>Tin nhắn</span>
+                      </div>
+                      {messages.length > 0 && (
+                        <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                          {messages.length}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("donations");
+                        setIsAdminNavOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer justify-between"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <LucideIcon name="Heart" size={14} className="text-red-500" />
+                        <span>Ủng hộ (Donate)</span>
+                      </div>
+                      {donations.filter((d) => d.trang_thai === 0).length > 0 && (
+                        <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                          {donations.filter((d) => d.trang_thai === 0).length}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("guides");
+                        setIsAdminNavOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
+                    >
+                      <LucideIcon name="Shield" size={14} className="text-teal-500" />
+                      <span>Giáo án & Đồ Game</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Right side View Public Profile exit button */}
             <div className="flex items-center gap-2">
@@ -1250,8 +1617,21 @@ export default function App() {
                     accentColor={appearance.accentColor}
                     links={links}
                     clickLogs={clickLogs}
+                    messages={messages}
+                    donations={donations}
+                    posts={posts}
                   />
                 ))}
+
+              {activeTab === "posts" && (
+                <PostsTab
+                  posts={posts}
+                  links={links}
+                  onAddPost={handleAddPost}
+                  onDeletePost={handleDeletePost}
+                  accentColor={appearance.accentColor}
+                />
+              )}
 
               {activeTab === "links" && (
                 <ManageLinksTab
@@ -1366,7 +1746,7 @@ export default function App() {
         ) : (
           /* PUBLIC RESPONSIVE VIEW: A beautiful fully-fledged widescreen portfolio website adapting from desktop to mobile fluidly without narrow mockup frames */
           <div
-            className={`w-full max-w-4xl mx-auto animate-in fade-in duration-500 pb-12 transition-all duration-300 ${getFontFamilyClass()} ${
+            className={`w-full max-w-4xl mx-auto animate-in fade-in duration-500 pb-24 transition-all duration-300 ${getFontFamilyClass()} ${
               isDarkPublic ? "text-slate-100" : "text-slate-800"
             }`}
           >
@@ -1433,76 +1813,8 @@ export default function App() {
               />
             </div>
 
-            {/* 4. Beautiful, High-End Navigation Menu Bar located below the sliding banner */}
-            <div className="mt-6 flex justify-center sm:justify-start">
-              <div
-                className={`grid grid-cols-3 p-0.5 w-full rounded-md shadow-sm border transition-colors ${
-                  isDarkPublic
-                    ? "bg-slate-900 border-slate-800/80"
-                    : "bg-white border-slate-150"
-                }`}
-              >
-                {/* Button 1: Liên hệ */}
-                <button
-                  onClick={() => setPublicTab("links")}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
-                    publicTab === "links"
-                      ? "text-white shadow-xs"
-                      : isDarkPublic
-                        ? "text-slate-400 hover:text-slate-200"
-                        : "text-slate-600 hover:text-slate-800"
-                  }`}
-                  style={
-                    publicTab === "links"
-                      ? { backgroundColor: appearance.accentColor }
-                      : undefined
-                  }
-                >
-                  <LucideIcon name="Link2" size={15} />
-                  <span>LIÊN HỆ</span>
-                </button>
-
-                {/* Button 2: Trang bị */}
-                <button
-                  onClick={() => setPublicTab("guides")}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
-                    publicTab === "guides"
-                      ? "text-white shadow-xs"
-                      : isDarkPublic
-                        ? "text-slate-400 hover:text-slate-200"
-                        : "text-slate-600 hover:text-slate-800"
-                  }`}
-                  style={
-                    publicTab === "guides"
-                      ? { backgroundColor: appearance.accentColor }
-                      : undefined
-                  }
-                >
-                  <LucideIcon name="BookOpen" size={15} />
-                  <span>TRANG BỊ</span>
-                </button>
-
-                {/* Button 3: Ủng hộ */}
-                <button
-                  onClick={() => setPublicTab("donate")}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
-                    publicTab === "donate"
-                      ? "text-white shadow-xs"
-                      : isDarkPublic
-                        ? "text-slate-400 hover:text-slate-200"
-                        : "text-slate-600 hover:text-slate-800"
-                  }`}
-                  style={
-                    publicTab === "donate"
-                      ? { backgroundColor: appearance.accentColor }
-                      : undefined
-                  }
-                >
-                  <LucideIcon name="Heart" size={15} />
-                  <span>ỦNG HỘ</span>
-                </button>
-              </div>
-            </div>
+            {/* 4. Sublte accent color divider for public layout space */}
+            <div className="h-[1px] w-full mt-6 opacity-20" style={{ backgroundColor: appearance.accentColor }} />
 
             {/* 5. Main public content area */}
             <div className="w-full mt-6 space-y-6">
@@ -1972,6 +2284,157 @@ export default function App() {
                 </div>
               )}
 
+              {publicTab === "posts" && (
+                <div className="space-y-6 animate-in fade-in duration-300 pb-8 text-left">
+                  {/* Section Title */}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-1.5 h-4 rounded-full"
+                      style={{ backgroundColor: appearance.accentColor }}
+                    ></div>
+                    <h2
+                      className={`text-xl font-bold uppercase tracking-wider ${
+                        isDarkPublic ? "text-slate-400" : "text-slate-500"
+                      }`}
+                    >
+                      Bản tin & Trạng thái
+                    </h2>
+                  </div>
+
+                  <div className="space-y-6">
+                    {posts.map((post) => {
+                      const formattedDate = post.ngay_tao
+                        ? new Date(post.ngay_tao).toLocaleString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                        : "Vừa xong";
+
+                      return (
+                        <div
+                          key={post.id}
+                          className={`border rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col gap-4 ${
+                            isDarkPublic
+                              ? "bg-slate-900 border-slate-800 text-white"
+                              : "bg-white border-slate-100 text-slate-800"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-500 bg-slate-150">
+                              <img
+                                src={appearance.avatarUrl}
+                                alt="Author avatar"
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                            <div>
+                              <h4 className="text-xs sm:text-sm font-black">
+                                {appearance.name || "Alex Rivera"}
+                              </h4>
+                              <p className="text-[10px] text-slate-400 font-mono">
+                                {formattedDate}
+                              </p>
+                            </div>
+                          </div>
+
+                          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                            {post.noi_dung}
+                          </p>
+
+                          {post.url_hinh_anh && (
+                            <div className="rounded-2xl overflow-hidden border border-slate-100/10 dark:border-slate-800/80 bg-slate-950 flex items-center justify-center max-h-96">
+                              <img
+                                src={post.url_hinh_anh}
+                                alt="Status visual assets"
+                                className="w-full object-cover max-h-96"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          )}
+
+                          {/* Interactive edge-aligned reactions: Like, Contact, Share */}
+                          <div className="flex justify-between items-center w-full border-t border-slate-100/10 dark:border-slate-800/60 pt-3 px-1">
+                            {/* Like Button */}
+                            <button
+                              onClick={() => {
+                                showNotification("Cảm ơn bạn đã bày tỏ cảm xúc!", "success");
+                              }}
+                              className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 transition-colors text-xs font-bold cursor-pointer"
+                            >
+                              <LucideIcon name="Heart" size={14} />
+                              <span>Thích</span>
+                            </button>
+
+                            {/* Contact (Liên hệ) Button */}
+                            <button
+                              onClick={() => {
+                                const associatedLink = post.lien_ket_id
+                                  ? links.find((l) => l.id === post.lien_ket_id)
+                                  : null;
+                                  
+                                if (associatedLink) {
+                                  window.open(`https://${associatedLink.url}`, "_blank");
+                                  showNotification(`Đang chuyển hướng đến ${associatedLink.title}...`, "info");
+                                } else {
+                                  // Fallback to first active link
+                                  const firstActive = links.find((l) => l.enabled);
+                                  if (firstActive) {
+                                    window.open(`https://${firstActive.url}`, "_blank");
+                                    showNotification(`Đang chuyển hướng đến ${firstActive.title}...`, "info");
+                                  } else {
+                                    showNotification("Chưa có liên kết liên hệ nào hoạt động!", "error");
+                                  }
+                                }
+                              }}
+                              className="flex items-center gap-1.5 text-slate-400 hover:text-emerald-500 transition-colors text-xs font-bold cursor-pointer"
+                            >
+                              <LucideIcon name="Phone" size={14} />
+                              <span>Liên hệ</span>
+                            </button>
+
+                            {/* Share Button */}
+                            <button
+                              onClick={() => {
+                                if (navigator.share) {
+                                  navigator.share({
+                                    title: `Bài viết từ ${appearance.name}`,
+                                    text: post.noi_dung,
+                                    url: window.location.href,
+                                  }).catch(console.error);
+                                } else {
+                                  navigator.clipboard.writeText(`${post.noi_dung}\n- ${appearance.name}`);
+                                  showNotification("Đã sao chép nội dung bài viết!", "success");
+                                }
+                              }}
+                              className="flex items-center gap-1.5 text-slate-400 hover:text-indigo-500 transition-colors text-xs font-bold cursor-pointer"
+                            >
+                              <LucideIcon name="Share2" size={14} />
+                              <span>Chia sẻ</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {posts.length === 0 && (
+                      <div
+                        className={`text-center p-12 border border-dashed rounded-3xl font-sans text-xs ${
+                          isDarkPublic
+                            ? "border-slate-800 text-slate-500 bg-slate-900/50"
+                            : "border-slate-200 text-slate-400 bg-slate-50/50"
+                        }`}
+                      >
+                        Chưa có status/bài viết nào được đăng gần đây.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Contact message board instead of newsletter subscription */}
               {appearance.newsletterEnabled && (
                 <div
@@ -2104,12 +2567,79 @@ export default function App() {
                 </div>
               </div>
             </div>
+            {/* 4. Beautiful, High-End Mobile-Style Fixed Bottom Navigation Bar */}
+            {!isAdminMode && (
+              <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-100 dark:border-slate-800/80 px-4 py-2 sm:py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+                <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
+                  {/* Button 1: Liên hệ / Liên kết */}
+                  <button
+                    onClick={() => setPublicTab("links")}
+                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+                      publicTab === "links"
+                        ? "font-extrabold"
+                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    }`}
+                    style={publicTab === "links" ? { color: appearance.accentColor } : {}}
+                  >
+                    <LucideIcon name="Link2" size={18} />
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Liên hệ</span>
+                  </button>
+
+                  {/* Button 2: Trang bị */}
+                  <button
+                    onClick={() => setPublicTab("guides")}
+                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+                      publicTab === "guides"
+                        ? "font-extrabold"
+                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    }`}
+                    style={publicTab === "guides" ? { color: appearance.accentColor } : {}}
+                  >
+                    <LucideIcon name="BookOpen" size={18} />
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Trang bị</span>
+                  </button>
+
+                  {/* Button 3: Bài viết */}
+                  <button
+                    onClick={() => setPublicTab("posts")}
+                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer relative ${
+                      publicTab === "posts"
+                        ? "font-extrabold"
+                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    }`}
+                    style={publicTab === "posts" ? { color: appearance.accentColor } : {}}
+                  >
+                    <LucideIcon name="FileText" size={18} />
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Bài viết</span>
+                    {posts.length > 0 && (
+                      <span className="absolute top-1 right-5 bg-red-500 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
+                        {posts.length}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Button 4: Ủng hộ */}
+                  <button
+                    onClick={() => setPublicTab("donate")}
+                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+                      publicTab === "donate"
+                        ? "font-extrabold"
+                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    }`}
+                    style={publicTab === "donate" ? { color: appearance.accentColor } : {}}
+                  >
+                    <LucideIcon name="Heart" size={18} />
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Ủng hộ</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
 
-      {/* Floating Toggle Admin panel button */}
-      {/*!isAdminMode && (
+      {/* Floating Toggle Admin panel button - Commented out as requested
+      {!isAdminMode && (
         <button
           onClick={() => {
             if (isAuthenticated) {
@@ -2119,7 +2649,7 @@ export default function App() {
               setIsLoggingIn(true);
             }
           }}
-          className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white hover:bg-slate-800 px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-[0.97] cursor-pointer text-xs font-semibold"
+          className="fixed bottom-20 right-6 z-50 bg-slate-900 text-white hover:bg-slate-800 px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-[0.97] cursor-pointer text-xs font-semibold"
           style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.35)" }}
         >
           <LucideIcon
@@ -2129,10 +2659,11 @@ export default function App() {
           />
           <span>Bảng Quản Trị</span>
         </button>
-      )*/} 
+      )} 
+      */}
 
       {/* Admin Login Dialog Overlay */}
-      {/*isLoggingIn && (
+      {isLoggingIn && (
         <AdminLogin
           accentColor={appearance.accentColor}
           onLoginSuccess={(user) => {
@@ -2146,7 +2677,7 @@ export default function App() {
             setIsLoggingIn(false);
           }}
         />
-      )*/}
+      )}
 
       {/* Global Application Footer - ONLY shown in Admin panel to keep public profile absolute pure distraction-free */}
       {isAdminMode ? (

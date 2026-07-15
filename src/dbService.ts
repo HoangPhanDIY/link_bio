@@ -11,6 +11,7 @@ import {
   DBBuildGuide,
   DBMessage,
   DBDonation,
+  DBPost,
 } from "./supabase";
 
 // 1. Core Fallback Game Library Assets
@@ -861,6 +862,55 @@ export const dbService = {
 
   async deleteDonation(id: string): Promise<boolean> {
     const { error } = await supabase.from("ung_ho").delete().eq("id", id);
+    return !error;
+  },
+
+  // ==========================================
+  // 9. POSTS (bai_viet)
+  // ==========================================
+  async getPosts(): Promise<DBPost[]> {
+    const data = await handleQuery(
+      supabase
+        .from("bai_viet")
+        .select("*")
+        .order("ngay_tao", { ascending: false }),
+    );
+    return (data || []) as DBPost[];
+  },
+
+  async savePost(post: Partial<DBPost>): Promise<DBPost | null> {
+    const { data, error } = await supabase
+      .from("bai_viet")
+      .insert(post)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.error("Supabase Save Post Error:", error);
+      
+      // If error is due to column "lien_ket_id" not existing on table, retry without it
+      if (error.code === "42P21" || error.message?.includes("lien_ket_id")) {
+        console.warn("Column lien_ket_id does not exist on 'bai_viet' table. Retrying insert without it.");
+        const { lien_ket_id, ...postWithoutLienKet } = post;
+        const { data: retryData, error: retryError } = await supabase
+          .from("bai_viet")
+          .insert(postWithoutLienKet)
+          .select()
+          .maybeSingle();
+
+        if (retryError) {
+          console.error("Supabase Save Post Retry Error:", retryError);
+          return null;
+        }
+        return retryData as DBPost | null;
+      }
+      return null;
+    }
+    return data as DBPost | null;
+  },
+
+  async deletePost(id: string): Promise<boolean> {
+    const { error } = await supabase.from("bai_viet").delete().eq("id", id);
     return !error;
   },
 };
