@@ -281,7 +281,7 @@ export default function PublicBuildGuides({
           return (
             <div
               key={champId}
-              className={`border rounded-2xl p-5 transition-all shadow-sm ${
+              className={`border rounded-md p-5 transition-all shadow-sm ${
                 isDark
                   ? "bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-100"
                   : "bg-white border-slate-150/80 hover:border-slate-200 text-slate-800"
@@ -341,7 +341,7 @@ export default function PublicBuildGuides({
                   >
                     Chọn lối lên đồ:
                   </span>
-                  <div className="flex flex-wrap gap-1.5 p-1 rounded-xl border border-slate-300 dark:border-slate-850">
+                  <div className="flex flex-wrap gap-1.5 p-1 rounded border border-slate-300 dark:border-slate-850">
                     {championGuides.map((g, idx) => (
                       <button
                         key={g.id}
@@ -388,7 +388,7 @@ export default function PublicBuildGuides({
                       className="flex flex-col items-center gap-1 group relative cursor-help"
                       title={`${item.ten_trang_bi}: ${item.mo_ta || ""}`}
                     >
-                      <div className="relative aspect-square w-full rounded-xl overflow-hidden border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 transition-all hover:scale-105 hover:shadow-md">
+                      <div className="relative aspect-square w-full rounded overflow-hidden border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 transition-all hover:scale-105 hover:shadow-md">
                         <img
                           src={item.url_hinh_anh}
                           className="w-full h-full object-cover"
@@ -411,7 +411,7 @@ export default function PublicBuildGuides({
                       className="flex flex-col items-center gap-1 group relative cursor-help"
                       title={currentGuide.phu_tro.ten_phu_tro}
                     >
-                      <div className="relative aspect-square w-full rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-md">
+                      <div className="relative aspect-square w-full rounded overflow-hidden transition-all hover:scale-105 hover:shadow-md">
                         <img
                           src={currentGuide.phu_tro.url_hinh_anh}
                           className="w-full h-full object-cover"
@@ -454,7 +454,7 @@ export default function PublicBuildGuides({
                           branchColors[sub2BranchType] || branchColors.KHAC;
 
                         return (
-                          <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900 shadow-xl flex flex-col gap-3 text-left">
+                          <div className="bg-slate-950 p-4 rounded-md border border-slate-900 shadow-xl flex flex-col gap-3 text-left">
                             <div className="flex justify-between items-center pb-2 border-b border-slate-900">
                               <h4 className="text-[15px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
                                 <LucideIcon name="Award" size={14} />
@@ -651,7 +651,7 @@ export default function PublicBuildGuides({
                       })()}
 
                     {/* Arcana Column (Bảng ngọc) */}
-                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900 shadow-xl flex flex-col gap-3   text-left">
+                    <div className="bg-slate-950 p-4 rounded-md border border-slate-900 shadow-xl flex flex-col gap-3   text-left">
                       <h4 className="text-[15px] font-black uppercase tracking-wider text-white flex items-center gap-1.5 text-left">
                         <LucideIcon name="Zap" size={15} />
                         Bảng Ngọc tham khảo
@@ -753,7 +753,7 @@ export default function PublicBuildGuides({
               <div className="mt-3 pt-3 border-t border-slate-100/60 dark:border-slate-800/40 flex justify-end">
                 <button
                   onClick={() => toggleExpand(champId)}
-                  className="px-3.5 py-1.5 text-[10px] font-bold rounded-xl flex items-center gap-1.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer text-slate-500 dark:text-slate-400"
+                  className="px-3.5 py-1.5 text-[10px] font-bold rounded flex items-center gap-1.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer text-slate-500 dark:text-slate-400"
                 >
                   <span>{isExpanded ? "Thu gọn" : "Xem chi tiết"}</span>
                   <LucideIcon

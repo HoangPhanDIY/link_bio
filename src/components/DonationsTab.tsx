@@ -85,11 +85,14 @@ export default function DonationsTab({
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Main Title and description */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center space-y-1">
+        <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-center space-y-1">
           <div className="flex items-center gap-2">
             <span
               className="p-2 rounded-lg bg-pink-50"
-              style={{ color: accentColor, backgroundColor: `${accentColor}10` }}
+              style={{
+                color: accentColor,
+                backgroundColor: `${accentColor}10`,
+              }}
             >
               <LucideIcon name="Heart" size={20} />
             </span>
@@ -103,7 +106,7 @@ export default function DonationsTab({
         </div>
 
         {/* Total Amount Metric */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
           <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold">
             Đã duyệt (Đã chuyển)
           </span>
@@ -112,13 +115,14 @@ export default function DonationsTab({
               {formatMoney(paidAmount)}
             </span>
             <p className="text-[10px] text-slate-400 mt-1">
-              Từ {donations.filter((d) => d.trang_thai === 1).length} lượt ủng hộ thực tế
+              Từ {donations.filter((d) => d.trang_thai === 1).length} lượt ủng
+              hộ thực tế
             </p>
           </div>
         </div>
 
         {/* Pending Amount Metric */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
           <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold">
             Chờ duyệt (Chưa ck)
           </span>
@@ -127,7 +131,8 @@ export default function DonationsTab({
               {formatMoney(pendingAmount)}
             </span>
             <p className="text-[10px] text-slate-400 mt-1">
-              Từ {donations.filter((d) => d.trang_thai === 0).length} lượt đăng ký chờ duyệt
+              Từ {donations.filter((d) => d.trang_thai === 0).length} lượt đăng
+              ký chờ duyệt
             </p>
           </div>
         </div>
@@ -145,7 +150,7 @@ export default function DonationsTab({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Tìm kiếm ủng hộ theo tên, nội dung, mã nội dung ck hoặc số tiền..."
-          className="w-full bg-white border border-slate-200/80 rounded-2xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm text-slate-800 font-medium placeholder:text-slate-400 shadow-xs"
+          className="w-full bg-white border border-slate-200/80 rounded-md pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm text-slate-800 font-medium placeholder:text-slate-400 shadow-xs"
         />
         {searchTerm && (
           <button
@@ -158,7 +163,7 @@ export default function DonationsTab({
       </div>
 
       {/* Donations List */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

@@ -181,7 +181,7 @@ export default function PhonePreview({
                     <div
                       key={link.id}
                       onClick={() => onLinkClick && onLinkClick(link.id)}
-                      className={`w-full p-3 px-3.5 rounded-2xl border text-left cursor-pointer transition-all duration-300 group flex items-center hover:scale-[1.02] active:scale-[0.98] ${
+                      className={`w-full p-3 px-3.5 rounded-md border text-left cursor-pointer transition-all duration-300 group flex items-center hover:scale-[1.02] active:scale-[0.98] ${
                         isDark
                           ? "bg-slate-900/60 border-slate-800 hover:border-slate-700 text-slate-200"
                           : "bg-white border-slate-100/80 hover:border-slate-200 text-slate-800"
@@ -197,7 +197,7 @@ export default function PhonePreview({
                     >
                       {/* Left Side Icon */}
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center mr-3 shrink-0 transition-all ${
+                        className={`w-9 h-9 rounded flex items-center justify-center mr-3 shrink-0 transition-all ${
                           isCustomIcon(link.icon)
                             ? "p-0 bg-transparent border-0"
                             : "p-1 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100"
@@ -238,7 +238,7 @@ export default function PhonePreview({
 
               {links.filter((l) => l.enabled).length === 0 && (
                 <div
-                  className={`p-6 border border-dashed rounded-xl text-center text-xs ${isDark ? "border-slate-800 text-slate-600" : "border-slate-200 text-slate-400"}`}
+                  className={`p-6 border border-dashed rounded text-center text-xs ${isDark ? "border-slate-800 text-slate-600" : "border-slate-200 text-slate-400"}`}
                 >
                   Chưa có liên kết hoạt động nào được hiển thị. Hãy kích hoạt
                   liên kết trong trình chỉnh sửa.
@@ -249,7 +249,7 @@ export default function PhonePreview({
             {/* Contact Form / Send Message Box */}
             {newsletterEnabled && (
               <div
-                className={`w-full mt-7 p-4 rounded-xl border ${
+                className={`w-full mt-7 p-4 rounded border ${
                   isDark
                     ? "bg-slate-900/40 border-slate-800/80"
                     : "bg-slate-100/60 border-slate-200/50"

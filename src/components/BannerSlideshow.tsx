@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import LucideIcon from './LucideIcon';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import LucideIcon from "./LucideIcon";
 
 interface BannerSlideshowProps {
   images: string[];
@@ -11,7 +11,7 @@ interface BannerSlideshowProps {
 export default function BannerSlideshow({
   images,
   autoplayInterval = 5000,
-  className = "h-40 sm:h-56 md:h-64 w-full"
+  className = "h-40 sm:h-56 md:h-64 w-full",
 }: BannerSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -35,7 +35,9 @@ export default function BannerSlideshow({
 
   if (!images || images.length === 0) {
     return (
-      <div className={`${className} bg-slate-900 flex items-center justify-center text-slate-500 rounded-2xl`}>
+      <div
+        className={`${className} bg-slate-900 flex items-center justify-center text-slate-500 rounded-md`}
+      >
         <LucideIcon name="Image" size={32} />
       </div>
     );
@@ -50,7 +52,9 @@ export default function BannerSlideshow({
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+    setCurrentIndex(
+      (prevIndex) => (prevIndex - 1 + images.length) % images.length,
+    );
   };
 
   const handleDotClick = (index: number, e: React.MouseEvent) => {
@@ -60,7 +64,9 @@ export default function BannerSlideshow({
   };
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-md group ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-md sm:rounded-3xl shadow-md group ${className}`}
+    >
       {/* Slides with AnimatePresence */}
       <div className="absolute inset-0 w-full h-full">
         <AnimatePresence mode="wait">
@@ -107,7 +113,9 @@ export default function BannerSlideshow({
               key={idx}
               onClick={(e) => handleDotClick(idx, e)}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                idx === currentIndex
+                  ? "w-4 bg-white"
+                  : "w-1.5 bg-white/40 hover:bg-white/70"
               }`}
               aria-label={`Go to slide ${idx + 1}`}
             />

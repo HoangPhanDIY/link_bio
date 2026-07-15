@@ -50,7 +50,10 @@ type TabType =
 
 declare global {
   interface Window {
-    showNotification?: (message: string, type?: "success" | "error" | "info") => void;
+    showNotification?: (
+      message: string,
+      type?: "success" | "error" | "info",
+    ) => void;
   }
 }
 
@@ -58,7 +61,7 @@ let cachedVisitorInfo: string | null = null;
 
 async function getVisitorInfo(): Promise<string> {
   if (cachedVisitorInfo) return cachedVisitorInfo;
-  
+
   // Clean device detection as a fallback
   const userAgent = navigator.userAgent || "";
   let deviceType = "Desktop";
@@ -186,7 +189,9 @@ export default function App() {
   const [donateAmount, setDonateAmount] = useState("");
   const [donateMessage, setDonateMessage] = useState("");
   const [generatedMemo, setGeneratedMemo] = useState("");
-  const [selectedDonateMethod, setSelectedDonateMethod] = useState<"bank" | "momo">("bank");
+  const [selectedDonateMethod, setSelectedDonateMethod] = useState<
+    "bank" | "momo"
+  >("bank");
   const [isDonating, setIsDonating] = useState(false);
   const [copiedMemo, setCopiedMemo] = useState(false);
   const [selectedMobileBank, setSelectedMobileBank] = useState("vcb");
@@ -207,15 +212,20 @@ export default function App() {
   const [subscribedMessage, setSubscribedMessage] = useState<string | null>(
     null,
   );
-  const [publicTab, setPublicTab] = useState<"links" | "guides" | "donate" | "posts">(
-    "links",
-  );
+  const [publicTab, setPublicTab] = useState<
+    "links" | "guides" | "donate" | "posts"
+  >("links");
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // --- Notifications State (multi-toast queue) ---
-  const [notifications, setNotifications] = useState<{ id: string; message: string; type: "success" | "error" | "info" }[]>([]);
+  const [notifications, setNotifications] = useState<
+    { id: string; message: string; type: "success" | "error" | "info" }[]
+  >([]);
 
-  const showNotification = (message: string, type: "success" | "error" | "info" = "success") => {
+  const showNotification = (
+    message: string,
+    type: "success" | "error" | "info" = "success",
+  ) => {
     const id = Math.random().toString(36).substring(2, 9);
     setNotifications((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
@@ -367,7 +377,9 @@ export default function App() {
 
     initAndLoadDb();
     // Warm up the geoIP resolver immediately on startup
-    getVisitorInfo().catch((err) => console.warn("Failed to pre-resolve visitor info on mount:", err));
+    getVisitorInfo().catch((err) =>
+      console.warn("Failed to pre-resolve visitor info on mount:", err),
+    );
   }, []);
 
   // Lazy load Dashboard data (Click Logs, Messages, Donations, Posts) when entering dashboard tab
@@ -377,35 +389,55 @@ export default function App() {
         setIsClickLogsLoading(true);
         try {
           const promises: Promise<any>[] = [];
-          
+
           if (!hasLoadedClickLogs) {
-            promises.push(dbService.getClickLogs().then(data => {
-              setClickLogs(data || []);
-              setHasLoadedClickLogs(true);
-            }).catch(e => console.warn("Fetch clicks failed", e)));
+            promises.push(
+              dbService
+                .getClickLogs()
+                .then((data) => {
+                  setClickLogs(data || []);
+                  setHasLoadedClickLogs(true);
+                })
+                .catch((e) => console.warn("Fetch clicks failed", e)),
+            );
           }
-          
+
           if (!hasLoadedMessages) {
-            promises.push(dbService.getMessages().then(data => {
-              setMessages(data || []);
-              setHasLoadedMessages(true);
-            }).catch(e => console.warn("Fetch messages failed", e)));
+            promises.push(
+              dbService
+                .getMessages()
+                .then((data) => {
+                  setMessages(data || []);
+                  setHasLoadedMessages(true);
+                })
+                .catch((e) => console.warn("Fetch messages failed", e)),
+            );
           }
-          
+
           if (!hasLoadedDonations) {
-            promises.push(dbService.getDonations().then(data => {
-              setDonations(data || []);
-              setHasLoadedDonations(true);
-            }).catch(e => console.warn("Fetch donations failed", e)));
+            promises.push(
+              dbService
+                .getDonations()
+                .then((data) => {
+                  setDonations(data || []);
+                  setHasLoadedDonations(true);
+                })
+                .catch((e) => console.warn("Fetch donations failed", e)),
+            );
           }
-          
+
           if (!hasLoadedPosts) {
-            promises.push(dbService.getPosts().then(data => {
-              setPosts(data || []);
-              setHasLoadedPosts(true);
-            }).catch(e => console.warn("Fetch posts failed", e)));
+            promises.push(
+              dbService
+                .getPosts()
+                .then((data) => {
+                  setPosts(data || []);
+                  setHasLoadedPosts(true);
+                })
+                .catch((e) => console.warn("Fetch posts failed", e)),
+            );
           }
-          
+
           if (promises.length > 0) {
             await Promise.all(promises);
           }
@@ -417,14 +449,20 @@ export default function App() {
       }
       fetchDashboardData();
     }
-  }, [activeTab, hasLoadedClickLogs, hasLoadedMessages, hasLoadedDonations, hasLoadedPosts]);
+  }, [
+    activeTab,
+    hasLoadedClickLogs,
+    hasLoadedMessages,
+    hasLoadedDonations,
+    hasLoadedPosts,
+  ]);
 
   // Lazy load Posts when entering posts tab in Admin or Public view
   useEffect(() => {
     const isPostsTabActive =
       (isAdminMode && activeTab === "posts") ||
       (!isAdminMode && publicTab === "posts");
-      
+
     if (isPostsTabActive && !hasLoadedPosts) {
       async function fetchPosts() {
         setIsPostsLoading(true);
@@ -591,7 +629,11 @@ export default function App() {
     );
   };
 
-  const handleAddPost = async (content: string, imageUrl: string | null, lienKetId: string | null) => {
+  const handleAddPost = async (
+    content: string,
+    imageUrl: string | null,
+    lienKetId: string | null,
+  ) => {
     try {
       const newPost = await dbService.savePost({
         noi_dung: content,
@@ -602,7 +644,10 @@ export default function App() {
         setPosts((prev) => [newPost, ...prev]);
         showNotification("Đăng status thành công!", "success");
       } else {
-        showNotification("Đăng status thất bại! Lỗi kết nối hoặc RLS chưa được tắt trong Supabase.", "error");
+        showNotification(
+          "Đăng status thất bại! Lỗi kết nối hoặc RLS chưa được tắt trong Supabase.",
+          "error",
+        );
       }
     } catch (err) {
       console.error("Failed to save post:", err);
@@ -795,15 +840,24 @@ export default function App() {
         });
         if (updated) {
           setDbUser(updated);
-          showNotification("Đã lưu thông tin cá nhân và ảnh bìa thành công!", "success");
+          showNotification(
+            "Đã lưu thông tin cá nhân và ảnh bìa thành công!",
+            "success",
+          );
         }
       } catch (err) {
         console.warn("DB update failed", err);
-        showNotification("Lỗi kết nối khi cập nhật thông tin cá nhân.", "error");
+        showNotification(
+          "Lỗi kết nối khi cập nhật thông tin cá nhân.",
+          "error",
+        );
         throw err;
       }
     } else {
-      showNotification("Đã cập nhật cục bộ (Không tìm thấy kết nối Database).", "info");
+      showNotification(
+        "Đã cập nhật cục bộ (Không tìm thấy kết nối Database).",
+        "info",
+      );
     }
   };
 
@@ -820,15 +874,24 @@ export default function App() {
         });
         if (updated) {
           setDbUser(updated);
-          showNotification("Đã lưu cấu hình màu sắc & giao diện vào Database thành công!", "success");
+          showNotification(
+            "Đã lưu cấu hình màu sắc & giao diện vào Database thành công!",
+            "success",
+          );
         }
       } catch (err) {
         console.warn("DB update failed", err);
-        showNotification("Lỗi kết nối khi cập nhật cấu hình giao diện.", "error");
+        showNotification(
+          "Lỗi kết nối khi cập nhật cấu hình giao diện.",
+          "error",
+        );
         throw err;
       }
     } else {
-      showNotification("Đã cập nhật cục bộ (Không tìm thấy kết nối Database).", "info");
+      showNotification(
+        "Đã cập nhật cục bộ (Không tìm thấy kết nối Database).",
+        "info",
+      );
     }
   };
 
@@ -848,9 +911,15 @@ export default function App() {
       if (updated) {
         setDbUser(updated);
         if (dbUser?.id) {
-          showNotification("Đã lưu thông tin tài khoản ủng hộ & donate thành công!", "success");
+          showNotification(
+            "Đã lưu thông tin tài khoản ủng hộ & donate thành công!",
+            "success",
+          );
         } else {
-          showNotification("Đã cập nhật cục bộ thông tin tài khoản ủng hộ thành công!", "info");
+          showNotification(
+            "Đã cập nhật cục bộ thông tin tài khoản ủng hộ thành công!",
+            "info",
+          );
         }
       }
     } catch (err) {
@@ -1080,9 +1149,10 @@ export default function App() {
   };
 
   const handleDownloadQR = async () => {
-    const url = selectedDonateMethod === "momo" && appearance.momoNumber
-      ? `https://img.vietqr.io/image/MOMO-${appearance.momoNumber}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.momoName || "")}`
-      : `https://img.vietqr.io/image/${(appearance.bankName || "MB").replace(/\s+/g, "")}-${appearance.bankAccount}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.bankOwner || "")}`;
+    const url =
+      selectedDonateMethod === "momo" && appearance.momoNumber
+        ? `https://img.vietqr.io/image/MOMO-${appearance.momoNumber}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.momoName || "")}`
+        : `https://img.vietqr.io/image/${(appearance.bankName || "MB").replace(/\s+/g, "")}-${appearance.bankAccount}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.bankOwner || "")}`;
 
     try {
       const response = await fetch(url);
@@ -1242,7 +1312,7 @@ export default function App() {
         {notifications.map((notif) => (
           <div
             key={notif.id}
-            className={`pointer-events-auto px-4 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-semibold font-sans transition-all duration-300 transform translate-y-0 ${
+            className={`pointer-events-auto px-4 py-3.5 rounded-md shadow-xl flex items-center gap-3 text-xs font-semibold font-sans transition-all duration-300 transform translate-y-0 ${
               notif.type === "success"
                 ? "bg-emerald-600 text-white"
                 : notif.type === "error"
@@ -1386,31 +1456,51 @@ export default function App() {
               >
                 {activeTab === "dashboard" && (
                   <>
-                    <LucideIcon name="Activity" size={14} className="text-indigo-500" />
+                    <LucideIcon
+                      name="Activity"
+                      size={14}
+                      className="text-indigo-500"
+                    />
                     <span>Bảng điều khiển</span>
                   </>
                 )}
                 {activeTab === "links" && (
                   <>
-                    <LucideIcon name="Link2" size={14} className="text-emerald-500" />
+                    <LucideIcon
+                      name="Link2"
+                      size={14}
+                      className="text-emerald-500"
+                    />
                     <span>Liên kết</span>
                   </>
                 )}
                 {activeTab === "appearance" && (
                   <>
-                    <LucideIcon name="Palette" size={14} className="text-amber-500" />
+                    <LucideIcon
+                      name="Palette"
+                      size={14}
+                      className="text-amber-500"
+                    />
                     <span>Giao diện</span>
                   </>
                 )}
                 {activeTab === "posts" && (
                   <>
-                    <LucideIcon name="FileText" size={14} className="text-sky-500" />
+                    <LucideIcon
+                      name="FileText"
+                      size={14}
+                      className="text-sky-500"
+                    />
                     <span>Bài viết (Status)</span>
                   </>
                 )}
                 {activeTab === "messages" && (
                   <>
-                    <LucideIcon name="MessageSquare" size={14} className="text-rose-500" />
+                    <LucideIcon
+                      name="MessageSquare"
+                      size={14}
+                      className="text-rose-500"
+                    />
                     <span>Tin nhắn</span>
                     {messages.length > 0 && (
                       <span className="bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold ml-1">
@@ -1421,7 +1511,11 @@ export default function App() {
                 )}
                 {activeTab === "donations" && (
                   <>
-                    <LucideIcon name="Heart" size={14} className="text-red-500" />
+                    <LucideIcon
+                      name="Heart"
+                      size={14}
+                      className="text-red-500"
+                    />
                     <span>Ủng hộ (Donate)</span>
                     {donations.filter((d) => d.trang_thai === 0).length > 0 && (
                       <span className="bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold ml-1">
@@ -1432,11 +1526,19 @@ export default function App() {
                 )}
                 {activeTab === "guides" && (
                   <>
-                    <LucideIcon name="Shield" size={14} className="text-teal-500" />
+                    <LucideIcon
+                      name="Shield"
+                      size={14}
+                      className="text-teal-500"
+                    />
                     <span>Giáo án & Đồ Game</span>
                   </>
                 )}
-                <LucideIcon name="ChevronDown" size={12} className="text-slate-400" />
+                <LucideIcon
+                  name="ChevronDown"
+                  size={12}
+                  className="text-slate-400"
+                />
               </button>
 
               {isAdminNavOpen && (
@@ -1448,7 +1550,7 @@ export default function App() {
                   />
 
                   {/* Dropdown popup */}
-                  <div className="absolute left-0 mt-2 w-52 bg-white border border-slate-150 rounded-2xl shadow-xl z-50 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute left-0 mt-2 w-52 bg-white border border-slate-150 rounded-md shadow-xl z-50 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
                     <button
                       onClick={() => {
                         setActiveTab("dashboard");
@@ -1456,7 +1558,11 @@ export default function App() {
                       }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
                     >
-                      <LucideIcon name="Activity" size={14} className="text-indigo-500" />
+                      <LucideIcon
+                        name="Activity"
+                        size={14}
+                        className="text-indigo-500"
+                      />
                       <span>Bảng điều khiển</span>
                     </button>
 
@@ -1467,7 +1573,11 @@ export default function App() {
                       }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
                     >
-                      <LucideIcon name="Link2" size={14} className="text-emerald-500" />
+                      <LucideIcon
+                        name="Link2"
+                        size={14}
+                        className="text-emerald-500"
+                      />
                       <span>Liên kết</span>
                     </button>
 
@@ -1478,7 +1588,11 @@ export default function App() {
                       }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
                     >
-                      <LucideIcon name="Palette" size={14} className="text-amber-500" />
+                      <LucideIcon
+                        name="Palette"
+                        size={14}
+                        className="text-amber-500"
+                      />
                       <span>Giao diện</span>
                     </button>
 
@@ -1489,7 +1603,11 @@ export default function App() {
                       }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
                     >
-                      <LucideIcon name="FileText" size={14} className="text-sky-500" />
+                      <LucideIcon
+                        name="FileText"
+                        size={14}
+                        className="text-sky-500"
+                      />
                       <span>Bài viết (Status)</span>
                     </button>
 
@@ -1501,7 +1619,11 @@ export default function App() {
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer justify-between"
                     >
                       <div className="flex items-center gap-2.5">
-                        <LucideIcon name="MessageSquare" size={14} className="text-rose-500" />
+                        <LucideIcon
+                          name="MessageSquare"
+                          size={14}
+                          className="text-rose-500"
+                        />
                         <span>Tin nhắn</span>
                       </div>
                       {messages.length > 0 && (
@@ -1519,10 +1641,15 @@ export default function App() {
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer justify-between"
                     >
                       <div className="flex items-center gap-2.5">
-                        <LucideIcon name="Heart" size={14} className="text-red-500" />
+                        <LucideIcon
+                          name="Heart"
+                          size={14}
+                          className="text-red-500"
+                        />
                         <span>Ủng hộ (Donate)</span>
                       </div>
-                      {donations.filter((d) => d.trang_thai === 0).length > 0 && (
+                      {donations.filter((d) => d.trang_thai === 0).length >
+                        0 && (
                         <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
                           {donations.filter((d) => d.trang_thai === 0).length}
                         </span>
@@ -1536,7 +1663,11 @@ export default function App() {
                       }}
                       className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
                     >
-                      <LucideIcon name="Shield" size={14} className="text-teal-500" />
+                      <LucideIcon
+                        name="Shield"
+                        size={14}
+                        className="text-teal-500"
+                      />
                       <span>Giáo án & Đồ Game</span>
                     </button>
                   </div>
@@ -1585,7 +1716,11 @@ export default function App() {
 
       {/* --- Main Contents --- */}
       <main
-        className={`flex-grow w-full mx-auto transition-all duration-300 ${isAdminMode ? "max-w-7xl px-4 sm:px-6 py-6" : "max-w-5xl px-4 sm:px-6 py-6 sm:py-12 flex flex-col"}`}
+        className={`flex-grow w-full mx-auto transition-all duration-300 ${
+          isAdminMode
+            ? "max-w-7xl px-4 sm:px-6 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
+            : "max-w-5xl px-4 sm:px-6 py-6 sm:py-12 pb-16 sm:pb-24 flex flex-col" // Khoảng đệm khi là User
+        }`}
       >
         {isAdminMode ? (
           /* EDITING MODE: Two-column grid layout (left: tab content, right: live sticky phone mockup) */
@@ -1598,16 +1733,16 @@ export default function App() {
                 (isClickLogsLoading ? (
                   <div className="space-y-6 animate-pulse">
                     <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/3"></div>
-                    <div className="h-20 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+                    <div className="h-20 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-2 h-80 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-80 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+                      <div className="lg:col-span-2 h-80 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-80 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
                     </div>
                   </div>
                 ) : (
@@ -1664,9 +1799,9 @@ export default function App() {
                   <div className="space-y-6 animate-pulse">
                     <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
                     <div className="space-y-4">
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
                     </div>
                   </div>
                 ) : (
@@ -1682,9 +1817,9 @@ export default function App() {
                   <div className="space-y-6 animate-pulse">
                     <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
                     <div className="space-y-4">
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
                     </div>
                   </div>
                 ) : (
@@ -1701,9 +1836,9 @@ export default function App() {
                   <div className="space-y-6 animate-pulse">
                     <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
                     </div>
                   </div>
                 ) : (
@@ -1746,7 +1881,7 @@ export default function App() {
         ) : (
           /* PUBLIC RESPONSIVE VIEW: A beautiful fully-fledged widescreen portfolio website adapting from desktop to mobile fluidly without narrow mockup frames */
           <div
-            className={`w-full max-w-4xl mx-auto animate-in fade-in duration-500 pb-24 transition-all duration-300 ${getFontFamilyClass()} ${
+            className={`w-full max-w-4xl mx-auto animate-in fade-in duration-500 transition-all duration-300 ${getFontFamilyClass()} ${
               isDarkPublic ? "text-slate-100" : "text-slate-800"
             }`}
           >
@@ -1800,7 +1935,7 @@ export default function App() {
             </div>
 
             {/* 3. Sliding Banner (Banner chạy slide) */}
-            <div className="w-full relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-md mt-6">
+            <div className="w-full relative overflow-hidden rounded-md sm:rounded-3xl shadow-md mt-6">
               <BannerSlideshow
                 images={
                   appearance.selectedBanners &&
@@ -1814,7 +1949,10 @@ export default function App() {
             </div>
 
             {/* 4. Sublte accent color divider for public layout space */}
-            <div className="h-[1px] w-full mt-6 opacity-20" style={{ backgroundColor: appearance.accentColor }} />
+            <div
+              className="h-[1px] w-full mt-6 opacity-20"
+              style={{ backgroundColor: appearance.accentColor }}
+            />
 
             {/* 5. Main public content area */}
             <div className="w-full mt-6 space-y-6">
@@ -1845,7 +1983,7 @@ export default function App() {
                             target="_blank"
                             rel="noreferrer"
                             onClick={() => handleLinkClick(link.id)}
-                            className={`flex items-center p-3.5 px-4.5 border-2 rounded-2xl hover:shadow-md transition-all hover:-translate-y-0.5 group active:scale-[0.99] ${
+                            className={`flex items-center p-3.5 px-4.5 border-2 rounded-md hover:shadow-md transition-all hover:-translate-y-0.5 group active:scale-[0.99] ${
                               isDarkPublic
                                 ? "bg-slate-900/60 hover:bg-slate-850"
                                 : "bg-white shadow-xs hover:bg-slate-50/50"
@@ -1911,7 +2049,7 @@ export default function App() {
 
                     {links.filter((l) => l.enabled).length === 0 && (
                       <div
-                        className={`text-center p-12 border border-dashed rounded-2xl font-sans text-sm ${
+                        className={`text-center p-12 border border-dashed rounded-md font-sans text-sm ${
                           isDarkPublic
                             ? "border-slate-800 text-slate-500 bg-slate-900/50"
                             : "border-slate-200 text-slate-400 bg-slate-50/50"
@@ -1930,8 +2068,8 @@ export default function App() {
                     <div className="space-y-6 animate-pulse">
                       <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
-                        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
-                        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+                        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
+                        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
                       </div>
                     </div>
                   ) : (
@@ -1967,10 +2105,15 @@ export default function App() {
                           "Cảm ơn các bạn đã ủng hộ mình để phát triển nhiều giáo án chất lượng hơn nữa!"}
                       </p>
 
-                      <form onSubmit={handlePublicDonateSubmit} className="space-y-4 text-left">
+                      <form
+                        onSubmit={handlePublicDonateSubmit}
+                        className="space-y-4 text-left"
+                      >
                         {/* Donor Name */}
                         <div className="space-y-1">
-                          <label className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}>
+                          <label
+                            className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
+                          >
                             Tên người ủng hộ *
                           </label>
                           <input
@@ -1985,7 +2128,9 @@ export default function App() {
 
                         {/* Amount */}
                         <div className="space-y-1">
-                          <label className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}>
+                          <label
+                            className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
+                          >
                             Số tiền ủng hộ (VNĐ) *
                           </label>
                           <input
@@ -2001,7 +2146,10 @@ export default function App() {
 
                           {/* Quick Amount Choices */}
                           <div className="flex flex-wrap gap-1.5 pt-1">
-                            {[2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000].map((val) => (
+                            {[
+                              2000, 5000, 10000, 20000, 50000, 100000, 200000,
+                              500000,
+                            ].map((val) => (
                               <button
                                 key={val}
                                 type="button"
@@ -2020,7 +2168,9 @@ export default function App() {
 
                         {/* Stream Message */}
                         <div className="space-y-1">
-                          <label className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}>
+                          <label
+                            className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
+                          >
                             Lời nhắn (Hiển thị trên stream)
                           </label>
                           <textarea
@@ -2039,13 +2189,17 @@ export default function App() {
                           appearance.momoEnabled !== false &&
                           appearance.momoNumber && (
                             <div className="space-y-1.5 pt-1">
-                              <label className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}>
+                              <label
+                                className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
+                              >
                                 Phương thức thanh toán
                               </label>
                               <div className="grid grid-cols-2 gap-2">
                                 <button
                                   type="button"
-                                  onClick={() => setSelectedDonateMethod("bank")}
+                                  onClick={() =>
+                                    setSelectedDonateMethod("bank")
+                                  }
                                   className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                                     selectedDonateMethod === "bank"
                                       ? "border-transparent text-white"
@@ -2055,7 +2209,10 @@ export default function App() {
                                   }`}
                                   style={
                                     selectedDonateMethod === "bank"
-                                      ? { backgroundColor: appearance.accentColor }
+                                      ? {
+                                          backgroundColor:
+                                            appearance.accentColor,
+                                        }
                                       : {}
                                   }
                                 >
@@ -2064,7 +2221,9 @@ export default function App() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => setSelectedDonateMethod("momo")}
+                                  onClick={() =>
+                                    setSelectedDonateMethod("momo")
+                                  }
                                   className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                                     selectedDonateMethod === "momo"
                                       ? "border-transparent text-white"
@@ -2074,7 +2233,10 @@ export default function App() {
                                   }`}
                                   style={
                                     selectedDonateMethod === "momo"
-                                      ? { backgroundColor: appearance.accentColor }
+                                      ? {
+                                          backgroundColor:
+                                            appearance.accentColor,
+                                        }
                                       : {}
                                   }
                                 >
@@ -2087,16 +2249,21 @@ export default function App() {
 
                         {/* Submit Button */}
                         <div className="pt-2">
-                          {!(appearance.bankAccount || appearance.momoNumber) ? (
+                          {!(
+                            appearance.bankAccount || appearance.momoNumber
+                          ) ? (
                             <div className="text-center text-xs text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-100 dark:border-red-900/30 font-semibold">
-                              Chưa cấu hình tài khoản nhận ủng hộ. Admin vui lòng cấu hình tài khoản trong phần Giao diện.
+                              Chưa cấu hình tài khoản nhận ủng hộ. Admin vui
+                              lòng cấu hình tài khoản trong phần Giao diện.
                             </div>
                           ) : (
                             <button
                               type="submit"
                               disabled={isDonating}
                               className="w-full py-3 px-4 rounded-xl text-white font-bold transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer hover:opacity-90 active:scale-[0.99]"
-                              style={{ backgroundColor: appearance.accentColor }}
+                              style={{
+                                backgroundColor: appearance.accentColor,
+                              }}
                             >
                               {isDonating ? (
                                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -2113,10 +2280,14 @@ export default function App() {
                     /* Step 2: Show QR Code and Instructions */
                     <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
                       <div className="text-center space-y-1">
-                        <p className={`text-xs font-bold uppercase tracking-widest ${isDarkPublic ? "text-emerald-400" : "text-emerald-600"}`}>
+                        <p
+                          className={`text-xs font-bold uppercase tracking-widest ${isDarkPublic ? "text-emerald-400" : "text-emerald-600"}`}
+                        >
                           Đăng ký ủng hộ thành công!
                         </p>
-                        <h3 className={`font-display font-extrabold text-base ${isDarkPublic ? "text-slate-100" : "text-slate-800"}`}>
+                        <h3
+                          className={`font-display font-extrabold text-base ${isDarkPublic ? "text-slate-100" : "text-slate-800"}`}
+                        >
                           Quét mã để chuyển khoản tự động
                         </h3>
                       </div>
@@ -2126,7 +2297,8 @@ export default function App() {
                         <div className="p-3 bg-white rounded-3xl shadow-md border border-slate-100 dark:border-slate-800 flex items-center justify-center w-52 h-52 aspect-square">
                           <img
                             src={
-                              selectedDonateMethod === "momo" && appearance.momoNumber
+                              selectedDonateMethod === "momo" &&
+                              appearance.momoNumber
                                 ? `https://img.vietqr.io/image/MOMO-${appearance.momoNumber}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.momoName || "")}`
                                 : `https://img.vietqr.io/image/${(appearance.bankName || "MB").replace(/\s+/g, "")}-${appearance.bankAccount}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.bankOwner || "")}`
                             }
@@ -2153,10 +2325,16 @@ export default function App() {
                       </div>
 
                       {/* Transfer content highlight */}
-                      <div className={`p-4 rounded-xl border text-left space-y-2.5 ${isDarkPublic ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-150"}`}>
+                      <div
+                        className={`p-4 rounded-xl border text-left space-y-2.5 ${isDarkPublic ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-150"}`}
+                      >
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-slate-400 font-medium">Số tiền chuyển:</span>
-                          <span className={`text-sm font-black ${isDarkPublic ? "text-slate-100" : "text-slate-800"}`}>
+                          <span className="text-xs text-slate-400 font-medium">
+                            Số tiền chuyển:
+                          </span>
+                          <span
+                            className={`text-sm font-black ${isDarkPublic ? "text-slate-100" : "text-slate-800"}`}
+                          >
                             {Number(donateAmount).toLocaleString("vi-VN")} VNĐ
                           </span>
                         </div>
@@ -2164,13 +2342,17 @@ export default function App() {
                         <div className="border-t border-dashed border-slate-200 dark:border-slate-800 my-1"></div>
 
                         <div className="space-y-1">
-                          <span className="text-xs text-slate-400 font-medium block">Nội dung chuyển khoản (Bắt buộc đúng):</span>
+                          <span className="text-xs text-slate-400 font-medium block">
+                            Nội dung chuyển khoản (Bắt buộc đúng):
+                          </span>
                           <div className="flex gap-2">
-                            <div className={`flex-1 font-mono font-black text-center text-lg py-2.5 px-3 rounded-lg border border-dashed select-all uppercase tracking-wider ${
-                              isDarkPublic
-                                ? "bg-slate-850 border-slate-700 text-yellow-400"
-                                : "bg-yellow-50 border-yellow-200 text-amber-800"
-                            }`}>
+                            <div
+                              className={`flex-1 font-mono font-black text-center text-lg py-2.5 px-3 rounded-lg border border-dashed select-all uppercase tracking-wider ${
+                                isDarkPublic
+                                  ? "bg-slate-850 border-slate-700 text-yellow-400"
+                                  : "bg-yellow-50 border-yellow-200 text-amber-800"
+                              }`}
+                            >
                               {generatedMemo}
                             </div>
                             <button
@@ -2181,7 +2363,9 @@ export default function App() {
                                 setTimeout(() => setCopiedMemo(false), 2000);
                               }}
                               className="px-3.5 rounded-lg text-white transition-all flex items-center justify-center shrink-0 cursor-pointer text-xs font-bold"
-                              style={{ backgroundColor: appearance.accentColor }}
+                              style={{
+                                backgroundColor: appearance.accentColor,
+                              }}
                             >
                               {copiedMemo ? (
                                 <LucideIcon name="Check" size={16} />
@@ -2194,22 +2378,30 @@ export default function App() {
                       </div>
 
                       {/* Banking App Redirection Section */}
-                      <div className={`p-4 rounded-xl border text-left space-y-3 ${isDarkPublic ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-150"}`}>
+                      <div
+                        className={`p-4 rounded-xl border text-left space-y-3 ${isDarkPublic ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-150"}`}
+                      >
                         <div className="space-y-1">
-                          <span className={`text-xs font-bold uppercase tracking-wider block ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}>
+                          <span
+                            className={`text-xs font-bold uppercase tracking-wider block ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
+                          >
                             Chọn ứng dụng ngân hàng để thanh toán nhanh:
                           </span>
                           <div className="flex gap-2">
                             <select
                               value={selectedMobileBank}
-                              onChange={(e) => setSelectedMobileBank(e.target.value)}
+                              onChange={(e) =>
+                                setSelectedMobileBank(e.target.value)
+                              }
                               className={`flex-1 p-2.5 rounded-xl border outline-none transition-all text-xs font-bold cursor-pointer ${
                                 isDarkPublic
                                   ? "bg-slate-850 border-slate-700 text-white"
                                   : "bg-white border-slate-200 text-slate-800 focus:border-indigo-500"
                               }`}
                             >
-                              <option value="mb">MB Bank (Ngân hàng Quân đội)</option>
+                              <option value="mb">
+                                MB Bank (Ngân hàng Quân đội)
+                              </option>
                               <option value="vcb">Vietcombank</option>
                               <option value="tcb">Techcombank</option>
                               <option value="bidv">BIDV</option>
@@ -2223,31 +2415,40 @@ export default function App() {
                               type="button"
                               onClick={handleRedirectToBankApp}
                               className="px-4 py-2.5 rounded-xl text-white font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm text-xs hover:opacity-90 active:scale-[0.98]"
-                              style={{ backgroundColor: appearance.accentColor }}
+                              style={{
+                                backgroundColor: appearance.accentColor,
+                              }}
                             >
                               <LucideIcon name="ExternalLink" size={14} />
                               <span>Mở App</span>
                             </button>
                           </div>
                           <p className="text-[10px] text-slate-400 mt-1">
-                            Hệ thống sẽ tự động chuyển hướng và điền thông tin chuyển khoản trên ứng dụng ngân hàng của bạn.
+                            Hệ thống sẽ tự động chuyển hướng và điền thông tin
+                            chuyển khoản trên ứng dụng ngân hàng của bạn.
                           </p>
                         </div>
                       </div>
 
                       {/* Guide list */}
-                      <div className={`text-left text-xs leading-relaxed space-y-1.5 p-3 rounded-xl ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}>
+                      <div
+                        className={`text-left text-xs leading-relaxed space-y-1.5 p-3 rounded-xl ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
+                      >
                         <p className="font-bold flex items-start gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                          Bước 1: Lưu ảnh QR ở trên HOẶC chọn ứng dụng ngân hàng của bạn rồi nhấn "Mở App" để chuyển khoản tự động.
+                          Bước 1: Lưu ảnh QR ở trên HOẶC chọn ứng dụng ngân hàng
+                          của bạn rồi nhấn "Mở App" để chuyển khoản tự động.
                         </p>
                         <p className="font-bold flex items-start gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                          Bước 2: Kiểm tra số tiền chuyển khoản trùng khớp với yêu cầu ở trên.
+                          Bước 2: Kiểm tra số tiền chuyển khoản trùng khớp với
+                          yêu cầu ở trên.
                         </p>
                         <p className="font-bold flex items-start gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                          Bước 3: Nhấn chuyển khoản trên điện thoại. Sau khi chuyển khoản thành công, nhấn "Xác nhận đã chuyển" bên dưới.
+                          Bước 3: Nhấn chuyển khoản trên điện thoại. Sau khi
+                          chuyển khoản thành công, nhấn "Xác nhận đã chuyển" bên
+                          dưới.
                         </p>
                       </div>
 
@@ -2297,7 +2498,7 @@ export default function App() {
                         isDarkPublic ? "text-slate-400" : "text-slate-500"
                       }`}
                     >
-                      Bản tin & Trạng thái
+                      Bài viết
                     </h2>
                   </div>
 
@@ -2316,7 +2517,7 @@ export default function App() {
                       return (
                         <div
                           key={post.id}
-                          className={`border rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col gap-4 ${
+                          className={`border rounded-xl p-3 shadow-xs flex flex-col gap-2 ${
                             isDarkPublic
                               ? "bg-slate-900 border-slate-800 text-white"
                               : "bg-white border-slate-100 text-slate-800"
@@ -2346,7 +2547,7 @@ export default function App() {
                           </p>
 
                           {post.url_hinh_anh && (
-                            <div className="rounded-2xl overflow-hidden border border-slate-100/10 dark:border-slate-800/80 bg-slate-950 flex items-center justify-center max-h-96">
+                            <div className="rounded-md overflow-hidden border border-slate-100/10 dark:border-slate-800/80 bg-slate-950 flex items-center justify-center max-h-96">
                               <img
                                 src={post.url_hinh_anh}
                                 alt="Status visual assets"
@@ -2361,7 +2562,10 @@ export default function App() {
                             {/* Like Button */}
                             <button
                               onClick={() => {
-                                showNotification("Cảm ơn bạn đã bày tỏ cảm xúc!", "success");
+                                showNotification(
+                                  "Cảm ơn bạn đã bày tỏ cảm xúc!",
+                                  "success",
+                                );
                               }}
                               className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 transition-colors text-xs font-bold cursor-pointer"
                             >
@@ -2375,18 +2579,35 @@ export default function App() {
                                 const associatedLink = post.lien_ket_id
                                   ? links.find((l) => l.id === post.lien_ket_id)
                                   : null;
-                                  
+
                                 if (associatedLink) {
-                                  window.open(`https://${associatedLink.url}`, "_blank");
-                                  showNotification(`Đang chuyển hướng đến ${associatedLink.title}...`, "info");
+                                  window.open(
+                                    `https://${associatedLink.url}`,
+                                    "_blank",
+                                  );
+                                  showNotification(
+                                    `Đang chuyển hướng đến ${associatedLink.title}...`,
+                                    "info",
+                                  );
                                 } else {
                                   // Fallback to first active link
-                                  const firstActive = links.find((l) => l.enabled);
+                                  const firstActive = links.find(
+                                    (l) => l.enabled,
+                                  );
                                   if (firstActive) {
-                                    window.open(`https://${firstActive.url}`, "_blank");
-                                    showNotification(`Đang chuyển hướng đến ${firstActive.title}...`, "info");
+                                    window.open(
+                                      `https://${firstActive.url}`,
+                                      "_blank",
+                                    );
+                                    showNotification(
+                                      `Đang chuyển hướng đến ${firstActive.title}...`,
+                                      "info",
+                                    );
                                   } else {
-                                    showNotification("Chưa có liên kết liên hệ nào hoạt động!", "error");
+                                    showNotification(
+                                      "Chưa có liên kết liên hệ nào hoạt động!",
+                                      "error",
+                                    );
                                   }
                                 }
                               }}
@@ -2400,14 +2621,21 @@ export default function App() {
                             <button
                               onClick={() => {
                                 if (navigator.share) {
-                                  navigator.share({
-                                    title: `Bài viết từ ${appearance.name}`,
-                                    text: post.noi_dung,
-                                    url: window.location.href,
-                                  }).catch(console.error);
+                                  navigator
+                                    .share({
+                                      title: `Bài viết từ ${appearance.name}`,
+                                      text: post.noi_dung,
+                                      url: window.location.href,
+                                    })
+                                    .catch(console.error);
                                 } else {
-                                  navigator.clipboard.writeText(`${post.noi_dung}\n- ${appearance.name}`);
-                                  showNotification("Đã sao chép nội dung bài viết!", "success");
+                                  navigator.clipboard.writeText(
+                                    `${post.noi_dung}\n- ${appearance.name}`,
+                                  );
+                                  showNotification(
+                                    "Đã sao chép nội dung bài viết!",
+                                    "success",
+                                  );
                                 }
                               }}
                               className="flex items-center gap-1.5 text-slate-400 hover:text-indigo-500 transition-colors text-xs font-bold cursor-pointer"
@@ -2438,7 +2666,7 @@ export default function App() {
               {/* Contact message board instead of newsletter subscription */}
               {appearance.newsletterEnabled && (
                 <div
-                  className={`w-full p-6 sm:p-8 rounded-2xl border text-left transition-colors duration-300 mt-8 ${
+                  className={`w-full p-6 sm:p-8 rounded-md border text-left transition-colors duration-300 mt-8 ${
                     isDarkPublic
                       ? "bg-slate-900 border-slate-800"
                       : "bg-white border-slate-150 shadow-sm"
@@ -2535,7 +2763,7 @@ export default function App() {
               )}
 
               {/* Footer and branding navigation inline */}
-              <div className="pt-8 border-t border-slate-100/50 dark:border-slate-900/50 flex flex-col items-center sm:flex-row sm:justify-between gap-4">
+              <div className="pt-4 pb-4 border-t border-slate-100/50 dark:border-slate-900/50 flex flex-col items-center sm:flex-row sm:justify-between gap-4">
                 <div className="flex gap-6 text-slate-400 dark:text-slate-500 text-xs font-medium">
                   <a
                     href="#privacy"
@@ -2579,10 +2807,16 @@ export default function App() {
                         ? "font-extrabold"
                         : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                     }`}
-                    style={publicTab === "links" ? { color: appearance.accentColor } : {}}
+                    style={
+                      publicTab === "links"
+                        ? { color: appearance.accentColor }
+                        : {}
+                    }
                   >
                     <LucideIcon name="Link2" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Liên hệ</span>
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+                      Liên hệ
+                    </span>
                   </button>
 
                   {/* Button 2: Trang bị */}
@@ -2593,10 +2827,16 @@ export default function App() {
                         ? "font-extrabold"
                         : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                     }`}
-                    style={publicTab === "guides" ? { color: appearance.accentColor } : {}}
+                    style={
+                      publicTab === "guides"
+                        ? { color: appearance.accentColor }
+                        : {}
+                    }
                   >
                     <LucideIcon name="BookOpen" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Trang bị</span>
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+                      Trang bị
+                    </span>
                   </button>
 
                   {/* Button 3: Bài viết */}
@@ -2607,10 +2847,16 @@ export default function App() {
                         ? "font-extrabold"
                         : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                     }`}
-                    style={publicTab === "posts" ? { color: appearance.accentColor } : {}}
+                    style={
+                      publicTab === "posts"
+                        ? { color: appearance.accentColor }
+                        : {}
+                    }
                   >
                     <LucideIcon name="FileText" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Bài viết</span>
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+                      Bài viết
+                    </span>
                     {posts.length > 0 && (
                       <span className="absolute top-1 right-5 bg-red-500 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
                         {posts.length}
@@ -2626,10 +2872,16 @@ export default function App() {
                         ? "font-extrabold"
                         : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                     }`}
-                    style={publicTab === "donate" ? { color: appearance.accentColor } : {}}
+                    style={
+                      publicTab === "donate"
+                        ? { color: appearance.accentColor }
+                        : {}
+                    }
                   >
                     <LucideIcon name="Heart" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">Ủng hộ</span>
+                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+                      Ủng hộ
+                    </span>
                   </button>
                 </div>
               </div>

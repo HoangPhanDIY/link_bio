@@ -74,7 +74,7 @@ export default function ImageCropperModal({
   if (imgDimensions.width > 0 && imgDimensions.height > 0) {
     baseScale = Math.max(
       maskWidth / imgDimensions.width,
-      maskHeight / imgDimensions.height
+      maskHeight / imgDimensions.height,
     );
   }
 
@@ -229,7 +229,7 @@ export default function ImageCropperModal({
         }
       },
       imageFile.type || "image/png",
-      0.92
+      0.92,
     );
   };
 
@@ -254,7 +254,7 @@ export default function ImageCropperModal({
         <div className="p-5 flex flex-col items-center">
           <div
             ref={containerRef}
-            className="relative overflow-hidden bg-slate-950 rounded-2xl shadow-inner select-none cursor-grab active:cursor-grabbing"
+            className="relative overflow-hidden bg-slate-950 rounded-md shadow-inner select-none cursor-grab active:cursor-grabbing"
             style={{ width: containerWidth, height: containerHeight }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -372,14 +372,14 @@ export default function ImageCropperModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 transition cursor-pointer"
+            className="px-4 py-2 rounded text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 transition cursor-pointer"
           >
             Hủy bỏ
           </button>
           <button
             type="button"
             onClick={handleCrop}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm flex items-center gap-1.5 cursor-pointer"
           >
             <LucideIcon name="Check" size={14} />
             Cắt & Áp dụng

@@ -61,7 +61,9 @@ export default function DashboardTab({
   donations = [],
   posts = [],
 }: DashboardTabProps) {
-  const [chartView, setChartView] = useState<"daily" | "weekly" | "monthly">("daily");
+  const [chartView, setChartView] = useState<"daily" | "weekly" | "monthly">(
+    "daily",
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
@@ -256,7 +258,9 @@ export default function DashboardTab({
         ? `${((totalClicksCount / views) * 100).toFixed(1)}%`
         : "0.0%";
 
-    const activeLinksCount = links.filter((l) => l.enabled || l.hien_thi).length;
+    const activeLinksCount = links.filter(
+      (l) => l.enabled || l.hien_thi,
+    ).length;
 
     return [
       {
@@ -331,7 +335,7 @@ export default function DashboardTab({
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       {/* Toast alert popup */}
       {showNotification && (
-        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-800 flex items-center gap-2.5 text-xs font-bold animate-bounce">
+        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded shadow-2xl border border-slate-800 flex items-center gap-2.5 text-xs font-bold animate-bounce">
           <LucideIcon name="Check" className="text-emerald-400" size={16} />
           {showNotification}
         </div>
@@ -352,11 +356,11 @@ export default function DashboardTab({
         {metrics.map((card, i) => (
           <div
             key={i}
-            className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 hover:shadow-md transition-shadow shadow-xs relative overflow-hidden"
+            className="bg-white border border-slate-100 rounded-md p-4 sm:p-5 hover:shadow-md transition-shadow shadow-xs relative overflow-hidden"
           >
             <div className="flex justify-between items-start mb-3">
               <div
-                className="p-2.5 rounded-xl flex items-center justify-center font-bold"
+                className="p-2.5 rounded flex items-center justify-center font-bold"
                 style={{
                   backgroundColor: `${accentColor}10`,
                   color: accentColor,
@@ -389,12 +393,12 @@ export default function DashboardTab({
       {/* Interactive Charts & Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Chart Column */}
-        <div className="lg:col-span-2 bg-white border border-slate-100 rounded-2xl p-4 sm:p-6 shadow-xs">
+        <div className="lg:col-span-2 bg-white border border-slate-100 rounded-md p-4 sm:p-6 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <h2 className="font-display font-bold text-slate-850 text-sm sm:text-base">
               Lưu lượng click theo thời gian
             </h2>
-            <div className="flex p-1 bg-slate-100 rounded-xl self-start sm:self-auto">
+            <div className="flex p-1 bg-slate-100 rounded self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setChartView("daily")}
@@ -440,8 +444,16 @@ export default function DashboardTab({
               >
                 <defs>
                   <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={accentColor} stopOpacity={0.2} />
-                    <stop offset="95%" stopColor={accentColor} stopOpacity={0.0} />
+                    <stop
+                      offset="5%"
+                      stopColor={accentColor}
+                      stopOpacity={0.2}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={accentColor}
+                      stopOpacity={0.0}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -488,7 +500,7 @@ export default function DashboardTab({
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-6 shadow-xs space-y-6">
+        <div className="bg-white border border-slate-100 rounded-md p-4 sm:p-6 shadow-xs space-y-6">
           <h2 className="font-display font-bold text-slate-850 text-sm sm:text-base">
             Hoạt động gần đây
           </h2>
@@ -535,7 +547,7 @@ export default function DashboardTab({
       </div>
 
       {/* Top Performing Links Table */}
-      <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
+      <div className="bg-white border border-slate-100 rounded-md overflow-hidden shadow-xs">
         <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="font-display font-bold text-slate-850 text-sm sm:text-base">
             Hiệu quả liên kết
