@@ -31,6 +31,13 @@ export interface DBUser {
   background_color?: string | null;
   link_background_color?: string | null;
   link_text_color?: string | null;
+  loading_web_gif?: string | null;
+  loading_data_gif?: string | null;
+  stream_alert_gif?: string | null;
+  stream_alert_sound?: string | null;
+  stream_alert_template?: string | null;
+  stream_alert_tts?: boolean | null;
+  stream_alert_duration?: number | null;
 }
 
 export interface DBCategory {

@@ -101,7 +101,14 @@ export const INITIAL_APPEARANCE: AppearanceSettings = {
   momoEnabled: true,
   backgroundColor: '',
   linkBackgroundColor: '',
-  linkTextColor: ''
+  linkTextColor: '',
+  loadingWebGif: '/giphy.webp',
+  loadingDataGif: '/giphy.webp',
+  streamAlertGif: '/giphy.webp',
+  streamAlertSound: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav',
+  streamAlertTemplate: '{name} đã ủng hộ bạn {amount}Đ',
+  streamAlertTts: true,
+  streamAlertDuration: 8
 };
 
 export const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [

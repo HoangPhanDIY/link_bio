@@ -20,6 +20,8 @@ import MessagesTab from "./components/MessagesTab";
 import DonationsTab from "./components/DonationsTab";
 import PostsTab from "./components/PostsTab";
 import ShareModal from "./components/ShareModal";
+import StreamTab from "./components/StreamTab";
+import StreamOverlay from "./components/StreamOverlay";
 import { dbService } from "./dbService";
 import {
   DBUser,
@@ -54,7 +56,8 @@ type TabType =
   | "guides"
   | "messages"
   | "donations"
-  | "posts";
+  | "posts"
+  | "stream";
 
 declare global {
   interface Window {
@@ -88,6 +91,10 @@ export default function App() {
   const [donations, setDonations] = useState<DBDonation[]>([]);
   const [posts, setPosts] = useState<DBPost[]>([]);
   const [usersCount, setUsersCount] = useState<number>(1);
+  const [currentView] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("view") || "";
+  });
 
   // Lazy load flags & status indicators
   const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
@@ -144,14 +151,31 @@ export default function App() {
   useEffect(() => {
     async function initAndLoadDb() {
       try {
-        // 1. Seed default data if tables are empty
-        await dbService.seedGameLibraryIfNeeded();
-
-        // 2. Fetch admin user profile and sync theme configurations
+        // 1. Fetch admin user profile immediately so custom loading GIFs and theme apply first
         const profile = await dbService.getProfile();
+        const streamSettings = await dbService.getStreamAlertSettings();
         if (profile) {
           setDbUser(profile);
+          setAppearance((prev) => ({
+            ...prev,
+            loadingWebGif: profile.loading_web_gif || prev.loadingWebGif,
+            loadingDataGif: profile.loading_data_gif || prev.loadingDataGif,
+            streamAlertGif: (streamSettings && streamSettings.stream_alert_gif) || profile.stream_alert_gif || prev.streamAlertGif,
+            streamAlertSound: (streamSettings && streamSettings.stream_alert_sound) || profile.stream_alert_sound || prev.streamAlertSound,
+            streamAlertTemplate: (streamSettings && streamSettings.stream_alert_template) || profile.stream_alert_template || prev.streamAlertTemplate,
+            streamAlertTts: streamSettings ? (streamSettings.stream_alert_tts !== false) : (profile.stream_alert_tts !== false),
+            streamAlertDuration: (streamSettings && streamSettings.stream_alert_duration) || profile.stream_alert_duration || prev.streamAlertDuration,
+            streamAlertVoiceGender: (streamSettings && streamSettings.stream_alert_voice_gender) || "default",
+            streamAlertVoiceName: (streamSettings && streamSettings.stream_alert_voice_name) || "",
+            mode: (profile.giao_dien_mode as any) || prev.mode,
+            fontFamily: (profile.phong_chu as any) || prev.fontFamily,
+            accentColor: profile.mau_chu_dao || prev.accentColor,
+            backgroundColor: profile.background_color || prev.backgroundColor,
+          }));
         }
+
+        // 2. Seed default data if tables are empty
+        await dbService.seedGameLibraryIfNeeded();
 
         // Restore login session if present
         const savedSessionStr = localStorage.getItem("vivid_persona_session");
@@ -284,6 +308,27 @@ export default function App() {
             linkTextColor: profile
               ? profile.link_text_color || prev.linkTextColor
               : prev.linkTextColor,
+            loadingWebGif: profile
+              ? profile.loading_web_gif || prev.loadingWebGif
+              : prev.loadingWebGif,
+            loadingDataGif: profile
+              ? profile.loading_data_gif || prev.loadingDataGif
+              : prev.loadingDataGif,
+            streamAlertGif: profile
+              ? profile.stream_alert_gif || prev.streamAlertGif
+              : prev.streamAlertGif,
+            streamAlertSound: profile
+              ? profile.stream_alert_sound || prev.streamAlertSound
+              : prev.streamAlertSound,
+            streamAlertTemplate: profile
+              ? profile.stream_alert_template || prev.streamAlertTemplate
+              : prev.streamAlertTemplate,
+            streamAlertTts: profile
+              ? profile.stream_alert_tts !== false
+              : prev.streamAlertTts,
+            streamAlertDuration: profile
+              ? profile.stream_alert_duration || prev.streamAlertDuration
+              : prev.streamAlertDuration,
           };
         });
       } catch (err) {
@@ -822,6 +867,8 @@ export default function App() {
           background_color: appearance.backgroundColor || null,
           link_background_color: appearance.linkBackgroundColor || null,
           link_text_color: appearance.linkTextColor || null,
+          loading_web_gif: appearance.loadingWebGif || null,
+          loading_data_gif: appearance.loadingDataGif || null,
         });
         if (updated) {
           setDbUser(updated);
@@ -877,6 +924,42 @@ export default function App() {
       console.warn("DB update failed", err);
       showNotification("Lỗi kết nối khi cập nhật cấu hình ủng hộ.", "error");
       throw err;
+    }
+  };
+
+  const handleSaveStreamSettings = async () => {
+    const targetId = dbUser?.id || "00000000-0000-0000-0000-000000000000";
+    try {
+      // 1. Save to nguoi_dung table as fallback/compatibility
+      const updated = await dbService.updateProfile(targetId, {
+        stream_alert_gif: appearance.streamAlertGif || "",
+        stream_alert_sound: appearance.streamAlertSound || "",
+        stream_alert_template: appearance.streamAlertTemplate || "",
+        stream_alert_tts: appearance.streamAlertTts !== false,
+        stream_alert_duration: appearance.streamAlertDuration || 8,
+      });
+      if (updated) {
+        setDbUser(updated);
+      }
+
+      // 2. Save each stream property to cau_hinh table
+      await Promise.all([
+        dbService.saveCauHinhValue("stream_alert_gif", appearance.streamAlertGif || ""),
+        dbService.saveCauHinhValue("stream_alert_sound", appearance.streamAlertSound || ""),
+        dbService.saveCauHinhValue("stream_alert_template", appearance.streamAlertTemplate || ""),
+        dbService.saveCauHinhValue("stream_alert_tts", appearance.streamAlertTts !== false ? "true" : "false"),
+        dbService.saveCauHinhValue("stream_alert_duration", String(appearance.streamAlertDuration || 8)),
+        dbService.saveCauHinhValue("stream_alert_voice_gender", appearance.streamAlertVoiceGender || "default"),
+        dbService.saveCauHinhValue("stream_alert_voice_name", appearance.streamAlertVoiceName || ""),
+      ]);
+
+      showNotification(
+        "Đã lưu tất cả cấu hình Live Stream vào bảng database (cau_hinh) thành công!",
+        "success",
+      );
+    } catch (err) {
+      console.warn("DB stream settings update failed", err);
+      showNotification("Có lỗi xảy ra khi lưu cấu hình lên database. Đã lưu tạm cục bộ.", "error");
     }
   };
 
@@ -1065,12 +1148,30 @@ export default function App() {
     return "font-sans";
   };
 
+  const renderDataLoading = (message: string = "Đang tải dữ liệu...", isDark: boolean = false) => (
+    <div className={`flex flex-col items-center justify-center py-12 px-6 border rounded-2xl shadow-xs animate-in fade-in duration-300 ${isDark ? "border-slate-800 bg-slate-900/40" : "border-slate-100 bg-white"}`}>
+      <img
+        src={appearance.loadingDataGif || "/giphy.webp"}
+        alt="Loading Data..."
+        className="w-24 h-24 object-contain mb-4"
+        referrerPolicy="no-referrer"
+      />
+      <p className="text-slate-400 font-bold text-xs uppercase tracking-wider animate-pulse">
+        {message}
+      </p>
+    </div>
+  );
+
+  if (currentView === "stream-overlay") {
+    return <StreamOverlay />;
+  }
+
   if (isAppLoading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center z-50">
         <div className="flex flex-col items-center gap-4">
           <img
-            src="/giphy.webp"
+            src={appearance.loadingWebGif || "/giphy.webp"}
             alt="Loading..."
             className="w-32 h-32 object-contain"
             referrerPolicy="no-referrer"
@@ -1412,6 +1513,25 @@ export default function App() {
                         />
                         <span>Trang bị</span>
                       </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab("stream");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
+                          activeTab === "stream"
+                            ? "bg-slate-50 text-indigo-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <LucideIcon
+                          name="Tv"
+                          size={14}
+                          className="text-indigo-500"
+                        />
+                        <span>Stream Live</span>
+                      </button>
                     </div>
                   </>
                 )}
@@ -1508,6 +1628,17 @@ export default function App() {
                 <LucideIcon name="Shield" size={14} />
                 <span>Trang bị</span>
               </button>
+              <button
+                onClick={() => setActiveTab("stream")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === "stream"
+                    ? "bg-slate-100 text-slate-800 font-extrabold"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                <LucideIcon name="Tv" size={14} />
+                <span>Stream Live</span>
+              </button>
             </nav>
 
             {/* Right side View Public Profile exit button */}
@@ -1562,20 +1693,7 @@ export default function App() {
             >
               {activeTab === "dashboard" &&
                 (isClickLogsLoading ? (
-                  <div className="space-y-6 animate-pulse">
-                    <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/3"></div>
-                    <div className="h-20 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-28 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-2 h-80 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-80 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                    </div>
-                  </div>
+                  renderDataLoading("Đang tải dữ liệu bảng điều khiển...")
                 ) : (
                   <DashboardTab
                     name={appearance.name}
@@ -1628,14 +1746,7 @@ export default function App() {
 
               {activeTab === "messages" &&
                 (isMessagesLoading ? (
-                  <div className="space-y-6 animate-pulse">
-                    <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
-                    <div className="space-y-4">
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                    </div>
-                  </div>
+                  renderDataLoading("Đang tải danh sách tin nhắn...")
                 ) : (
                   <MessagesTab
                     messages={messages}
@@ -1646,14 +1757,7 @@ export default function App() {
 
               {activeTab === "donations" &&
                 (isDonationsLoading ? (
-                  <div className="space-y-6 animate-pulse">
-                    <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
-                    <div className="space-y-4">
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-24 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                    </div>
-                  </div>
+                  renderDataLoading("Đang tải thông tin ủng hộ...")
                 ) : (
                   <DonationsTab
                     donations={donations}
@@ -1665,14 +1769,7 @@ export default function App() {
 
               {activeTab === "guides" &&
                 (isGuidesLoading ? (
-                  <div className="space-y-6 animate-pulse">
-                    <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                    </div>
-                  </div>
+                  renderDataLoading("Đang tải kho trang bị & giáo án...")
                 ) : (
                   <BuildGuidesTab
                     champions={champions}
@@ -1685,6 +1782,15 @@ export default function App() {
                     accentColor={appearance.accentColor}
                   />
                 ))}
+
+              {activeTab === "stream" && (
+                <StreamTab
+                  appearance={appearance}
+                  onUpdateAppearance={handleUpdateAppearance}
+                  onSaveStreamSettings={handleSaveStreamSettings}
+                  dbUser={dbUser}
+                />
+              )}
             </div>
 
             {/* Right Column: Live Sticky Mockup Preview (Only visible in Links & Appearance) */}
@@ -1733,13 +1839,7 @@ export default function App() {
               {publicTab === "guides" && (
                 <div className="animate-in fade-in duration-300">
                   {isGuidesLoading ? (
-                    <div className="space-y-6 animate-pulse">
-                      <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
-                        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-md"></div>
-                      </div>
-                    </div>
+                    renderDataLoading("Đang tải danh sách giáo án...", isDarkPublic)
                   ) : (
                     <PublicBuildGuides
                       guides={guides}

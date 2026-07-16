@@ -17,8 +17,9 @@ async function startServer() {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
-  // Serve image folder statically
-  app.use("/image", express.static(path.join(process.cwd(), "image")));
+  // Serve image and uploads folder statically
+  app.use("/image", express.static(path.join(process.cwd(), "public", "image")));
+  app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
 
   // Configure multer storage
   const storage = multer.diskStorage({
@@ -56,6 +57,52 @@ async function startServer() {
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Stream notification in-memory store
+  interface StreamAlert {
+    id: string;
+    name: string;
+    amount: number;
+    message: string;
+    isTest?: boolean;
+    timestamp: number;
+  }
+
+  let pendingAlerts: StreamAlert[] = [];
+
+  // API to trigger a stream alert (live notification)
+  app.post("/api/donate-alert", (req, res) => {
+    const { name, amount, message, isTest } = req.body;
+    if (!name || amount === undefined) {
+      return res.status(400).json({ success: false, message: "Thiếu thông tin name hoặc amount" });
+    }
+
+    const newAlert: StreamAlert = {
+      id: Math.random().toString(36).substring(2, 15),
+      name,
+      amount: Number(amount),
+      message: message || "",
+      isTest: !!isTest,
+      timestamp: Date.now(),
+    };
+
+    pendingAlerts.push(newAlert);
+
+    // Limit queue size to prevent memory leaks
+    if (pendingAlerts.length > 100) {
+      pendingAlerts.shift();
+    }
+
+    res.json({ success: true, alert: newAlert, message: "Đã gửi thông tin lên live stream thành công!" });
+  });
+
+  // API for the overlay to fetch new stream alerts
+  app.get("/api/stream-alerts", (req, res) => {
+    // Return all pending alerts and clear the queue
+    const alerts = [...pendingAlerts];
+    pendingAlerts = [];
+    res.json({ success: true, alerts });
   });
 
   // Vite or static serving

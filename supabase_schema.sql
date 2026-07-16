@@ -27,8 +27,24 @@ CREATE TABLE IF NOT EXISTS nguoi_dung (
     donate_note TEXT,
     bank_enabled BOOLEAN DEFAULT true,
     momo_enabled BOOLEAN DEFAULT true,
+    loading_web_gif TEXT,
+    loading_data_gif TEXT,
+    stream_alert_gif TEXT,
+    stream_alert_sound TEXT,
+    stream_alert_template TEXT DEFAULT '{name} đã ủng hộ bạn {amount}Đ',
+    stream_alert_tts BOOLEAN DEFAULT true,
+    stream_alert_duration INTEGER DEFAULT 8,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+
+-- Safe migration helper to add loading columns if table already exists
+ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS loading_web_gif TEXT;
+ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS loading_data_gif TEXT;
+ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS stream_alert_gif TEXT;
+ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS stream_alert_sound TEXT;
+ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS stream_alert_template TEXT DEFAULT '{name} đã ủng hộ bạn {amount}Đ';
+ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS stream_alert_tts BOOLEAN DEFAULT true;
+ALTER TABLE nguoi_dung ADD COLUMN IF NOT EXISTS stream_alert_duration INTEGER DEFAULT 8;
 
 -- 2. Table danh_muc (Categories)
 CREATE TABLE IF NOT EXISTS danh_muc (
@@ -154,8 +170,12 @@ CREATE TABLE IF NOT EXISTS bai_viet (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     noi_dung TEXT NOT NULL,
     url_hinh_anh TEXT,
+    lien_ket_id UUID REFERENCES duong_dan(id) ON DELETE SET NULL,
     ngay_tao TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+
+-- Safe migration helper to add lien_ket_id if table already exists
+ALTER TABLE bai_viet ADD COLUMN IF NOT EXISTS lien_ket_id UUID REFERENCES duong_dan(id) ON DELETE SET NULL;
 
 -- ====================================================================
 -- DISABLE ROW LEVEL SECURITY (RLS) FOR ALL TABLES
@@ -228,3 +248,16 @@ INSERT INTO phu_hieu (ten_phu_hieu, loai_nhanh, url_hinh_anh) VALUES
 ('Thành khởi nguyên: Luyện Kim', 'NHANH_CHINH_3', 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&q=80&w=100'),
 ('Ám khí', 'NHANH_PHU_1', 'https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?auto=format&fit=crop&q=80&w=100')
 ON CONFLICT DO NOTHING;
+
+-- ====================================================================
+-- CAU_HINH TABLE FOR STREAM DONATION CONFIGURATION
+-- ====================================================================
+CREATE TABLE IF NOT EXISTS cau_hinh (
+    key VARCHAR(255) PRIMARY KEY,
+    value TEXT,
+    mo_ta TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+ALTER TABLE cau_hinh DISABLE ROW LEVEL SECURITY;
+

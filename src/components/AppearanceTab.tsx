@@ -62,12 +62,17 @@ export default function AppearanceTab({
     donateNote = "",
     bankEnabled = true,
     momoEnabled = true,
+    loadingWebGif = "",
+    loadingDataGif = "",
   } = appearance;
 
   // States for banner creation form
   const [newBannerTitle, setNewBannerTitle] = useState("");
   const [newBannerUrl, setNewBannerUrl] = useState("");
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
+  const [isUploadingWebGif, setIsUploadingWebGif] = useState(false);
+  const [isUploadingDataGif, setIsUploadingDataGif] = useState(false);
 
   // Loading indicator states for saves
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -124,6 +129,40 @@ export default function AppearanceTab({
       console.error("Error uploading to Supabase Storage:", err);
       alert(`Không thể tải ảnh lên Supabase Storage: ${err.message || err}`);
       return null;
+    }
+  };
+
+  const handleWebGifUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type !== "image/gif") {
+        alert("Vui lòng tải lên tệp tin định dạng GIF (.gif)!");
+        return;
+      }
+      setIsUploadingWebGif(true);
+      const url = await uploadFile(file);
+      setIsUploadingWebGif(false);
+      if (url) {
+        onUpdateAppearance({ loadingWebGif: url });
+      }
+      e.target.value = "";
+    }
+  };
+
+  const handleDataGifUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type !== "image/gif") {
+        alert("Vui lòng tải lên tệp tin định dạng GIF (.gif)!");
+        return;
+      }
+      setIsUploadingDataGif(true);
+      const url = await uploadFile(file);
+      setIsUploadingDataGif(false);
+      if (url) {
+        onUpdateAppearance({ loadingDataGif: url });
+      }
+      e.target.value = "";
     }
   };
 
@@ -672,6 +711,97 @@ export default function AppearanceTab({
               * Để trống ("Tự động") để sử dụng màu sắc đồng bộ thông minh theo
               giao diện Sáng/Tối và Màu chủ đạo bạn đã chọn.
             </p>
+          </div>
+
+          {/* Custom Loading GIFs */}
+          <div className="space-y-4 md:col-span-2 pt-6 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider font-mono">
+              Tùy chỉnh ảnh GIF chờ tải (Loading States)
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Web Loading GIF */}
+              <div className="space-y-2 p-4 border border-slate-100 rounded-xl bg-slate-50/50">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase">
+                  Ảnh GIF chờ tải trang web
+                </label>
+                <p className="text-[10px] text-slate-400">
+                  Hiển thị khi người dùng lần đầu tiên truy cập website (Admin & Trang công khai).
+                </p>
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-1 shadow-xs">
+                    <img
+                      src={loadingWebGif || "/giphy.webp"}
+                      alt="Web GIF"
+                      className="max-w-full max-h-full object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded text-xs transition-colors cursor-pointer text-center">
+                      {isUploadingWebGif ? "Đang tải lên..." : "Tải lên tệp .gif"}
+                      <input
+                        type="file"
+                        accept="image/gif"
+                        onChange={handleWebGifUpload}
+                        disabled={isUploadingWebGif}
+                        className="hidden"
+                      />
+                    </label>
+                    {loadingWebGif && loadingWebGif !== "/giphy.webp" && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateAppearance({ loadingWebGif: "/giphy.webp" })}
+                        className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer text-left"
+                      >
+                        Khôi phục mặc định
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Loading GIF */}
+              <div className="space-y-2 p-4 border border-slate-100 rounded-xl bg-slate-50/50">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase">
+                  Ảnh GIF chờ tải dữ liệu trang
+                </label>
+                <p className="text-[10px] text-slate-400">
+                  Hiển thị tại các mục tin nhắn, ủng hộ, giáo án, v.v. khi hệ thống đang xử lý truy vấn.
+                </p>
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-1 shadow-xs">
+                    <img
+                      src={loadingDataGif || "/giphy.webp"}
+                      alt="Data GIF"
+                      className="max-w-full max-h-full object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded text-xs transition-colors cursor-pointer text-center">
+                      {isUploadingDataGif ? "Đang tải lên..." : "Tải lên tệp .gif"}
+                      <input
+                        type="file"
+                        accept="image/gif"
+                        onChange={handleDataGifUpload}
+                        disabled={isUploadingDataGif}
+                        className="hidden"
+                      />
+                    </label>
+                    {loadingDataGif && loadingDataGif !== "/giphy.webp" && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateAppearance({ loadingDataGif: "/giphy.webp" })}
+                        className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer text-left"
+                      >
+                        Khôi phục mặc định
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
