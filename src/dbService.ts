@@ -14,6 +14,8 @@ import {
   DBPost,
 } from "./supabase";
 
+export type { DBMessage, DBDonation, DBPost };
+
 // 1. Core Fallback Game Library Assets
 const LOCAL_CHAMPIONS: DBChampion[] = [
   {
@@ -240,9 +242,26 @@ export const dbService = {
   // ==========================================
   // 1. PROFILE (nguoi_dung)
   // ==========================================
+  async getUsersCount(): Promise<number> {
+    try {
+      const { data, error, count } = await supabase
+        .from("nguoi_dung")
+        .select("id", { count: "exact", head: true });
+      if (!error && count !== null) {
+        return count;
+      }
+      // Fallback
+      const { data: all } = await supabase.from("nguoi_dung").select("id");
+      return all ? all.length : 1;
+    } catch (err) {
+      console.error("getUsersCount error:", err);
+      return 1;
+    }
+  },
+
   async getProfile(): Promise<DBUser | null> {
     const data = await handleQuery(
-      supabase.from("nguoi_dung").select("*").limit(1).maybeSingle(),
+      supabase.from("nguoi_dung").select("*").eq("vai_tro", 1).limit(1).maybeSingle(),
     );
 
     if (!data) {
@@ -300,6 +319,114 @@ export const dbService = {
     }
 
     return null;
+  },
+
+  async loginUser(loginKey: string, matKhauHashed: string): Promise<DBUser | null> {
+    try {
+      const isEmail = loginKey.includes("@");
+      const query = supabase.from("nguoi_dung").select("*");
+      if (isEmail) {
+        query.eq("email", loginKey);
+      } else {
+        query.eq("ten_dang_nhap", loginKey);
+      }
+      
+      const { data, error } = await query.maybeSingle();
+      if (!error && data) {
+        if (data.mat_khau === matKhauHashed) {
+          return data as DBUser;
+        }
+      }
+    } catch (err) {
+      console.error("loginUser failed:", err);
+    }
+    return null;
+  },
+
+  async registerUser(tenDangNhap: string, email: string, matKhauHashed: string): Promise<DBUser> {
+    const { data: existingEmail } = await supabase
+      .from("nguoi_dung")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+      
+    if (existingEmail) {
+      throw new Error("Email này đã được sử dụng bởi tài khoản khác!");
+    }
+
+    const { data: existingUser } = await supabase
+      .from("nguoi_dung")
+      .select("id")
+      .eq("ten_dang_nhap", tenDangNhap)
+      .maybeSingle();
+
+    if (existingUser) {
+      throw new Error("Tên đăng nhập này đã tồn tại!");
+    }
+
+    const newUser: DBUser = {
+      id: crypto.randomUUID(),
+      ten_dang_nhap: tenDangNhap,
+      email: email,
+      mat_khau: matKhauHashed,
+      vai_tro: 0, // 0 = User, 1 = Admin
+      avatar_url: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(tenDangNhap)}`,
+      anh_bia_url: "/image/phu_hieu/thanh_khoi_nguyen/background_ThanhKhoiNguyen_1.jpg",
+      tieu_su: "Chào mọi người, mình là thành viên mới!",
+      giao_dien_mode: "light",
+      phong_chu: "Inter",
+      mau_chu_dao: "#4648d4",
+      bank_enabled: false,
+      momo_enabled: false,
+    };
+
+    const { error } = await supabase.from("nguoi_dung").insert(newUser);
+    if (error) {
+      console.error("Register user error:", error);
+      throw new Error("Không thể tạo tài khoản trên hệ thống: " + error.message);
+    }
+
+    return newUser;
+  },
+
+  async handleGoogleLogin(email: string, fullName: string, avatarUrl?: string): Promise<DBUser> {
+    try {
+      const { data, error } = await supabase
+        .from("nguoi_dung")
+        .select("*")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as DBUser;
+      }
+
+      const username = email.split("@")[0] + "_" + Math.floor(Math.random() * 1000);
+      const newUser: DBUser = {
+        id: crypto.randomUUID(),
+        ten_dang_nhap: username,
+        email: email,
+        mat_khau: null,
+        vai_tro: 0,
+        avatar_url: avatarUrl || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`,
+        anh_bia_url: "/image/phu_hieu/thanh_khoi_nguyen/background_ThanhKhoiNguyen_1.jpg",
+        tieu_su: `Chào mọi người, mình là ${fullName}! Đăng nhập bằng Google.`,
+        giao_dien_mode: "light",
+        phong_chu: "Inter",
+        mau_chu_dao: "#4648d4",
+        bank_enabled: false,
+        momo_enabled: false,
+      };
+
+      const { error: insertError } = await supabase.from("nguoi_dung").insert(newUser);
+      if (insertError) {
+        throw insertError;
+      }
+      return newUser;
+    } catch (err: any) {
+      console.error("Google login handling failed:", err);
+      throw new Error("Lỗi đăng nhập Google: " + err.message);
+    }
   },
 
   async updateProfile(
@@ -889,7 +1016,12 @@ export const dbService = {
       console.error("Supabase Save Post Error:", error);
       
       // If error is due to column "lien_ket_id" not existing on table, retry without it
-      if (error.code === "42P21" || error.message?.includes("lien_ket_id")) {
+      if (
+        error.code === "42P21" || 
+        error.code === "42703" || 
+        error.message?.toLowerCase().includes("lien_ket_id") ||
+        error.message?.toLowerCase().includes("column")
+      ) {
         console.warn("Column lien_ket_id does not exist on 'bai_viet' table. Retrying insert without it.");
         const { lien_ket_id, ...postWithoutLienKet } = post;
         const { data: retryData, error: retryError } = await supabase
@@ -912,5 +1044,41 @@ export const dbService = {
   async deletePost(id: string): Promise<boolean> {
     const { error } = await supabase.from("bai_viet").delete().eq("id", id);
     return !error;
+  },
+
+  async updatePost(id: string, post: Partial<DBPost>): Promise<DBPost | null> {
+    const { data, error } = await supabase
+      .from("bai_viet")
+      .update(post)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.error("Supabase Update Post Error:", error);
+      if (
+        error.code === "42P21" || 
+        error.code === "42703" || 
+        error.message?.toLowerCase().includes("lien_ket_id") ||
+        error.message?.toLowerCase().includes("column")
+      ) {
+        console.warn("Column lien_ket_id does not exist on 'bai_viet' table. Retrying update without it.");
+        const { lien_ket_id, ...postWithoutLienKet } = post;
+        const { data: retryData, error: retryError } = await supabase
+          .from("bai_viet")
+          .update(postWithoutLienKet)
+          .eq("id", id)
+          .select()
+          .maybeSingle();
+
+        if (retryError) {
+          console.error("Supabase Update Post Retry Error:", retryError);
+          return null;
+        }
+        return retryData as DBPost | null;
+      }
+      return null;
+    }
+    return data as DBPost | null;
   },
 };

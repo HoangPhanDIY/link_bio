@@ -21,6 +21,7 @@ interface DashboardTabProps {
   messages?: any[];
   donations?: any[];
   posts?: any[];
+  usersCount?: number;
 }
 
 // Relative time calculator helper
@@ -60,6 +61,7 @@ export default function DashboardTab({
   messages = [],
   donations = [],
   posts = [],
+  usersCount = 1,
 }: DashboardTabProps) {
   const [chartView, setChartView] = useState<"daily" | "weekly" | "monthly">(
     "daily",
@@ -86,17 +88,27 @@ export default function DashboardTab({
       const dateStr = c.thoi_gian || new Date().toISOString();
       const ts = new Date(dateStr).getTime();
 
+      let clickIp = "";
       let clickLocation = deviceLabel;
-      // Extract location from parenthesis, e.g., "113.161.40.12 (Ho Chi Minh City, Vietnam)" -> "Ho Chi Minh City, Vietnam"
-      const match = deviceLabel.match(/\(([^)]+)\)/);
-      if (match && match[1]) {
-        clickLocation = match[1];
+
+      // Extract IP and Location from deviceLabel format: "IP (City, Country)"
+      const match = deviceLabel.match(/^([^\s(]+)\s*\(([^)]+)\)/);
+      if (match) {
+        clickIp = match[1];
+        clickLocation = match[2];
+      }
+
+      let messageText = "";
+      if (clickLocation) {
+        messageText = `Lượt click vào "${linkTitle}" từ ${clickLocation}`;
+      } else {
+        messageText = `Lượt click vào "${linkTitle}"`;
       }
 
       list.push({
         id: `click-${c.id || index}-${ts}`,
         type: "create",
-        message: `Lượt click từ ${clickLocation}`,
+        message: messageText,
         time: getRelativeTime(dateStr),
         timestamp: ts,
       });
@@ -291,8 +303,15 @@ export default function DashboardTab({
         isPositive: true,
         icon: "Link2",
       },
+      {
+        title: "Tài khoản người dùng",
+        value: usersCount.toLocaleString(),
+        change: "Thời gian thực",
+        isPositive: true,
+        icon: "UserCheck",
+      },
     ];
-  }, [clickLogs, links]);
+  }, [clickLogs, links, usersCount]);
 
   // CSV export simulation trigger
   const handleExportCSV = () => {
@@ -352,7 +371,7 @@ export default function DashboardTab({
       </div>
 
       {/* Metric Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
         {metrics.map((card, i) => (
           <div
             key={i}

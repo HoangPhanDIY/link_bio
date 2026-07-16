@@ -30,3 +30,111 @@ export function getBrandIconUrl(title: string, iconName: string): string {
   // Fallback high-quality direct vector globe
   return 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Globe_icon.svg';
 }
+
+export const isCustomIcon = (icon: string): boolean => {
+  return !!(
+    icon &&
+    (icon.startsWith("/uploads/") ||
+      icon.startsWith("http://") ||
+      icon.startsWith("https://") ||
+      icon.startsWith("data:"))
+  );
+};
+
+let cachedVisitorInfo: string | null = null;
+
+export async function getVisitorInfo(): Promise<string> {
+  if (cachedVisitorInfo) return cachedVisitorInfo;
+
+  // Clean device detection as a fallback
+  const userAgent = navigator.userAgent || "";
+  let deviceType = "Desktop";
+  if (/mobile/i.test(userAgent)) {
+    deviceType = "Mobile";
+  } else if (/tablet|ipad/i.test(userAgent)) {
+    deviceType = "Tablet";
+  }
+
+  // 1. Try ipwho.is (Extremely fast, free up to 10k/day, fully HTTPS & CORS-compliant)
+  try {
+    const res = await fetch("https://ipwho.is/");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.ip) {
+        const city = data.city || "Unknown City";
+        const country = data.country || "Vietnam";
+        cachedVisitorInfo = `${data.ip} (${city}, ${country})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch from ipwho.is", e);
+  }
+
+  // 2. Try api.ip.sb (Excellent free service, fully HTTPS & CORS-compliant)
+  try {
+    const res = await fetch("https://api.ip.sb/geoip");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ip) {
+        const city = data.city || "Unknown City";
+        const country = data.country || "Vietnam";
+        cachedVisitorInfo = `${data.ip} (${city}, ${country})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch from api.ip.sb", e);
+  }
+
+  // 2. Try ipapi.co (HTTPS support, occasionally rate-limited)
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ip) {
+        const city = data.city || "Unknown City";
+        const country = data.country_name || "Vietnam";
+        cachedVisitorInfo = `${data.ip} (${city}, ${country})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch from ipapi.co", e);
+  }
+
+  // 3. Try db-ip.com (HTTPS support, very reliable fallback)
+  try {
+    const res = await fetch("https://api.db-ip.com/v2/free/self");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ipAddress) {
+        const city = data.city || "Unknown City";
+        const country = data.countryName || "Vietnam";
+        cachedVisitorInfo = `${data.ipAddress} (${city}, ${country})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch from db-ip.com", e);
+  }
+
+  // 4. Fallback to raw IP via ipify (very reliable but no geolocation)
+  try {
+    const res = await fetch("https://api64.ipify.org?format=json");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ip) {
+        cachedVisitorInfo = `${data.ip} (${deviceType})`;
+        return cachedVisitorInfo;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to fetch raw IP from ipify", e);
+  }
+
+  // Final fallback to device type
+  cachedVisitorInfo = deviceType;
+  return deviceType;
+}
+

@@ -11,6 +11,12 @@ interface PostsTabProps {
     imageUrl: string | null,
     lienKetId: string | null,
   ) => Promise<void>;
+  onUpdatePost: (
+    id: string,
+    content: string,
+    imageUrl: string | null,
+    lienKetId: string | null,
+  ) => Promise<void>;
   onDeletePost: (id: string) => Promise<void>;
   accentColor: string;
 }
@@ -19,6 +25,7 @@ export default function PostsTab({
   posts,
   links,
   onAddPost,
+  onUpdatePost,
   onDeletePost,
   accentColor,
 }: PostsTabProps) {
@@ -26,6 +33,7 @@ export default function PostsTab({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingPost, setEditingPost] = useState<DBPost | null>(null);
 
   // Cropper states
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -99,7 +107,12 @@ export default function PostsTab({
 
     setIsSubmitting(true);
     try {
-      await onAddPost(content, imageUrl, selectedLinkId);
+      if (editingPost) {
+        await onUpdatePost(editingPost.id, content, imageUrl, selectedLinkId);
+        setEditingPost(null);
+      } else {
+        await onAddPost(content, imageUrl, selectedLinkId);
+      }
       setContent("");
       setImageUrl(null);
       setSelectedLinkId(null);
@@ -110,7 +123,30 @@ export default function PostsTab({
     }
   };
 
+  const handleStartEdit = (post: DBPost) => {
+    setEditingPost(post);
+    setContent(post.noi_dung || "");
+    setImageUrl(post.url_hinh_anh);
+    setSelectedLinkId(post.lien_ket_id);
+    
+    // Scroll smoothly to form
+    const formElement = document.getElementById("post-form-card");
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+    setContent("");
+    setImageUrl(null);
+    setSelectedLinkId(null);
+  };
+
   const handleDelete = async (id: string) => {
+    if (editingPost?.id === id) {
+      handleCancelEdit();
+    }
     if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này không?")) {
       try {
         await onDeletePost(id);
@@ -134,9 +170,14 @@ export default function PostsTab({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left column: Create Post Form */}
-        <div className="lg:col-span-5 bg-white border border-slate-100 rounded-md p-5 shadow-xs space-y-4">
-          <h2 className="font-display font-bold text-slate-800 text-sm sm:text-base">
-            Tạo bài viết mới
+        <div id="post-form-card" className="lg:col-span-5 bg-white border border-slate-100 rounded-md p-5 shadow-xs space-y-4">
+          <h2 className="font-display font-bold text-slate-800 text-sm sm:text-base flex items-center justify-between">
+            <span>{editingPost ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}</span>
+            {editingPost && (
+              <span className="bg-amber-100 text-amber-800 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded animate-pulse">
+                Đang sửa
+              </span>
+            )}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -223,19 +264,30 @@ export default function PostsTab({
               </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting || !content.trim()}
-              className="w-full py-2.5 rounded text-white font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:opacity-95 active:scale-[0.99] text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: accentColor }}
-            >
-              {isSubmitting ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <LucideIcon name="Send" size={14} />
+            <div className="flex gap-2">
+              {editingPost && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2.5 rounded border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95"
+                >
+                  Hủy bỏ
+                </button>
               )}
-              <span>Đăng trạng thái</span>
-            </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !content.trim()}
+                className="flex-1 py-2.5 rounded text-white font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:opacity-95 active:scale-[0.99] text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: accentColor }}
+              >
+                {isSubmitting ? (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <LucideIcon name={editingPost ? "Save" : "Send"} size={14} />
+                )}
+                <span>{editingPost ? "Cập nhật bài viết" : "Đăng trạng thái"}</span>
+              </button>
+            </div>
           </form>
         </div>
 
@@ -262,13 +314,22 @@ export default function PostsTab({
                   key={post.id}
                   className="bg-white border border-slate-100 rounded-md p-5 shadow-xs hover:shadow-md transition-all flex flex-col gap-3 relative group"
                 >
-                  <button
-                    onClick={() => handleDelete(post.id)}
-                    className="absolute top-4 right-4 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 p-2 rounded transition-colors cursor-pointer lg:opacity-0 group-hover:opacity-100"
-                    title="Xóa bài viết"
-                  >
-                    <LucideIcon name="Trash2" size={14} />
-                  </button>
+                  <div className="absolute top-4 right-4 flex items-center gap-2 lg:opacity-0 group-hover:opacity-100 transition-all duration-200">
+                    <button
+                      onClick={() => handleStartEdit(post)}
+                      className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-700 p-2 rounded transition-colors cursor-pointer"
+                      title="Sửa bài viết"
+                    >
+                      <LucideIcon name="Edit" size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(post.id)}
+                      className="bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 p-2 rounded transition-colors cursor-pointer"
+                      title="Xóa bài viết"
+                    >
+                      <LucideIcon name="Trash2" size={14} />
+                    </button>
+                  </div>
 
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600 border border-slate-200">

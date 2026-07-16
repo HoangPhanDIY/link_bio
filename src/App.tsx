@@ -19,6 +19,7 @@ import AdminLogin from "./components/AdminLogin";
 import MessagesTab from "./components/MessagesTab";
 import DonationsTab from "./components/DonationsTab";
 import PostsTab from "./components/PostsTab";
+import ShareModal from "./components/ShareModal";
 import { dbService } from "./dbService";
 import {
   DBUser,
@@ -34,6 +35,13 @@ import {
   DBDonation,
   DBPost,
 } from "./supabase";
+import { isCustomIcon, getVisitorInfo } from "./utils";
+import PublicHeader from "./components/PublicHeader";
+import PublicLinksTab from "./components/PublicLinksTab";
+import PublicDonateTab from "./components/PublicDonateTab";
+import PublicPostsTab from "./components/PublicPostsTab";
+import PublicContactBoard from "./components/PublicContactBoard";
+import PublicBottomNav from "./components/PublicBottomNav";
 
 const STORAGE_KEY_LINKS = "vivid_persona_links";
 const STORAGE_KEY_APPEARANCE = "vivid_persona_appearance";
@@ -57,97 +65,6 @@ declare global {
   }
 }
 
-let cachedVisitorInfo: string | null = null;
-
-async function getVisitorInfo(): Promise<string> {
-  if (cachedVisitorInfo) return cachedVisitorInfo;
-
-  // Clean device detection as a fallback
-  const userAgent = navigator.userAgent || "";
-  let deviceType = "Desktop";
-  if (/mobile/i.test(userAgent)) {
-    deviceType = "Mobile";
-  } else if (/tablet|ipad/i.test(userAgent)) {
-    deviceType = "Tablet";
-  }
-
-  // 1. Try api.ip.sb (Excellent free service, fully HTTPS & CORS-compliant)
-  try {
-    const res = await fetch("https://api.ip.sb/geoip");
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.ip) {
-        const city = data.city || "Unknown City";
-        const country = data.country || "Vietnam";
-        cachedVisitorInfo = `${data.ip} (${city}, ${country})`;
-        return cachedVisitorInfo;
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to fetch from api.ip.sb", e);
-  }
-
-  // 2. Try ipapi.co (HTTPS support, occasionally rate-limited)
-  try {
-    const res = await fetch("https://ipapi.co/json/");
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.ip) {
-        const city = data.city || "Unknown City";
-        const country = data.country_name || "Vietnam";
-        cachedVisitorInfo = `${data.ip} (${city}, ${country})`;
-        return cachedVisitorInfo;
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to fetch from ipapi.co", e);
-  }
-
-  // 3. Try db-ip.com (HTTPS support, very reliable fallback)
-  try {
-    const res = await fetch("https://api.db-ip.com/v2/free/self");
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.ipAddress) {
-        const city = data.city || "Unknown City";
-        const country = data.countryName || "Vietnam";
-        cachedVisitorInfo = `${data.ipAddress} (${city}, ${country})`;
-        return cachedVisitorInfo;
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to fetch from db-ip.com", e);
-  }
-
-  // 4. Fallback to raw IP via ipify (very reliable but no geolocation)
-  try {
-    const res = await fetch("https://api64.ipify.org?format=json");
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.ip) {
-        cachedVisitorInfo = `${data.ip} (${deviceType})`;
-        return cachedVisitorInfo;
-      }
-    }
-  } catch (e) {
-    console.warn("Failed to fetch raw IP from ipify", e);
-  }
-
-  // Final fallback to device type
-  cachedVisitorInfo = deviceType;
-  return deviceType;
-}
-
-const isCustomIcon = (icon: string) => {
-  return (
-    icon &&
-    (icon.startsWith("/uploads/") ||
-      icon.startsWith("http://") ||
-      icon.startsWith("https://") ||
-      icon.startsWith("data:"))
-  );
-};
-
 export default function App() {
   // --- Persistent States from LocalStorage / Supabase Fallbacks ---
   const [links, setLinks] = useState<BioLink[]>(INITIAL_LINKS);
@@ -159,6 +76,7 @@ export default function App() {
 
   // --- Game Library & Guide States ---
   const [dbUser, setDbUser] = useState<DBUser | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<DBUser | null>(null);
   const [champions, setChampions] = useState<DBChampion[]>([]);
   const [items, setItems] = useState<DBItem[]>([]);
   const [spells, setSpells] = useState<DBSpell[]>([]);
@@ -169,6 +87,7 @@ export default function App() {
   const [clickLogs, setClickLogs] = useState<any[]>([]);
   const [donations, setDonations] = useState<DBDonation[]>([]);
   const [posts, setPosts] = useState<DBPost[]>([]);
+  const [usersCount, setUsersCount] = useState<number>(1);
 
   // Lazy load flags & status indicators
   const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
@@ -183,19 +102,6 @@ export default function App() {
   const [isPostsLoading, setIsPostsLoading] = useState<boolean>(false);
   const [hasLoadedPosts, setHasLoadedPosts] = useState<boolean>(false);
 
-  // States for donation process
-  const [donateStep, setDonateStep] = useState<"form" | "qr">("form");
-  const [donorName, setDonorName] = useState("");
-  const [donateAmount, setDonateAmount] = useState("");
-  const [donateMessage, setDonateMessage] = useState("");
-  const [generatedMemo, setGeneratedMemo] = useState("");
-  const [selectedDonateMethod, setSelectedDonateMethod] = useState<
-    "bank" | "momo"
-  >("bank");
-  const [isDonating, setIsDonating] = useState(false);
-  const [copiedMemo, setCopiedMemo] = useState(false);
-  const [selectedMobileBank, setSelectedMobileBank] = useState("vcb");
-
   // Admin Mode & Auth States
   const [isAdminMode, setIsAdminMode] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -205,17 +111,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("links");
   const [isAdminNavOpen, setIsAdminNavOpen] = useState<boolean>(false);
 
-  // Contact Form input states for the public view
-  const [visitorName, setVisitorName] = useState("");
-  const [visitorEmail, setVisitorEmail] = useState("");
-  const [visitorContent, setVisitorContent] = useState("");
-  const [subscribedMessage, setSubscribedMessage] = useState<string | null>(
-    null,
-  );
   const [publicTab, setPublicTab] = useState<
     "links" | "guides" | "donate" | "posts"
   >("links");
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   // --- Notifications State (multi-toast queue) ---
   const [notifications, setNotifications] = useState<
@@ -251,6 +151,24 @@ export default function App() {
         const profile = await dbService.getProfile();
         if (profile) {
           setDbUser(profile);
+        }
+
+        // Restore login session if present
+        const savedSessionStr = localStorage.getItem("vivid_persona_session");
+        if (savedSessionStr) {
+          try {
+            const savedUser = JSON.parse(savedSessionStr) as DBUser;
+            setLoggedInUser(savedUser);
+            setIsAuthenticated(true);
+            const savedAdminMode = localStorage.getItem(
+              "vivid_persona_admin_mode",
+            );
+            if (savedAdminMode === "true" && savedUser.vai_tro === 1) {
+              setIsAdminMode(true);
+            }
+          } catch (e) {
+            console.error("Failed to restore session:", e);
+          }
         }
 
         // 3. Fetch links and sync
@@ -437,6 +355,15 @@ export default function App() {
                 .catch((e) => console.warn("Fetch posts failed", e)),
             );
           }
+
+          promises.push(
+            dbService
+              .getUsersCount()
+              .then((count) => {
+                setUsersCount(count);
+              })
+              .catch((e) => console.warn("Fetch users count failed", e)),
+          );
 
           if (promises.length > 0) {
             await Promise.all(promises);
@@ -652,6 +579,30 @@ export default function App() {
     } catch (err) {
       console.error("Failed to save post:", err);
       showNotification("Đăng status thất bại!", "error");
+    }
+  };
+
+  const handleUpdatePost = async (
+    id: string,
+    content: string,
+    imageUrl: string | null,
+    lienKetId: string | null,
+  ) => {
+    try {
+      const updatedPost = await dbService.updatePost(id, {
+        noi_dung: content,
+        url_hinh_anh: imageUrl,
+        lien_ket_id: lienKetId,
+      });
+      if (updatedPost) {
+        setPosts((prev) => prev.map((p) => (p.id === id ? updatedPost : p)));
+        showNotification("Cập nhật status thành công!", "success");
+      } else {
+        showNotification("Cập nhật status thất bại!", "error");
+      }
+    } catch (err) {
+      console.error("Failed to update post:", err);
+      showNotification("Cập nhật status thất bại!", "error");
     }
   };
 
@@ -1021,198 +972,6 @@ export default function App() {
       alert("Lỗi khi xóa ảnh bìa khỏi Database.");
     }
   };
-
-  // --- Visitor Messaging Board Database ---
-  const handleSendMessageSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!visitorName.trim() || !visitorEmail.trim() || !visitorContent.trim()) {
-      alert("Vui lòng điền đầy đủ các trường thông tin!");
-      return;
-    }
-
-    try {
-      const saved = await dbService.saveMessage({
-        ho_ten: visitorName.trim(),
-        email: visitorEmail.trim(),
-        noi_dung: visitorContent.trim(),
-      });
-      if (saved) {
-        setMessages((prev) => [saved, ...prev]);
-        setSubscribedMessage("Gửi tin nhắn lời nhắn thành công!");
-        setVisitorName("");
-        setVisitorEmail("");
-        setVisitorContent("");
-        setTimeout(() => setSubscribedMessage(null), 4000);
-      } else {
-        alert("Gửi lời nhắn thất bại. Vui lòng kiểm tra lại cấu hình DB.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Lỗi kết nối hệ thống khi gửi tin nhắn.");
-    }
-  };
-
-  const handleDeleteMessage = async (id: string) => {
-    try {
-      const ok = await dbService.deleteMessage(id);
-      if (ok) {
-        setMessages((prev) => prev.filter((msg) => msg.id !== id));
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Lỗi khi xóa tin nhắn.");
-    }
-  };
-
-  const handleUpdateDonationStatus = async (id: string, status: number) => {
-    try {
-      const ok = await dbService.updateDonationStatus(id, status);
-      if (ok) {
-        setDonations((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, trang_thai: status } : d)),
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Lỗi khi cập nhật trạng thái ủng hộ.");
-    }
-  };
-
-  const handleDeleteDonation = async (id: string) => {
-    try {
-      const ok = await dbService.deleteDonation(id);
-      if (ok) {
-        setDonations((prev) => prev.filter((d) => d.id !== id));
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Lỗi khi xóa lượt ủng hộ.");
-    }
-  };
-
-  const generateMemoCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < 8; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
-
-  const handlePublicDonateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!donorName.trim()) {
-      alert("Vui lòng nhập tên người ủng hộ.");
-      return;
-    }
-    const amountNum = Number(donateAmount);
-    if (!donateAmount || isNaN(amountNum) || amountNum <= 0) {
-      alert("Vui lòng nhập số tiền ủng hộ hợp lệ (lớn hơn 0).");
-      return;
-    }
-
-    setIsDonating(true);
-    try {
-      const code = generateMemoCode();
-      const newDonation = {
-        ten_nguoi_ung_ho: donorName.trim(),
-        so_tien: amountNum,
-        noi_dung: donateMessage.trim(),
-        noi_dung_ck: code,
-        trang_thai: 0,
-      };
-
-      const saved = await dbService.saveDonation(newDonation);
-      if (saved) {
-        setGeneratedMemo(code);
-        setDonateStep("qr");
-        if (hasLoadedDonations) {
-          setDonations((prev) => [saved, ...prev]);
-        }
-      } else {
-        alert("Có lỗi xảy ra khi gửi thông tin ủng hộ. Vui lòng thử lại!");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Đã xảy ra lỗi kết nối. Vui lòng thử lại!");
-    } finally {
-      setIsDonating(false);
-    }
-  };
-
-  const handleResetDonateForm = () => {
-    setDonateStep("form");
-    setDonorName("");
-    setDonateAmount("");
-    setDonateMessage("");
-    setGeneratedMemo("");
-  };
-
-  const handleDownloadQR = async () => {
-    const url =
-      selectedDonateMethod === "momo" && appearance.momoNumber
-        ? `https://img.vietqr.io/image/MOMO-${appearance.momoNumber}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.momoName || "")}`
-        : `https://img.vietqr.io/image/${(appearance.bankName || "MB").replace(/\s+/g, "")}-${appearance.bankAccount}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.bankOwner || "")}`;
-
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `QR_Donate_${generatedMemo || "VietQR"}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.warn("Could not download via fetch, opening in new tab:", err);
-      window.open(url, "_blank");
-    }
-  };
-
-  const handleRedirectToBankApp = () => {
-    const appCode = selectedMobileBank;
-    let redirectUrl = "";
-    if (appCode === "momo") {
-      redirectUrl = `https://dl.vietqr.co/pay?app=momo&amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.momoName || "")}`;
-    } else {
-      redirectUrl = `https://dl.vietqr.co/pay?app=${appCode}&amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.bankOwner || "")}`;
-    }
-    window.open(redirectUrl, "_blank");
-  };
-
-  // Reset to default seed mockup state (clears localstorage changes)
-  const handleResetData = async () => {
-    if (
-      confirm(
-        "Bạn có chắc chắn muốn khôi phục lại cấu hình mặc định ban đầu không? Mọi chỉnh sửa cục bộ và DB của bạn sẽ bị xóa.",
-      )
-    ) {
-      setLinks(INITIAL_LINKS);
-      setAppearance(INITIAL_APPEARANCE);
-      setActivityLogs(INITIAL_ACTIVITY_LOGS);
-
-      // Clean DB entries if possible
-      try {
-        const currentLinks = await dbService.getLinks();
-        for (const l of currentLinks) {
-          await dbService.deleteLink(l.id);
-        }
-        for (const l of INITIAL_LINKS) {
-          await dbService.saveLink({
-            tieu_de: l.title,
-            url_lienketing: l.url,
-            url_icon: l.icon,
-            hien_thi: l.enabled,
-          });
-        }
-      } catch (err) {
-        console.warn("DB partial reset warning", err);
-      }
-    }
-  };
-
   // --- Handlers for Game Build Guides ---
   const handleSaveBuildGuide = async (
     guide: Partial<DBBuildGuide>,
@@ -1235,6 +994,52 @@ export default function App() {
       }
     } catch (err) {
       console.error("Failed to save build guide in App state", err);
+    }
+  };
+
+  const handleDeleteMessage = async (id: string) => {
+    try {
+      const ok = await dbService.deleteMessage(id);
+      if (ok) {
+        setMessages((prev) => prev.filter((m) => m.id !== id));
+        showNotification("Đã xóa tin nhắn thành công", "success");
+      }
+    } catch (e) {
+      console.error(e);
+      showNotification("Lỗi khi xóa tin nhắn", "error");
+    }
+  };
+
+  const handleUpdateDonationStatus = async (id: string, status: number) => {
+    try {
+      const updated = await dbService.saveDonation({ id, trang_thai: status });
+      if (updated) {
+        setDonations((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, trang_thai: status } : d)),
+        );
+        showNotification(
+          status === 1
+            ? "Đã duyệt giao dịch ủng hộ thành công!"
+            : "Đã chuyển giao dịch về trạng thái chờ duyệt",
+          "success",
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      showNotification("Lỗi khi cập nhật trạng thái ủng hộ", "error");
+    }
+  };
+
+  const handleDeleteDonation = async (id: string) => {
+    try {
+      const ok = await dbService.deleteDonation(id);
+      if (ok) {
+        setDonations((prev) => prev.filter((d) => d.id !== id));
+        showNotification("Đã xóa giao dịch ủng hộ thành công", "success");
+      }
+    } catch (e) {
+      console.error(e);
+      showNotification("Lỗi khi xóa giao dịch", "error");
     }
   };
 
@@ -1271,7 +1076,7 @@ export default function App() {
             referrerPolicy="no-referrer"
           />
           <span className="text-slate-400 font-bold tracking-wider text-xs uppercase animate-pulse">
-            Đang tải dữ liệu...
+            Chờ chút xíu...
           </span>
         </div>
       </div>
@@ -1299,14 +1104,6 @@ export default function App() {
           : undefined
       }
     >
-      {/* Toast Alert subscription popup */}
-      {subscribedMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-bold font-sans animate-bounce">
-          <LucideIcon name="Check" className="text-emerald-400" size={16} />
-          {subscribedMessage}
-        </div>
-      )}
-
       {/* Dynamic Upper-Right Notifications */}
       <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full">
         {notifications.map((notif) => (
@@ -1336,24 +1133,289 @@ export default function App() {
         ))}
       </div>
 
+      {/* Public Navigation Header - Visible when NOT in Admin panel */}
+      {!isAdminMode && (
+        <header
+          className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors duration-300 ${isDarkPublic ? "bg-slate-950/80 border-slate-900 text-white" : "bg-white/85 border-slate-100 text-slate-800"}`}
+        >
+          <div className="flex justify-between items-center w-full px-6 py-3 max-w-7xl mx-auto">
+            {/* Logo Brand Title */}
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => setPublicTab("links")}
+            >
+              <span
+                className="font-display text-lg font-black tracking-tight"
+                style={{ color: appearance.accentColor }}
+              >
+                {appearance.name || "Alex Rivera"}
+              </span>
+            </div>
+
+            {/* Right side Profile & Login buttons */}
+            <div className="flex items-center gap-3">
+              {isAuthenticated && loggedInUser ? (
+                <div className="flex items-center gap-3">
+                  {/* User Avatar & Info */}
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={
+                        loggedInUser.avatar_url ||
+                        "/image/tuong/DauSi/Florentino.jpg"
+                      }
+                      alt={loggedInUser.ten_dang_nhap}
+                      className="w-8 h-8 rounded-full border border-slate-200/50 object-cover shadow-sm bg-white"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="hidden sm:block text-left">
+                      <p className="text-xs font-black leading-tight">
+                        {loggedInUser.ten_dang_nhap}
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold">
+                        {loggedInUser.vai_tro === 1
+                          ? "Quản trị viên"
+                          : "Thành viên"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* If Admin, show a button to go to Management Dashboard */}
+                  {loggedInUser.vai_tro === 1 && (
+                    <button
+                      onClick={() => {
+                        setIsAdminMode(true);
+                        setActiveTab("links");
+                        localStorage.setItem(
+                          "vivid_persona_admin_mode",
+                          "true",
+                        );
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-90 shadow-sm active:scale-95"
+                      style={{ backgroundColor: appearance.accentColor }}
+                    >
+                      <LucideIcon name="Settings" size={13} />
+                      <span className="hidden sm:inline">Bảng Quản Trị</span>
+                    </button>
+                  )}
+
+                  {/* Sign Out Button */}
+                  <button
+                    onClick={() => {
+                      setIsAuthenticated(false);
+                      setLoggedInUser(null);
+                      setIsAdminMode(false);
+                      localStorage.removeItem("vivid_persona_session");
+                      localStorage.removeItem("vivid_persona_admin_mode");
+                      showNotification("Đăng xuất thành công!", "info");
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${isDarkPublic ? "border-slate-800 text-slate-300 hover:bg-slate-900" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                    title="Đăng xuất"
+                  >
+                    <LucideIcon name="LogOut" size={13} />
+                    <span className="hidden sm:inline">Đăng xuất</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsLoggingIn(true)}
+                  className="px-4 py-1.5 rounded-md text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-90 shadow-sm active:scale-95"
+                  style={{ backgroundColor: appearance.accentColor }}
+                >
+                  <LucideIcon name="LogIn" size={13} />
+                  <span>Đăng nhập</span>
+                </button>
+              )}
+
+              {/* Share Website Button with 'Link' icon - Next to login button on the right */}
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className={`p-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${isDarkPublic ? "border-slate-800 text-slate-300 hover:bg-slate-900/60" : "border-slate-200 text-slate-600 hover:bg-slate-50"} bg-transparent active:scale-95`}
+                title="Chia sẻ trang web"
+              >
+                <LucideIcon name="Link" size={14} />
+              </button>
+            </div>
+          </div>
+        </header>
+      )}
+
       {/* Glass Navigation Header - ONLY visible when in Admin panel */}
       {isAdminMode ? (
         <header className="sticky top-0 z-40 bg-[#f7f9fb]/90 backdrop-blur-md border-b border-slate-100/80 transition-colors duration-300">
           <div className="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
-            {/* Logo Brand Title */}
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => setActiveTab("links")}
-            >
-              <span
-                className="font-display text-xl font-extrabold tracking-tight"
-                style={{ color: appearance.accentColor }}
-              >
-                Vivid Persona
-              </span>
-              <span className="hidden sm:inline bg-slate-100 text-slate-500 font-mono text-[9px] uppercase px-1.5 py-0.5 rounded font-bold">
-                Admin
-              </span>
+            {/* Left side: Admin label and Mobile 3-gạch Menu trigger */}
+            <div className="flex items-center gap-3">
+              {/* Mobile 3-gạch Menu button */}
+              <div className="lg:hidden relative">
+                <button
+                  onClick={() => setIsAdminNavOpen(!isAdminNavOpen)}
+                  className="p-2 border border-slate-200 rounded-xl bg-white shadow-xs text-xs font-black cursor-pointer text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+                  title="Menu điều hướng"
+                >
+                  <LucideIcon name="Menu" size={18} />
+                </button>
+
+                {isAdminNavOpen && (
+                  <>
+                    {/* Overlay click-out blocker */}
+                    <div
+                      className="fixed inset-0 z-40 bg-transparent"
+                      onClick={() => setIsAdminNavOpen(false)}
+                    />
+
+                    {/* Dropdown popup */}
+                    <div className="absolute left-0 mt-2 w-52 bg-white border border-slate-150 rounded-xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => {
+                          setActiveTab("dashboard");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
+                          activeTab === "dashboard"
+                            ? "bg-slate-50 text-indigo-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <LucideIcon
+                          name="Activity"
+                          size={14}
+                          className="text-indigo-500"
+                        />
+                        <span>Dashboard</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab("links");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
+                          activeTab === "links"
+                            ? "bg-slate-50 text-emerald-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <LucideIcon
+                          name="Link2"
+                          size={14}
+                          className="text-emerald-500"
+                        />
+                        <span>Links</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab("appearance");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
+                          activeTab === "appearance"
+                            ? "bg-slate-50 text-amber-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <LucideIcon
+                          name="Palette"
+                          size={14}
+                          className="text-amber-500"
+                        />
+                        <span>Giao diện</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab("posts");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
+                          activeTab === "posts"
+                            ? "bg-slate-50 text-sky-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <LucideIcon
+                          name="FileText"
+                          size={14}
+                          className="text-sky-500"
+                        />
+                        <span>Bài viết</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab("messages");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center justify-between text-slate-700 cursor-pointer ${
+                          activeTab === "messages"
+                            ? "bg-slate-50 text-rose-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <LucideIcon
+                            name="MessageSquare"
+                            size={14}
+                            className="text-rose-500"
+                          />
+                          <span>Tin nhắn</span>
+                        </div>
+                        {messages.length > 0 && (
+                          <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                            {messages.length}
+                          </span>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab("donations");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center justify-between text-slate-700 cursor-pointer ${
+                          activeTab === "donations"
+                            ? "bg-slate-50 text-pink-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <LucideIcon
+                            name="Heart"
+                            size={14}
+                            className="text-red-500"
+                          />
+                          <span>Donate</span>
+                        </div>
+                        {donations.filter((d) => d.trang_thai === 0).length >
+                          0 && (
+                          <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                            {donations.filter((d) => d.trang_thai === 0).length}
+                          </span>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab("guides");
+                          setIsAdminNavOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
+                          activeTab === "guides"
+                            ? "bg-slate-50 text-teal-600 font-extrabold"
+                            : ""
+                        }`}
+                      >
+                        <LucideIcon
+                          name="Shield"
+                          size={14}
+                          className="text-teal-500"
+                        />
+                        <span>Trang bị</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Center Tabs Navigation */}
@@ -1368,7 +1430,7 @@ export default function App() {
                 }`}
               >
                 <LucideIcon name="Activity" size={14} />
-                <span>Bảng điều khiển</span>
+                <span>Dashboard</span>
               </button>
               <button
                 onClick={() => setActiveTab("links")}
@@ -1379,7 +1441,7 @@ export default function App() {
                 }`}
               >
                 <LucideIcon name="Link2" size={14} />
-                <span>Liên kết</span>
+                <span>Links</span>
               </button>
               <button
                 onClick={() => setActiveTab("appearance")}
@@ -1401,7 +1463,7 @@ export default function App() {
                 }`}
               >
                 <LucideIcon name="FileText" size={14} />
-                <span>Bài viết (Status)</span>
+                <span>Bài viết</span>
               </button>
               <button
                 onClick={() => setActiveTab("messages")}
@@ -1428,7 +1490,7 @@ export default function App() {
                 }`}
               >
                 <LucideIcon name="Heart" size={14} />
-                <span>Ủng hộ (Donate)</span>
+                <span>Donate</span>
                 {donations.filter((d) => d.trang_thai === 0).length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold animate-pulse">
                     {donations.filter((d) => d.trang_thai === 0).length}
@@ -1444,247 +1506,12 @@ export default function App() {
                 }`}
               >
                 <LucideIcon name="Shield" size={14} />
-                <span>Giáo án & Đồ Game</span>
+                <span>Trang bị</span>
               </button>
             </nav>
 
-            {/* Mobile Dropdown Navigation (below lg) */}
-            <div className="lg:hidden relative">
-              <button
-                onClick={() => setIsAdminNavOpen(!isAdminNavOpen)}
-                className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-xl bg-white shadow-xs text-xs font-black cursor-pointer text-slate-700 hover:bg-slate-50"
-              >
-                {activeTab === "dashboard" && (
-                  <>
-                    <LucideIcon
-                      name="Activity"
-                      size={14}
-                      className="text-indigo-500"
-                    />
-                    <span>Bảng điều khiển</span>
-                  </>
-                )}
-                {activeTab === "links" && (
-                  <>
-                    <LucideIcon
-                      name="Link2"
-                      size={14}
-                      className="text-emerald-500"
-                    />
-                    <span>Liên kết</span>
-                  </>
-                )}
-                {activeTab === "appearance" && (
-                  <>
-                    <LucideIcon
-                      name="Palette"
-                      size={14}
-                      className="text-amber-500"
-                    />
-                    <span>Giao diện</span>
-                  </>
-                )}
-                {activeTab === "posts" && (
-                  <>
-                    <LucideIcon
-                      name="FileText"
-                      size={14}
-                      className="text-sky-500"
-                    />
-                    <span>Bài viết (Status)</span>
-                  </>
-                )}
-                {activeTab === "messages" && (
-                  <>
-                    <LucideIcon
-                      name="MessageSquare"
-                      size={14}
-                      className="text-rose-500"
-                    />
-                    <span>Tin nhắn</span>
-                    {messages.length > 0 && (
-                      <span className="bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold ml-1">
-                        {messages.length}
-                      </span>
-                    )}
-                  </>
-                )}
-                {activeTab === "donations" && (
-                  <>
-                    <LucideIcon
-                      name="Heart"
-                      size={14}
-                      className="text-red-500"
-                    />
-                    <span>Ủng hộ (Donate)</span>
-                    {donations.filter((d) => d.trang_thai === 0).length > 0 && (
-                      <span className="bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold ml-1">
-                        {donations.filter((d) => d.trang_thai === 0).length}
-                      </span>
-                    )}
-                  </>
-                )}
-                {activeTab === "guides" && (
-                  <>
-                    <LucideIcon
-                      name="Shield"
-                      size={14}
-                      className="text-teal-500"
-                    />
-                    <span>Giáo án & Đồ Game</span>
-                  </>
-                )}
-                <LucideIcon
-                  name="ChevronDown"
-                  size={12}
-                  className="text-slate-400"
-                />
-              </button>
-
-              {isAdminNavOpen && (
-                <>
-                  {/* Overlay click-out blocker */}
-                  <div
-                    className="fixed inset-0 z-40 bg-transparent"
-                    onClick={() => setIsAdminNavOpen(false)}
-                  />
-
-                  {/* Dropdown popup */}
-                  <div className="absolute left-0 mt-2 w-52 bg-white border border-slate-150 rounded-md shadow-xl z-50 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <button
-                      onClick={() => {
-                        setActiveTab("dashboard");
-                        setIsAdminNavOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
-                    >
-                      <LucideIcon
-                        name="Activity"
-                        size={14}
-                        className="text-indigo-500"
-                      />
-                      <span>Bảng điều khiển</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("links");
-                        setIsAdminNavOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
-                    >
-                      <LucideIcon
-                        name="Link2"
-                        size={14}
-                        className="text-emerald-500"
-                      />
-                      <span>Liên kết</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("appearance");
-                        setIsAdminNavOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
-                    >
-                      <LucideIcon
-                        name="Palette"
-                        size={14}
-                        className="text-amber-500"
-                      />
-                      <span>Giao diện</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("posts");
-                        setIsAdminNavOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
-                    >
-                      <LucideIcon
-                        name="FileText"
-                        size={14}
-                        className="text-sky-500"
-                      />
-                      <span>Bài viết (Status)</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("messages");
-                        setIsAdminNavOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer justify-between"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <LucideIcon
-                          name="MessageSquare"
-                          size={14}
-                          className="text-rose-500"
-                        />
-                        <span>Tin nhắn</span>
-                      </div>
-                      {messages.length > 0 && (
-                        <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
-                          {messages.length}
-                        </span>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("donations");
-                        setIsAdminNavOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer justify-between"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <LucideIcon
-                          name="Heart"
-                          size={14}
-                          className="text-red-500"
-                        />
-                        <span>Ủng hộ (Donate)</span>
-                      </div>
-                      {donations.filter((d) => d.trang_thai === 0).length >
-                        0 && (
-                        <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
-                          {donations.filter((d) => d.trang_thai === 0).length}
-                        </span>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("guides");
-                        setIsAdminNavOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer"
-                    >
-                      <LucideIcon
-                        name="Shield"
-                        size={14}
-                        className="text-teal-500"
-                      />
-                      <span>Giáo án & Đồ Game</span>
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
             {/* Right side View Public Profile exit button */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleResetData}
-                className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors hidden md:block"
-                title="Khôi phục cài đặt gốc"
-              >
-                <LucideIcon name="Undo" size={16} />
-              </button>
-
               <button
                 onClick={() => setIsAdminMode(false)}
                 className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200 bg-white shadow-sm"
@@ -1701,7 +1528,11 @@ export default function App() {
               <button
                 onClick={() => {
                   setIsAuthenticated(false);
+                  setLoggedInUser(null);
                   setIsAdminMode(false);
+                  localStorage.removeItem("vivid_persona_session");
+                  localStorage.removeItem("vivid_persona_admin_mode");
+                  showNotification("Đăng xuất thành công!", "info");
                 }}
                 className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all flex items-center gap-1.5 cursor-pointer border border-red-200 bg-white shadow-sm"
                 title="Đăng xuất khỏi bảng quản trị"
@@ -1763,6 +1594,7 @@ export default function App() {
                   posts={posts}
                   links={links}
                   onAddPost={handleAddPost}
+                  onUpdatePost={handleUpdatePost}
                   onDeletePost={handleDeletePost}
                   accentColor={appearance.accentColor}
                 />
@@ -1885,181 +1717,17 @@ export default function App() {
               isDarkPublic ? "text-slate-100" : "text-slate-800"
             }`}
           >
-            {/* 1. Cover Banner (Ảnh bìa tĩnh) at the very top */}
-            <div className="w-full relative overflow-hidden rounded-md bg-slate-950 shadow-md h-40 sm:h-56 md:h-64 transition-all duration-300">
-              <img
-                src={appearance.bannerUrl}
-                alt="Cover banner"
-                className="w-full h-full object-cover opacity-95"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
-            </div>
-
-            {/* 2. Avatar overlaps the banner slightly and the text aligns to its lower quarter consistently */}
-            <div className="relative px-4 sm:px-8 z-10 md:-mt-12 -mt-6 mb-8">
-              <div className="flex items-end gap-4">
-                {/* Overlapping Avatar */}
-                <div className="shrink-0 -mt-2">
-                  <div
-                    className={`md:w-36 md:h-36 w-24 h-24 sm:w-18 sm:h-18 rounded-full border-4 shadow-xl overflow-hidden transition-all duration-300 ${
-                      isDarkPublic
-                        ? "border-slate-900 bg-slate-950"
-                        : "border-white bg-white"
-                    }`}
-                  >
-                    <img
-                      src={appearance.avatarUrl}
-                      alt={appearance.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                </div>
-
-                {/* Identity details */}
-                <div className="flex-1 min-w-0 text-left self-end pb-2">
-                  <h1
-                    className={`text-xl sm:text-2xl md:text-3xl font-black leading-tight tracking-tight ${isDarkPublic ? "text-white" : "text-slate-800"}`}
-                  >
-                    {appearance.name || "Alex Rivera"}
-                  </h1>
-                  <p
-                    className={`text-xs sm:text-sm font-medium mt-1 leading-relaxed max-w-2xl ${isDarkPublic ? "text-slate-400" : "text-slate-600"}`}
-                  >
-                    {appearance.bio ||
-                      "Building the future of visual identity."}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Sliding Banner (Banner chạy slide) */}
-            <div className="w-full relative overflow-hidden rounded-md sm:rounded-3xl shadow-md mt-6">
-              <BannerSlideshow
-                images={
-                  appearance.selectedBanners &&
-                  appearance.selectedBanners.length > 0
-                    ? appearance.selectedBanners
-                    : [appearance.bannerUrl]
-                }
-                autoplayInterval={5000}
-                className="h-40 sm:h-56 md:h-64 w-full"
-              />
-            </div>
-
-            {/* 4. Sublte accent color divider for public layout space */}
-            <div
-              className="h-[1px] w-full mt-6 opacity-20"
-              style={{ backgroundColor: appearance.accentColor }}
-            />
+            <PublicHeader appearance={appearance} isDarkPublic={isDarkPublic} />
 
             {/* 5. Main public content area */}
             <div className="w-full mt-6 space-y-6">
               {publicTab === "links" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  {/* Section Title */}
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-4 rounded-full"
-                      style={{ backgroundColor: appearance.accentColor }}
-                    ></div>
-                    <h2
-                      className={`text-xL font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-500" : "text-slate-400"}`}
-                    >
-                      Liên kết cá nhân
-                    </h2>
-                  </div>
-
-                  {/* Public Links list */}
-                  <div className="w-full grid grid-cols-1 gap-4">
-                    {links
-                      .filter((l) => l.enabled)
-                      .map((link) => {
-                        return (
-                          <a
-                            key={link.id}
-                            href={`https://${link.url}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={() => handleLinkClick(link.id)}
-                            className={`flex items-center p-3.5 px-4.5 border-2 rounded-md hover:shadow-md transition-all hover:-translate-y-0.5 group active:scale-[0.99] ${
-                              isDarkPublic
-                                ? "bg-slate-900/60 hover:bg-slate-850"
-                                : "bg-white shadow-xs hover:bg-slate-50/50"
-                            }`}
-                            style={{
-                              backgroundColor:
-                                appearance.linkBackgroundColor || undefined,
-                              borderColor: appearance.linkBackgroundColor
-                                ? "transparent"
-                                : `${appearance.accentColor}30`, // semi-transparent primary color border
-                              borderLeft: `5px solid ${appearance.accentColor}`, // solid main primary color thick left accent
-                            }}
-                          >
-                            <div
-                              className={`w-11 h-11 rounded-xl flex items-center justify-center mr-4 shrink-0 transition-all ${
-                                isCustomIcon(link.icon)
-                                  ? "p-0 bg-transparent border-0"
-                                  : "p-1 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                              }`}
-                            >
-                              <BrandIcon
-                                title={link.title}
-                                iconName={link.icon}
-                                size={isCustomIcon(link.icon) ? 44 : 22}
-                              />
-                            </div>
-
-                            <div className="flex-1 min-w-0 pr-3">
-                              <p
-                                className="font-extrabold text-sm sm:text-base transition-colors"
-                                style={{
-                                  color:
-                                    appearance.linkTextColor ||
-                                    (isDarkPublic ? "#ffffff" : "#1e293b"),
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.color =
-                                    appearance.accentColor;
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.color =
-                                    appearance.linkTextColor ||
-                                    (isDarkPublic ? "#ffffff" : "#1e293b");
-                                }}
-                              >
-                                {link.title}
-                              </p>
-                            </div>
-
-                            <LucideIcon
-                              name="chevron_right"
-                              className="transition-transform group-hover:translate-x-1"
-                              style={{
-                                color:
-                                  appearance.linkTextColor ||
-                                  appearance.accentColor,
-                              }}
-                              size={18}
-                            />
-                          </a>
-                        );
-                      })}
-
-                    {links.filter((l) => l.enabled).length === 0 && (
-                      <div
-                        className={`text-center p-12 border border-dashed rounded-md font-sans text-sm ${
-                          isDarkPublic
-                            ? "border-slate-800 text-slate-500 bg-slate-900/50"
-                            : "border-slate-200 text-slate-400 bg-slate-50/50"
-                        }`}
-                      >
-                        Hồ sơ này chưa có liên kết hoạt động nào.
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <PublicLinksTab
+                  links={links}
+                  appearance={appearance}
+                  isDarkPublic={isDarkPublic}
+                  onLinkClick={handleLinkClick}
+                />
               )}
 
               {publicTab === "guides" && (
@@ -2083,683 +1751,36 @@ export default function App() {
               )}
 
               {publicTab === "donate" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-4 rounded-full"
-                      style={{ backgroundColor: appearance.accentColor }}
-                    ></div>
-                    <h2
-                      className={`text-xl font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                    >
-                      Ủng hộ & Donate
-                    </h2>
-                  </div>
-
-                  {donateStep === "form" ? (
-                    <div className="space-y-5">
-                      <p
-                        className={`text-xs sm:text-sm leading-relaxed ${isDarkPublic ? "text-slate-400" : "text-slate-600"}`}
-                      >
-                        {appearance.donateNote ||
-                          "Cảm ơn các bạn đã ủng hộ mình để phát triển nhiều giáo án chất lượng hơn nữa!"}
-                      </p>
-
-                      <form
-                        onSubmit={handlePublicDonateSubmit}
-                        className="space-y-4 text-left"
-                      >
-                        {/* Donor Name */}
-                        <div className="space-y-1">
-                          <label
-                            className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                          >
-                            Tên người ủng hộ *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={donorName}
-                            onChange={(e) => setDonorName(e.target.value)}
-                            placeholder="Nhập tên hiển thị trên stream..."
-                            className={`w-full p-3 rounded-xl border outline-none transition-all text-sm font-sans font-medium ${isDarkPublic ? "bg-slate-900 border-slate-800 text-white placeholder:text-slate-500 focus:ring-1 focus:ring-slate-700" : "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500"}`}
-                          />
-                        </div>
-
-                        {/* Amount */}
-                        <div className="space-y-1">
-                          <label
-                            className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                          >
-                            Số tiền ủng hộ (VNĐ) *
-                          </label>
-                          <input
-                            type="number"
-                            required
-                            min="1000"
-                            step="1000"
-                            value={donateAmount}
-                            onChange={(e) => setDonateAmount(e.target.value)}
-                            placeholder="Ví dụ: 50000"
-                            className={`w-full p-3 rounded-xl border outline-none transition-all text-sm font-sans font-medium ${isDarkPublic ? "bg-slate-900 border-slate-800 text-white placeholder:text-slate-500 focus:ring-1 focus:ring-slate-700" : "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500"}`}
-                          />
-
-                          {/* Quick Amount Choices */}
-                          <div className="flex flex-wrap gap-1.5 pt-1">
-                            {[
-                              2000, 5000, 10000, 20000, 50000, 100000, 200000,
-                              500000,
-                            ].map((val) => (
-                              <button
-                                key={val}
-                                type="button"
-                                onClick={() => setDonateAmount(String(val))}
-                                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                                  isDarkPublic
-                                    ? "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850"
-                                    : "bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100"
-                                }`}
-                              >
-                                {val.toLocaleString("vi-VN")} đ
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Stream Message */}
-                        <div className="space-y-1">
-                          <label
-                            className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                          >
-                            Lời nhắn (Hiển thị trên stream)
-                          </label>
-                          <textarea
-                            value={donateMessage}
-                            onChange={(e) => setDonateMessage(e.target.value)}
-                            placeholder="Gửi lời chúc, góp ý hoặc lời nhắn của bạn..."
-                            rows={3}
-                            maxLength={200}
-                            className={`w-full p-3 rounded-xl border outline-none transition-all text-sm font-sans font-medium resize-none ${isDarkPublic ? "bg-slate-900 border-slate-800 text-white placeholder:text-slate-500 focus:ring-1 focus:ring-slate-700" : "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500"}`}
-                          />
-                        </div>
-
-                        {/* Select payment method if both bank and momo are configured */}
-                        {appearance.bankEnabled !== false &&
-                          appearance.bankAccount &&
-                          appearance.momoEnabled !== false &&
-                          appearance.momoNumber && (
-                            <div className="space-y-1.5 pt-1">
-                              <label
-                                className={`block text-xs font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                              >
-                                Phương thức thanh toán
-                              </label>
-                              <div className="grid grid-cols-2 gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setSelectedDonateMethod("bank")
-                                  }
-                                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                                    selectedDonateMethod === "bank"
-                                      ? "border-transparent text-white"
-                                      : isDarkPublic
-                                        ? "border-slate-800 text-slate-400 hover:bg-slate-850"
-                                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                                  }`}
-                                  style={
-                                    selectedDonateMethod === "bank"
-                                      ? {
-                                          backgroundColor:
-                                            appearance.accentColor,
-                                        }
-                                      : {}
-                                  }
-                                >
-                                  <LucideIcon name="CreditCard" size={14} />
-                                  <span>Ngân hàng</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setSelectedDonateMethod("momo")
-                                  }
-                                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                                    selectedDonateMethod === "momo"
-                                      ? "border-transparent text-white"
-                                      : isDarkPublic
-                                        ? "border-slate-800 text-slate-400 hover:bg-slate-850"
-                                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                                  }`}
-                                  style={
-                                    selectedDonateMethod === "momo"
-                                      ? {
-                                          backgroundColor:
-                                            appearance.accentColor,
-                                        }
-                                      : {}
-                                  }
-                                >
-                                  <LucideIcon name="Wallet" size={14} />
-                                  <span>Ví MoMo</span>
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                        {/* Submit Button */}
-                        <div className="pt-2">
-                          {!(
-                            appearance.bankAccount || appearance.momoNumber
-                          ) ? (
-                            <div className="text-center text-xs text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-100 dark:border-red-900/30 font-semibold">
-                              Chưa cấu hình tài khoản nhận ủng hộ. Admin vui
-                              lòng cấu hình tài khoản trong phần Giao diện.
-                            </div>
-                          ) : (
-                            <button
-                              type="submit"
-                              disabled={isDonating}
-                              className="w-full py-3 px-4 rounded-xl text-white font-bold transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer hover:opacity-90 active:scale-[0.99]"
-                              style={{
-                                backgroundColor: appearance.accentColor,
-                              }}
-                            >
-                              {isDonating ? (
-                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              ) : (
-                                <LucideIcon name="ArrowRight" size={16} />
-                              )}
-                              <span>Tạo mã QR ủng hộ</span>
-                            </button>
-                          )}
-                        </div>
-                      </form>
-                    </div>
-                  ) : (
-                    /* Step 2: Show QR Code and Instructions */
-                    <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
-                      <div className="text-center space-y-1">
-                        <p
-                          className={`text-xs font-bold uppercase tracking-widest ${isDarkPublic ? "text-emerald-400" : "text-emerald-600"}`}
-                        >
-                          Đăng ký ủng hộ thành công!
-                        </p>
-                        <h3
-                          className={`font-display font-extrabold text-base ${isDarkPublic ? "text-slate-100" : "text-slate-800"}`}
-                        >
-                          Quét mã để chuyển khoản tự động
-                        </h3>
-                      </div>
-
-                      {/* Dynamic QR Display */}
-                      <div className="flex flex-col items-center space-y-2.5">
-                        <div className="p-3 bg-white rounded-3xl shadow-md border border-slate-100 dark:border-slate-800 flex items-center justify-center w-52 h-52 aspect-square">
-                          <img
-                            src={
-                              selectedDonateMethod === "momo" &&
-                              appearance.momoNumber
-                                ? `https://img.vietqr.io/image/MOMO-${appearance.momoNumber}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.momoName || "")}`
-                                : `https://img.vietqr.io/image/${(appearance.bankName || "MB").replace(/\s+/g, "")}-${appearance.bankAccount}-compact2.png?amount=${donateAmount}&addInfo=${encodeURIComponent(generatedMemo)}&accountName=${encodeURIComponent(appearance.bankOwner || "")}`
-                            }
-                            alt="Donation QR Code"
-                            className="w-full h-full object-contain"
-                            referrerPolicy="no-referrer"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleDownloadQR}
-                          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:opacity-95 cursor-pointer ${
-                            isDarkPublic
-                              ? "bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-850"
-                              : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                          }`}
-                        >
-                          <LucideIcon name="Download" size={14} />
-                          <span>Lưu ảnh QR về máy</span>
-                        </button>
-                        <span className="text-[10px] text-slate-400 font-semibold">
-                          Mã QR tích hợp số tiền & nội dung tự động
-                        </span>
-                      </div>
-
-                      {/* Transfer content highlight */}
-                      <div
-                        className={`p-4 rounded-xl border text-left space-y-2.5 ${isDarkPublic ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-150"}`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-slate-400 font-medium">
-                            Số tiền chuyển:
-                          </span>
-                          <span
-                            className={`text-sm font-black ${isDarkPublic ? "text-slate-100" : "text-slate-800"}`}
-                          >
-                            {Number(donateAmount).toLocaleString("vi-VN")} VNĐ
-                          </span>
-                        </div>
-
-                        <div className="border-t border-dashed border-slate-200 dark:border-slate-800 my-1"></div>
-
-                        <div className="space-y-1">
-                          <span className="text-xs text-slate-400 font-medium block">
-                            Nội dung chuyển khoản (Bắt buộc đúng):
-                          </span>
-                          <div className="flex gap-2">
-                            <div
-                              className={`flex-1 font-mono font-black text-center text-lg py-2.5 px-3 rounded-lg border border-dashed select-all uppercase tracking-wider ${
-                                isDarkPublic
-                                  ? "bg-slate-850 border-slate-700 text-yellow-400"
-                                  : "bg-yellow-50 border-yellow-200 text-amber-800"
-                              }`}
-                            >
-                              {generatedMemo}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                navigator.clipboard.writeText(generatedMemo);
-                                setCopiedMemo(true);
-                                setTimeout(() => setCopiedMemo(false), 2000);
-                              }}
-                              className="px-3.5 rounded-lg text-white transition-all flex items-center justify-center shrink-0 cursor-pointer text-xs font-bold"
-                              style={{
-                                backgroundColor: appearance.accentColor,
-                              }}
-                            >
-                              {copiedMemo ? (
-                                <LucideIcon name="Check" size={16} />
-                              ) : (
-                                <LucideIcon name="Copy" size={16} />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Banking App Redirection Section */}
-                      <div
-                        className={`p-4 rounded-xl border text-left space-y-3 ${isDarkPublic ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-150"}`}
-                      >
-                        <div className="space-y-1">
-                          <span
-                            className={`text-xs font-bold uppercase tracking-wider block ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                          >
-                            Chọn ứng dụng ngân hàng để thanh toán nhanh:
-                          </span>
-                          <div className="flex gap-2">
-                            <select
-                              value={selectedMobileBank}
-                              onChange={(e) =>
-                                setSelectedMobileBank(e.target.value)
-                              }
-                              className={`flex-1 p-2.5 rounded-xl border outline-none transition-all text-xs font-bold cursor-pointer ${
-                                isDarkPublic
-                                  ? "bg-slate-850 border-slate-700 text-white"
-                                  : "bg-white border-slate-200 text-slate-800 focus:border-indigo-500"
-                              }`}
-                            >
-                              <option value="mb">
-                                MB Bank (Ngân hàng Quân đội)
-                              </option>
-                              <option value="vcb">Vietcombank</option>
-                              <option value="tcb">Techcombank</option>
-                              <option value="bidv">BIDV</option>
-                              <option value="vtb">VietinBank</option>
-                              <option value="tpb">TPBank</option>
-                              <option value="vpb">VPBank</option>
-                              <option value="acb">ACB</option>
-                              <option value="momo">Ví MoMo</option>
-                            </select>
-                            <button
-                              type="button"
-                              onClick={handleRedirectToBankApp}
-                              className="px-4 py-2.5 rounded-xl text-white font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm text-xs hover:opacity-90 active:scale-[0.98]"
-                              style={{
-                                backgroundColor: appearance.accentColor,
-                              }}
-                            >
-                              <LucideIcon name="ExternalLink" size={14} />
-                              <span>Mở App</span>
-                            </button>
-                          </div>
-                          <p className="text-[10px] text-slate-400 mt-1">
-                            Hệ thống sẽ tự động chuyển hướng và điền thông tin
-                            chuyển khoản trên ứng dụng ngân hàng của bạn.
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Guide list */}
-                      <div
-                        className={`text-left text-xs leading-relaxed space-y-1.5 p-3 rounded-xl ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                      >
-                        <p className="font-bold flex items-start gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                          Bước 1: Lưu ảnh QR ở trên HOẶC chọn ứng dụng ngân hàng
-                          của bạn rồi nhấn "Mở App" để chuyển khoản tự động.
-                        </p>
-                        <p className="font-bold flex items-start gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                          Bước 2: Kiểm tra số tiền chuyển khoản trùng khớp với
-                          yêu cầu ở trên.
-                        </p>
-                        <p className="font-bold flex items-start gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                          Bước 3: Nhấn chuyển khoản trên điện thoại. Sau khi
-                          chuyển khoản thành công, nhấn "Xác nhận đã chuyển" bên
-                          dưới.
-                        </p>
-                      </div>
-
-                      {/* Action buttons */}
-                      <div className="pt-2 flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setDonateStep("form")}
-                          className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all text-xs text-center border cursor-pointer ${
-                            isDarkPublic
-                              ? "border-slate-800 text-slate-400 hover:bg-slate-850"
-                              : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          Quay lại
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleResetDonateForm();
-                            alert(
-                              "Cảm ơn bạn rất nhiều! Ủng hộ của bạn đã được lưu ở trạng thái chờ duyệt. Admin sẽ sớm phê duyệt giao dịch của bạn để hiển thị trên stream!",
-                            );
-                          }}
-                          className="flex-grow py-3 px-4 rounded-xl text-white font-bold transition-all text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer hover:opacity-95"
-                          style={{ backgroundColor: appearance.accentColor }}
-                        >
-                          <LucideIcon name="CheckCircle" size={14} />
-                          <span>Xác nhận đã chuyển</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <PublicDonateTab
+                  appearance={appearance}
+                  isDarkPublic={isDarkPublic}
+                  onDonationCreated={(saved) => {
+                    setDonations((prev) => [saved, ...prev]);
+                  }}
+                  hasLoadedDonations={hasLoadedDonations}
+                />
               )}
 
               {publicTab === "posts" && (
-                <div className="space-y-6 animate-in fade-in duration-300 pb-8 text-left">
-                  {/* Section Title */}
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-4 rounded-full"
-                      style={{ backgroundColor: appearance.accentColor }}
-                    ></div>
-                    <h2
-                      className={`text-xl font-bold uppercase tracking-wider ${
-                        isDarkPublic ? "text-slate-400" : "text-slate-500"
-                      }`}
-                    >
-                      Bài viết
-                    </h2>
-                  </div>
-
-                  <div className="space-y-6">
-                    {posts.map((post) => {
-                      const formattedDate = post.ngay_tao
-                        ? new Date(post.ngay_tao).toLocaleString("vi-VN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })
-                        : "Vừa xong";
-
-                      return (
-                        <div
-                          key={post.id}
-                          className={`border rounded-xl p-3 shadow-xs flex flex-col gap-2 ${
-                            isDarkPublic
-                              ? "bg-slate-900 border-slate-800 text-white"
-                              : "bg-white border-slate-100 text-slate-800"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-500 bg-slate-150">
-                              <img
-                                src={appearance.avatarUrl}
-                                alt="Author avatar"
-                                className="w-full h-full object-cover"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                            <div>
-                              <h4 className="text-xs sm:text-sm font-black">
-                                {appearance.name || "Alex Rivera"}
-                              </h4>
-                              <p className="text-[10px] text-slate-400 font-mono">
-                                {formattedDate}
-                              </p>
-                            </div>
-                          </div>
-
-                          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
-                            {post.noi_dung}
-                          </p>
-
-                          {post.url_hinh_anh && (
-                            <div className="rounded-md overflow-hidden border border-slate-100/10 dark:border-slate-800/80 bg-slate-950 flex items-center justify-center max-h-96">
-                              <img
-                                src={post.url_hinh_anh}
-                                alt="Status visual assets"
-                                className="w-full object-cover max-h-96"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                          )}
-
-                          {/* Interactive edge-aligned reactions: Like, Contact, Share */}
-                          <div className="flex justify-between items-center w-full border-t border-slate-100/10 dark:border-slate-800/60 pt-3 px-1">
-                            {/* Like Button */}
-                            <button
-                              onClick={() => {
-                                showNotification(
-                                  "Cảm ơn bạn đã bày tỏ cảm xúc!",
-                                  "success",
-                                );
-                              }}
-                              className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 transition-colors text-xs font-bold cursor-pointer"
-                            >
-                              <LucideIcon name="Heart" size={14} />
-                              <span>Thích</span>
-                            </button>
-
-                            {/* Contact (Liên hệ) Button */}
-                            <button
-                              onClick={() => {
-                                const associatedLink = post.lien_ket_id
-                                  ? links.find((l) => l.id === post.lien_ket_id)
-                                  : null;
-
-                                if (associatedLink) {
-                                  window.open(
-                                    `https://${associatedLink.url}`,
-                                    "_blank",
-                                  );
-                                  showNotification(
-                                    `Đang chuyển hướng đến ${associatedLink.title}...`,
-                                    "info",
-                                  );
-                                } else {
-                                  // Fallback to first active link
-                                  const firstActive = links.find(
-                                    (l) => l.enabled,
-                                  );
-                                  if (firstActive) {
-                                    window.open(
-                                      `https://${firstActive.url}`,
-                                      "_blank",
-                                    );
-                                    showNotification(
-                                      `Đang chuyển hướng đến ${firstActive.title}...`,
-                                      "info",
-                                    );
-                                  } else {
-                                    showNotification(
-                                      "Chưa có liên kết liên hệ nào hoạt động!",
-                                      "error",
-                                    );
-                                  }
-                                }
-                              }}
-                              className="flex items-center gap-1.5 text-slate-400 hover:text-emerald-500 transition-colors text-xs font-bold cursor-pointer"
-                            >
-                              <LucideIcon name="Phone" size={14} />
-                              <span>Liên hệ</span>
-                            </button>
-
-                            {/* Share Button */}
-                            <button
-                              onClick={() => {
-                                if (navigator.share) {
-                                  navigator
-                                    .share({
-                                      title: `Bài viết từ ${appearance.name}`,
-                                      text: post.noi_dung,
-                                      url: window.location.href,
-                                    })
-                                    .catch(console.error);
-                                } else {
-                                  navigator.clipboard.writeText(
-                                    `${post.noi_dung}\n- ${appearance.name}`,
-                                  );
-                                  showNotification(
-                                    "Đã sao chép nội dung bài viết!",
-                                    "success",
-                                  );
-                                }
-                              }}
-                              className="flex items-center gap-1.5 text-slate-400 hover:text-indigo-500 transition-colors text-xs font-bold cursor-pointer"
-                            >
-                              <LucideIcon name="Share2" size={14} />
-                              <span>Chia sẻ</span>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {posts.length === 0 && (
-                      <div
-                        className={`text-center p-12 border border-dashed rounded-3xl font-sans text-xs ${
-                          isDarkPublic
-                            ? "border-slate-800 text-slate-500 bg-slate-900/50"
-                            : "border-slate-200 text-slate-400 bg-slate-50/50"
-                        }`}
-                      >
-                        Chưa có status/bài viết nào được đăng gần đây.
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <PublicPostsTab
+                  posts={posts}
+                  links={links}
+                  appearance={appearance}
+                  isDarkPublic={isDarkPublic}
+                  showNotification={showNotification}
+                />
               )}
 
               {/* Contact message board instead of newsletter subscription */}
               {appearance.newsletterEnabled && (
-                <div
-                  className={`w-full p-6 sm:p-8 rounded-md border text-left transition-colors duration-300 mt-8 ${
-                    isDarkPublic
-                      ? "bg-slate-900 border-slate-800"
-                      : "bg-white border-slate-150 shadow-sm"
-                  }`}
-                >
-                  <h3 className="font-bold text-sm sm:text-base mb-1 flex items-center gap-2">
-                    <LucideIcon
-                      name="MessageSquare"
-                      size={16}
-                      style={{ color: appearance.accentColor }}
-                    />
-                    Nhắn tin cho tôi
-                  </h3>
-                  <p
-                    className={`text-xs sm:text-sm mb-6 leading-relaxed ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                  >
-                    Gửi lời chúc, góp ý hoặc tin nhắn liên hệ trực tiếp cho quản
-                    trị viên.
-                  </p>
-                  <form
-                    onSubmit={handleSendMessageSubmit}
-                    className="flex flex-col gap-4"
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <label
-                          className={`text-[10px] font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                        >
-                          Họ và tên
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Họ và tên của bạn"
-                          value={visitorName}
-                          onChange={(e) => setVisitorName(e.target.value)}
-                          className={`w-full rounded-xl px-4 py-3 outline-none transition-all text-xs sm:text-sm border ${
-                            isDarkPublic
-                              ? "bg-slate-950 border-slate-800 text-slate-100 focus:border-indigo-500"
-                              : "bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500"
-                          }`}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <label
-                          className={`text-[10px] font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                        >
-                          Địa chỉ Email
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="Địa chỉ Email"
-                          value={visitorEmail}
-                          onChange={(e) => setVisitorEmail(e.target.value)}
-                          className={`w-full rounded-xl px-4 py-3 outline-none transition-all text-xs sm:text-sm border ${
-                            isDarkPublic
-                              ? "bg-slate-950 border-slate-800 text-slate-100 focus:border-indigo-500"
-                              : "bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500"
-                          }`}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        className={`text-[10px] font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-400" : "text-slate-500"}`}
-                      >
-                        Nội dung lời nhắn
-                      </label>
-                      <textarea
-                        required
-                        rows={4}
-                        placeholder="Nội dung lời nhắn..."
-                        value={visitorContent}
-                        onChange={(e) => setVisitorContent(e.target.value)}
-                        className={`w-full rounded-xl px-4 py-3 outline-none transition-all text-xs sm:text-sm border resize-none ${
-                          isDarkPublic
-                            ? "bg-slate-950 border-slate-800 text-slate-100 focus:border-indigo-500"
-                            : "bg-slate-50 border-slate-200 text-slate-800 focus:border-indigo-500"
-                        }`}
-                      />
-                    </div>
-                    <div className="flex justify-end mt-2">
-                      <button
-                        type="submit"
-                        className="text-white px-6 py-3 rounded-xl font-bold hover:brightness-110 active:scale-[0.98] transition-all text-xs sm:text-sm cursor-pointer shadow-md w-full sm:w-auto"
-                        style={{ backgroundColor: appearance.accentColor }}
-                      >
-                        Gửi tin nhắn
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                <PublicContactBoard
+                  appearance={appearance}
+                  isDarkPublic={isDarkPublic}
+                  onSendMessage={(saved) => {
+                    setMessages((prev) => [saved, ...prev]);
+                    showNotification("Gửi tin nhắn thành công!", "success");
+                  }}
+                />
               )}
 
               {/* Footer and branding navigation inline */}
@@ -2797,139 +1818,51 @@ export default function App() {
             </div>
             {/* 4. Beautiful, High-End Mobile-Style Fixed Bottom Navigation Bar */}
             {!isAdminMode && (
-              <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-100 dark:border-slate-800/80 px-4 py-2 sm:py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
-                <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
-                  {/* Button 1: Liên hệ / Liên kết */}
-                  <button
-                    onClick={() => setPublicTab("links")}
-                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
-                      publicTab === "links"
-                        ? "font-extrabold"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                    }`}
-                    style={
-                      publicTab === "links"
-                        ? { color: appearance.accentColor }
-                        : {}
-                    }
-                  >
-                    <LucideIcon name="Link2" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
-                      Liên hệ
-                    </span>
-                  </button>
-
-                  {/* Button 2: Trang bị */}
-                  <button
-                    onClick={() => setPublicTab("guides")}
-                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
-                      publicTab === "guides"
-                        ? "font-extrabold"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                    }`}
-                    style={
-                      publicTab === "guides"
-                        ? { color: appearance.accentColor }
-                        : {}
-                    }
-                  >
-                    <LucideIcon name="BookOpen" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
-                      Trang bị
-                    </span>
-                  </button>
-
-                  {/* Button 3: Bài viết */}
-                  <button
-                    onClick={() => setPublicTab("posts")}
-                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer relative ${
-                      publicTab === "posts"
-                        ? "font-extrabold"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                    }`}
-                    style={
-                      publicTab === "posts"
-                        ? { color: appearance.accentColor }
-                        : {}
-                    }
-                  >
-                    <LucideIcon name="FileText" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
-                      Bài viết
-                    </span>
-                    {posts.length > 0 && (
-                      <span className="absolute top-1 right-5 bg-red-500 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
-                        {posts.length}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* Button 4: Ủng hộ */}
-                  <button
-                    onClick={() => setPublicTab("donate")}
-                    className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
-                      publicTab === "donate"
-                        ? "font-extrabold"
-                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                    }`}
-                    style={
-                      publicTab === "donate"
-                        ? { color: appearance.accentColor }
-                        : {}
-                    }
-                  >
-                    <LucideIcon name="Heart" size={18} />
-                    <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
-                      Ủng hộ
-                    </span>
-                  </button>
-                </div>
-              </div>
+              <PublicBottomNav
+                publicTab={publicTab}
+                setPublicTab={setPublicTab}
+                appearance={appearance}
+                postsCount={posts.length}
+              />
             )}
           </div>
         )}
       </main>
-
-      {/* Floating Toggle Admin panel button - Commented out as requested
-      {!isAdminMode && (
-        <button
-          onClick={() => {
-            if (isAuthenticated) {
-              setIsAdminMode(true);
-              setActiveTab("links");
-            } else {
-              setIsLoggingIn(true);
-            }
-          }}
-          className="fixed bottom-20 right-6 z-50 bg-slate-900 text-white hover:bg-slate-800 px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-[0.97] cursor-pointer text-xs font-semibold"
-          style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.35)" }}
-        >
-          <LucideIcon
-            name="Settings"
-            size={14}
-            className="animate-spin-slow text-indigo-400"
-          />
-          <span>Bảng Quản Trị</span>
-        </button>
-      )} 
-      */}
 
       {/* Admin Login Dialog Overlay */}
       {isLoggingIn && (
         <AdminLogin
           accentColor={appearance.accentColor}
           onLoginSuccess={(user) => {
-            setDbUser(user);
+            setLoggedInUser(user);
             setIsAuthenticated(true);
             setIsLoggingIn(false);
-            setIsAdminMode(true);
-            setActiveTab("links");
+            localStorage.setItem("vivid_persona_session", JSON.stringify(user));
+            if (user.vai_tro === 1) {
+              setIsAdminMode(true);
+              setActiveTab("links");
+              localStorage.setItem("vivid_persona_admin_mode", "true");
+            } else {
+              setIsAdminMode(false);
+              localStorage.setItem("vivid_persona_admin_mode", "false");
+              showNotification(
+                `Đăng nhập thành công! Chào mừng ${user.ten_dang_nhap}.`,
+                "success",
+              );
+            }
           }}
           onCancel={() => {
             setIsLoggingIn(false);
           }}
         />
       )}
+
+      {/* Share Website Modal Dialog */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        accentColor={appearance.accentColor}
+      />
 
       {/* Global Application Footer - ONLY shown in Admin panel to keep public profile absolute pure distraction-free */}
       {isAdminMode ? (
