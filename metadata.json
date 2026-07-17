@@ -1,0 +1,8 @@
+{
+  "name": "Remix: web-bio-link",
+  "description": "Imported from GitHub: HoangPhanDIY/web-bio-link",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
