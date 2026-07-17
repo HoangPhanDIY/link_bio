@@ -9,6 +9,7 @@ interface PublicLinksTabProps {
   appearance: AppearanceSettings;
   isDarkPublic: boolean;
   onLinkClick: (linkId: string) => void;
+  colorMode?: "light" | "dark" | "system";
 }
 
 export default function PublicLinksTab({
@@ -16,7 +17,10 @@ export default function PublicLinksTab({
   appearance,
   isDarkPublic,
   onLinkClick,
+  colorMode = "system",
 }: PublicLinksTabProps) {
+  const isSystem = colorMode === "system";
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Section Title */}
@@ -50,8 +54,8 @@ export default function PublicLinksTab({
                     : "bg-white shadow-xs hover:bg-slate-50/50"
                 }`}
                 style={{
-                  backgroundColor: appearance.linkBackgroundColor || undefined,
-                  borderColor: appearance.linkBackgroundColor
+                  backgroundColor: (isSystem && appearance.linkBackgroundColor) || undefined,
+                  borderColor: isSystem && appearance.linkBackgroundColor
                     ? "transparent"
                     : `${appearance.accentColor}30`, // semi-transparent primary color border
                   borderLeft: `5px solid ${appearance.accentColor}`, // solid main primary color thick left accent
@@ -76,7 +80,7 @@ export default function PublicLinksTab({
                     className="font-extrabold text-sm sm:text-base transition-colors"
                     style={{
                       color:
-                        appearance.linkTextColor ||
+                        (isSystem && appearance.linkTextColor) ||
                         (isDarkPublic ? "#ffffff" : "#1e293b"),
                     }}
                     onMouseEnter={(e) => {
@@ -84,7 +88,7 @@ export default function PublicLinksTab({
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.color =
-                        appearance.linkTextColor ||
+                        (isSystem && appearance.linkTextColor) ||
                         (isDarkPublic ? "#ffffff" : "#1e293b");
                     }}
                   >
@@ -96,7 +100,7 @@ export default function PublicLinksTab({
                   name="chevron_right"
                   className="transition-transform group-hover:translate-x-1"
                   style={{
-                    color: appearance.linkTextColor || appearance.accentColor,
+                    color: (isSystem && appearance.linkTextColor) || appearance.accentColor,
                   }}
                   size={18}
                 />

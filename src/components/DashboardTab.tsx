@@ -366,7 +366,7 @@ export default function DashboardTab({
           Tổng quan hệ thống
         </h1>
         <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-          Chỉ số hiệu suất thời gian thực cho {name || "Alex Rivera"}.
+          Chỉ số hiệu suất thời gian thực cho {name || "Admin"}.
         </p>
       </div>
 

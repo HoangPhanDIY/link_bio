@@ -64,6 +64,7 @@ export default function AppearanceTab({
     momoEnabled = true,
     loadingWebGif = "",
     loadingDataGif = "",
+    bao_tri = false,
   } = appearance;
 
   // States for banner creation form
@@ -820,6 +821,44 @@ export default function AppearanceTab({
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Maintenance Mode Option */}
+          <div className="space-y-4 md:col-span-2 pt-6 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Chế độ Bảo trì (Maintenance Mode)
+            </h4>
+
+            <div className="p-4 border border-amber-100 rounded-xl bg-amber-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${bao_tri ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`} />
+                  <label className="block text-sm font-bold text-slate-800">
+                    Bật chế độ bảo trì Website
+                  </label>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
+                  Khi kích hoạt, khách truy cập thông thường sẽ thấy trang thông báo bảo trì hệ thống. 
+                  Chỉ các tài khoản <span className="font-semibold text-slate-700">Admin</span> đã đăng nhập mới có thể vượt qua và tiếp tục truy cập/quản trị website bình thường.
+                </p>
+              </div>
+
+              <div className="flex items-center shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onUpdateAppearance({ bao_tri: !bao_tri })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
+                    bao_tri ? "bg-amber-500" : "bg-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      bao_tri ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
               </div>
             </div>
           </div>

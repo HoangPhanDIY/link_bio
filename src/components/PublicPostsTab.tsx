@@ -73,7 +73,7 @@ export default function PublicPostsTab({
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black">
-                    {appearance.name || "Alex Rivera"}
+                    {appearance.name || "Admin"}
                   </h4>
                   <p className="text-[10px] text-slate-400 ">{formattedDate}</p>
                 </div>

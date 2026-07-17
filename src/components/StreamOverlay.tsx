@@ -279,8 +279,8 @@ export default function StreamOverlay() {
             // Authentic Chị Google Translate voice
             try {
               isTtsPlaying = true;
-              const encodedText = encodeURIComponent(speakText.substring(0, 250));
-              const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodedText}`;
+              const encodedText = encodeURIComponent(speakText.substring(0, 200));
+              const googleTtsUrl = `/api/tts?text=${encodedText}&lang=vi`;
               const ttsAudio = new Audio(googleTtsUrl);
               ttsAudio.volume = 1.0;
 

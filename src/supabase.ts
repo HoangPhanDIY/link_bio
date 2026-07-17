@@ -40,6 +40,7 @@ export interface DBUser {
   donate_note?: string | null;
   bank_enabled?: boolean | null;
   momo_enabled?: boolean | null;
+  bao_tri?: boolean | null;
 }
 
 export interface DBCaiDatGiaoDien {

@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import multer from "multer";
 import { createServer as createViteServer } from "vite";
+import * as googleTTS from "google-tts-api";
 
 async function startServer() {
   const app = express();
@@ -103,6 +104,36 @@ async function startServer() {
     const alerts = [...pendingAlerts];
     pendingAlerts = [];
     res.json({ success: true, alerts });
+  });
+
+  // API to generate TTS using google-tts-api
+  app.get("/api/tts", async (req, res) => {
+    try {
+      const text = req.query.text as string;
+      const lang = (req.query.lang as string) || "vi";
+      
+      if (!text) {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      // google-tts-api has a limit of 200 characters per request for standard TTS.
+      // Truncate cleanText to 200 characters.
+      const cleanText = text.substring(0, 200);
+
+      const base64 = await googleTTS.getAudioBase64(cleanText, {
+        lang: lang,
+        slow: false,
+        host: "https://translate.google.com",
+        timeout: 10000,
+      });
+
+      const buffer = Buffer.from(base64, "base64");
+      res.set("Content-Type", "audio/mpeg");
+      res.send(buffer);
+    } catch (error: any) {
+      console.error("TTS generation error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate TTS" });
+    }
   });
 
   // Vite or static serving

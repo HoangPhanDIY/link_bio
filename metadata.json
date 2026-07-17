@@ -1,6 +1,6 @@
 {
-  "name": "Remix: web-bio-link",
-  "description": "Imported from GitHub: HoangPhanDIY/web-bio-link",
+  "name": "Hoàng Ao Nhây - Bio Link & Giáo Án",
+  "description": "Trang tổng hợp liên kết sinh động và giáo án lên đồ Liên Quân Mobile cực đỉnh của Hoàng Ao Nhây.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

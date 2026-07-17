@@ -44,6 +44,7 @@ export interface AppearanceSettings {
   streamAlertDuration?: number;  // Duration of alert in seconds
   streamAlertVoiceGender?: string; // Voice gender: 'default' | 'male' | 'female'
   streamAlertVoiceName?: string;   // Selected Web Speech voice name
+  bao_tri?: boolean;               // System maintenance mode
 }
 
 export interface ActivityLog {

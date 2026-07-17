@@ -335,6 +335,7 @@ export const dbService = {
     if (updates.background_color !== undefined) interfaceUpdates.mau_nen = updates.background_color;
     if (updates.loading_web_gif !== undefined) interfaceUpdates.loading_web_gif = updates.loading_web_gif;
     if (updates.loading_data_gif !== undefined) interfaceUpdates.loading_data_gif = updates.loading_data_gif;
+    if (updates.bao_tri !== undefined) interfaceUpdates.bao_tri = updates.bao_tri;
 
     if (Object.keys(interfaceUpdates).length > 0) {
       await supabase.from("cai_dat_giao_dien").update(interfaceUpdates).eq("id", 1);

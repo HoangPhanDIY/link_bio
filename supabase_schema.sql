@@ -384,7 +384,7 @@ ALTER TABLE ung_ho ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tin_nhan ENABLE ROW LEVEL SECURITY;
 ALTER TABLE nhat_ky_click ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "profiles_xem_cua_minh" ON profiles FOR SELECT USING (auth.uid() = id OR is_admin());
+CREATE POLICY "profiles_xem_cong_khai" ON profiles FOR SELECT USING (true);
 CREATE POLICY "profiles_sua_cua_minh" ON profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 CREATE POLICY "profiles_admin_toan_quyen" ON profiles FOR ALL USING (is_admin()) WITH CHECK (is_admin());
 

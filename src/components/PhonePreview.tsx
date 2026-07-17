@@ -8,6 +8,7 @@ interface PhonePreviewProps {
   links: BioLink[];
   appearance: AppearanceSettings;
   onLinkClick?: (linkId: string) => void;
+  colorMode?: "light" | "dark" | "system";
 }
 
 const isCustomIcon = (icon: string) => {
@@ -24,6 +25,7 @@ export default function PhonePreview({
   links,
   appearance,
   onLinkClick,
+  colorMode = "system",
 }: PhonePreviewProps) {
   const {
     mode,
@@ -46,7 +48,8 @@ export default function PhonePreview({
     return "font-sans";
   };
 
-  const isDark = mode === "dark";
+  const isDark = colorMode === "dark" || (colorMode === "system" && mode === "dark");
+  const isSystem = colorMode === "system";
 
   return (
     <div className={`flex flex-col items-center w-full max-w-[340px] mx-auto`}>
@@ -79,7 +82,7 @@ export default function PhonePreview({
               : "bg-slate-50 text-slate-900"
           } ${getFontFamilyClass()}`}
           style={{
-            backgroundColor: backgroundColor || undefined,
+            backgroundColor: isSystem && backgroundColor ? backgroundColor : undefined,
           }}
         >
           {/* Banner Graphic Card */}
@@ -107,6 +110,9 @@ export default function PhonePreview({
             {/* Profile Avatar circle with glow */}
             <div
               className={`w-20 h-20 rounded-full border-4 ${isDark ? "border-slate-950" : "border-white"} shadow-md overflow-hidden bg-slate-200 transition-colors duration-300`}
+              style={{
+                borderColor: isSystem && backgroundColor ? backgroundColor : undefined,
+              }}
             >
               <img
                 src={avatarUrl || "/image/tuong/DauSi/Florentino.jpg"}
@@ -194,11 +200,11 @@ export default function PhonePreview({
                       }`}
                       style={{
                         boxShadow: "0 2px 8px rgba(0,0,0,0.015)",
-                        backgroundColor: linkBackgroundColor || undefined,
-                        borderColor: linkBackgroundColor
+                        backgroundColor: isSystem && linkBackgroundColor ? linkBackgroundColor : undefined,
+                        borderColor: isSystem && linkBackgroundColor
                           ? "transparent"
                           : undefined,
-                        color: linkTextColor || undefined,
+                        color: isSystem && linkTextColor ? linkTextColor : undefined,
                       }}
                     >
                       {/* Left Side Icon */}
@@ -223,7 +229,7 @@ export default function PhonePreview({
                           style={
                             {
                               "--hover-color": brandIconColor,
-                              color: linkTextColor || undefined,
+                              color: isSystem && linkTextColor ? linkTextColor : undefined,
                             } as React.CSSProperties
                           }
                         >
@@ -235,7 +241,7 @@ export default function PhonePreview({
                       <LucideIcon
                         name="chevron_right"
                         className={`shrink-0 transition-transform group-hover:translate-x-0.5 ${isDark ? "text-slate-600" : "text-slate-300"}`}
-                        style={{ color: linkTextColor || undefined }}
+                        style={{ color: isSystem && linkTextColor ? linkTextColor : undefined }}
                         size={14}
                       />
                     </div>

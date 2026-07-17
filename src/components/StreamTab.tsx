@@ -797,9 +797,9 @@ export default function StreamTab({
 
                     if (useGoogleTTS) {
                       const encodedText = encodeURIComponent(
-                        speakText.substring(0, 250),
+                        speakText.substring(0, 200),
                       );
-                      const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodedText}`;
+                      const googleTtsUrl = `/api/tts?text=${encodedText}&lang=vi`;
                       const ttsAudio = new Audio(googleTtsUrl);
                       ttsAudio.volume = 1.0;
                       ttsAudio.play().catch((err) => {
