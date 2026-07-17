@@ -4,6 +4,12 @@ import LucideIcon from "./LucideIcon";
 
 const getBadgeBranch = (badge?: any): string => {
   if (!badge) return "KHAC";
+  const ln = Number(badge.loai_nhanh);
+  if (ln === 1) return "THANH_KHOI_NGUYEN";
+  if (ln === 2) return "THAP_QUANG_MINH";
+  if (ln === 3) return "VUC_HON_MANG";
+  if (ln === 4) return "RUNG_NGUYEN_SINH";
+
   const url = (badge.url_hinh_anh || "").toLowerCase();
   const name = (badge.ten_phu_hieu || "").toLowerCase();
 
@@ -60,6 +66,20 @@ const branchColors: Record<
     glow: "rgba(100, 116, 139, 0.4)",
     text: "text-slate-400",
   },
+};
+
+const branchNameMap: Record<string, string> = {
+  THANH_KHOI_NGUYEN: "Thành Khởi Nguyên",
+  THAP_QUANG_MINH: "Tháp Quang Minh",
+  VUC_HON_MANG: "Vực Hỗn Mang",
+  RUNG_NGUYEN_SINH: "Rừng Nguyên Sinh",
+};
+
+const branchImageMap: Record<string, string> = {
+  THANH_KHOI_NGUYEN: "/image/phu_hieu/thanh_khoi_nguyen/thanh-khoi-nguyen.png",
+  THAP_QUANG_MINH: "/image/phu_hieu/thap_quang_minh/thap-quang-minh.png",
+  VUC_HON_MANG: "/image/phu_hieu/vuc_hon_mang/vuc-hon-mang.png",
+  RUNG_NGUYEN_SINH: "/image/phu_hieu/rung_nguyen_sinh/rung-nguyen-sinh.png",
 };
 
 const getBranchBaseSVG = (branch: string) => {
@@ -219,15 +239,9 @@ export default function PublicBuildGuides({
   const champIds = Object.keys(groupedGuides);
 
   return (
-    <div className="space-y-4 pt-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div
-          className="w-1.5 h-4 rounded-full"
-          style={{ backgroundColor: accentColor }}
-        ></div>
-        <h2
-          className={`text-xL font-bold uppercase tracking-wider ${isDark ? "text-slate-400" : "text-slate-500"}`}
-        >
+        <h2 className={`text-xl font-bold uppercase tracking-wider text-black`}>
           TRANG BỊ ĐỀ CỬ CÁ NHÂN
         </h2>
       </div>
@@ -281,14 +295,10 @@ export default function PublicBuildGuides({
           return (
             <div
               key={champId}
-              className={`border rounded-md p-5 transition-all shadow-sm ${
-                isDark
-                  ? "bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-100"
-                  : "bg-white border-slate-150/80 hover:border-slate-200 text-slate-800"
-              }`}
+              className={`rounded-md p-2 transition-all shadow-sm bg-white text-slate-800`}
             >
               {/* Champion & Title Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-dashed border-slate-100 dark:border-slate-800/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-dashed border-slate-100 dark:border-slate-800/80">
                 <div className="flex items-center gap-3">
                   {/* Champ avatar */}
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-sm relative shrink-0">
@@ -317,7 +327,7 @@ export default function PublicBuildGuides({
                     </div>
 
                     {championGuides.length > 1 ? (
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 block">
+                      <span className="text-[10px] text-slate-800 dark:text-slate-500 mt-0.5 block">
                         Có {championGuides.length} lối lên đồ khuyên dùng khác
                         nhau
                       </span>
@@ -335,9 +345,9 @@ export default function PublicBuildGuides({
 
               {/* Build Guides Tabs (If champion has multiple builds) */}
               {championGuides.length > 1 && (
-                <div className="mt-4">
+                <div className="mt-1">
                   <span
-                    className={`block text-[9px] font-black uppercase tracking-wider mb-2 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                    className={`block text-[10px] font-black uppercase tracking-wider mb-2 text-black`}
                   >
                     Chọn lối lên đồ:
                   </span>
@@ -351,10 +361,10 @@ export default function PublicBuildGuides({
                             [champId]: idx,
                           }))
                         }
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
                           safeIndex === idx
-                            ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-150 dark:border-slate-700"
-                            : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900"
+                            ? "bg-white text-indigo-600 shadow-sm border-[0.5px] border-slate-150"
+                            : "text-slate-500 hover:bg-slate-100"
                         }`}
                       >
                         {g.tieu_de_giao_an}
@@ -365,19 +375,13 @@ export default function PublicBuildGuides({
               )}
 
               {/* Items Trail */}
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-2.5">
+              <div className="mt-1">
+                <div className="flex justify-between items-center mb-1">
                   <span
-                    className={`block text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                    className={`block text-[10px] font-bold uppercase tracking-wider text-black`}
                   >
                     Trang bị & Phép bổ trợ:
                   </span>
-                  {championGuides.length > 1 && (
-                    <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
-                      <LucideIcon name="Layers" size={11} />
-                      {currentGuide.tieu_de_giao_an}
-                    </span>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-7 gap-1.5 sm:gap-3.5 max-w-2xl">
@@ -429,7 +433,7 @@ export default function PublicBuildGuides({
 
               {/* Expandable Panel */}
               {isExpanded && (
-                <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-4 animate-in slide-in-from-top duration-200">
+                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-4 animate-in slide-in-from-top duration-200">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Badge Column (Phù hiệu) */}
                     {currentGuide.phu_hieu_list &&
@@ -454,7 +458,7 @@ export default function PublicBuildGuides({
                           branchColors[sub2BranchType] || branchColors.KHAC;
 
                         return (
-                          <div className="bg-slate-950 p-4 rounded-md border border-slate-900 shadow-xl flex flex-col gap-3 text-left">
+                          <div className="bg-slate-950 p-2 rounded-md border border-slate-900 shadow-xl flex flex-col gap-3 text-left">
                             <div className="flex justify-between items-center pb-2 border-b border-slate-900">
                               <h4 className="text-[15px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
                                 <LucideIcon name="Award" size={14} />
@@ -466,7 +470,7 @@ export default function PublicBuildGuides({
                               {/* Main Branch */}
                               {mainBadgesList.length > 0 && (
                                 <div className="">
-                                  <div className="flex items-center gap-8 md:gap-11 overflow-x-auto scrollbar-none">
+                                  <div className="flex py-2 items-center gap-8 md:gap-11 overflow-x-auto scrollbar-none">
                                     {mainBadgesList.map((badge, idx) => {
                                       const isRoot = idx === 0;
                                       const isTier3 = idx === 3;
@@ -478,6 +482,17 @@ export default function PublicBuildGuides({
                                       const imageSize = isLarge
                                         ? "w-9 h-9 md:w-11 md:h-11"
                                         : "w-6 h-6 md:w-7.5 md:h-7.5";
+
+                                      const displayName = isRoot
+                                        ? branchNameMap[
+                                            getBadgeBranch(badge)
+                                          ] || badge.ten_phu_hieu
+                                        : badge.ten_phu_hieu;
+                                      const displayImg = isRoot
+                                        ? branchImageMap[
+                                            getBadgeBranch(badge)
+                                          ] || badge.url_hinh_anh
+                                        : badge.url_hinh_anh;
 
                                       return (
                                         <div
@@ -492,10 +507,10 @@ export default function PublicBuildGuides({
                                                 ? `0 0 12px ${mainColors.glow}, inset 0 0 6px ${mainColors.glow}`
                                                 : `0 0 8px ${mainColors.glow}`,
                                             }}
-                                            title={badge.ten_phu_hieu}
+                                            title={displayName}
                                           >
                                             <img
-                                              src={badge.url_hinh_anh}
+                                              src={displayImg}
                                               className={`${imageSize} object-cover rounded-full`}
                                               alt=""
                                               referrerPolicy="no-referrer"
@@ -540,6 +555,17 @@ export default function PublicBuildGuides({
                                           ? "w-9 h-9 md:w-11 md:h-11"
                                           : "w-6 h-6 md:w-7.5 md:h-7.5";
 
+                                        const displayName = isRoot
+                                          ? branchNameMap[
+                                              getBadgeBranch(badge)
+                                            ] || badge.ten_phu_hieu
+                                          : badge.ten_phu_hieu;
+                                        const displayImg = isRoot
+                                          ? branchImageMap[
+                                              getBadgeBranch(badge)
+                                            ] || badge.url_hinh_anh
+                                          : badge.url_hinh_anh;
+
                                         return (
                                           <div
                                             key={`${badge.id || "sub1"}-${idx}`}
@@ -553,10 +579,10 @@ export default function PublicBuildGuides({
                                                   ? `0 0 12px ${sub1Colors.glow}, inset 0 0 6px ${sub1Colors.glow}`
                                                   : `0 0 8px ${sub1Colors.glow}`,
                                               }}
-                                              title={badge.ten_phu_hieu}
+                                              title={displayName}
                                             >
                                               <img
-                                                src={badge.url_hinh_anh}
+                                                src={displayImg}
                                                 className={`${imageSize} object-cover rounded-full`}
                                                 alt=""
                                                 referrerPolicy="no-referrer"
@@ -600,6 +626,17 @@ export default function PublicBuildGuides({
                                           ? "w-9 h-9 md:w-11 md:h-11"
                                           : "w-6 h-6 md:w-7.5 md:h-7.5";
 
+                                        const displayName = isRoot
+                                          ? branchNameMap[
+                                              getBadgeBranch(badge)
+                                            ] || badge.ten_phu_hieu
+                                          : badge.ten_phu_hieu;
+                                        const displayImg = isRoot
+                                          ? branchImageMap[
+                                              getBadgeBranch(badge)
+                                            ] || badge.url_hinh_anh
+                                          : badge.url_hinh_anh;
+
                                         return (
                                           <div
                                             key={`${badge.id || "sub2"}-${idx}`}
@@ -613,10 +650,10 @@ export default function PublicBuildGuides({
                                                   ? `0 0 12px ${sub2Colors.glow}, inset 0 0 6px ${sub2Colors.glow}`
                                                   : `0 0 8px ${sub2Colors.glow}`,
                                               }}
-                                              title={badge.ten_phu_hieu}
+                                              title={displayName}
                                             >
                                               <img
-                                                src={badge.url_hinh_anh}
+                                                src={displayImg}
                                                 className={`${imageSize} object-cover rounded-full`}
                                                 alt=""
                                                 referrerPolicy="no-referrer"
@@ -687,7 +724,7 @@ export default function PublicBuildGuides({
                               {/* Red row */}
                               <div className="flex items-center gap-3">
                                 <img
-                                  src="/image/ngoc/ngoc_do.png"
+                                  src="/image/ngoc/do.png"
                                   className="w-9 h-9 object-contain shrink-0"
                                   alt="Ngọc Đỏ"
                                 />
@@ -706,7 +743,7 @@ export default function PublicBuildGuides({
                               {/* Purple row */}
                               <div className="flex items-center gap-3">
                                 <img
-                                  src="/image/ngoc/ngoc_tim.png"
+                                  src="/image/ngoc/tim.png"
                                   className="w-9 h-9 object-contain shrink-0"
                                   alt="Ngọc Tím"
                                 />
@@ -725,7 +762,7 @@ export default function PublicBuildGuides({
                               {/* Green row */}
                               <div className="flex items-center gap-3">
                                 <img
-                                  src="/image/ngoc/ngoc_xanh.png"
+                                  src="/image/ngoc/xanh.png"
                                   className="w-9 h-9 object-contain shrink-0"
                                   alt="Ngọc Lục"
                                 />

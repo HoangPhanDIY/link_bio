@@ -9,6 +9,12 @@ import {
 import LucideIcon from "./LucideIcon";
 
 const getBadgeBranch = (badge: DBBadge): string => {
+  const ln = Number(badge.loai_nhanh);
+  if (ln === 1) return "THANH_KHOI_NGUYEN";
+  if (ln === 2) return "THAP_QUANG_MINH";
+  if (ln === 3) return "VUC_HON_MANG";
+  if (ln === 4) return "RUNG_NGUYEN_SINH";
+
   const url = (badge.url_hinh_anh || "").toLowerCase();
   const name = (badge.ten_phu_hieu || "").toLowerCase();
 
@@ -27,12 +33,22 @@ const getBadgeBranch = (badge: DBBadge): string => {
   return "KHAC";
 };
 
-const branchRepresentativeIds = [
-  "e1111111-1111-1111-1111-111111111111", // Vực hỗn mang
-  "e2222222-2222-2222-2222-222222222222", // Tháp quang minh
-  "e3333333-3333-3333-3333-333333333333", // Thành khởi nguyên
-  "e4444444-4444-4444-4444-444444444444", // Rừng nguyên sinh
-];
+const branchNameMap: Record<string, string> = {
+  THANH_KHOI_NGUYEN: "Thành Khởi Nguyên",
+  THAP_QUANG_MINH: "Tháp Quang Minh",
+  VUC_HON_MANG: "Vực Hỗn Mang",
+  RUNG_NGUYEN_SINH: "Rừng Nguyên Sinh",
+};
+
+const branchImageMap: Record<string, string> = {
+  THANH_KHOI_NGUYEN:
+    "/image/phu_hieu/thanh_khoi_nguyen/thanh-khoi-nguyen.png",
+  THAP_QUANG_MINH:
+    "/image/phu_hieu/thap_quang_minh/thap-quang-minh.png",
+  VUC_HON_MANG: "/image/phu_hieu/vuc_hon_mang/vuc-hon-mang.png",
+  RUNG_NGUYEN_SINH:
+    "/image/phu_hieu/rung_nguyen_sinh/rung-nguyen-sinh.png",
+};
 
 const matchChampLane = (champ: DBChampion, lane: string): boolean => {
   if (lane === "ALL") return true;
@@ -78,6 +94,7 @@ const normalizeItemCategory = (loai: number | string | null): string => {
     if (loai === 2) return "THU";
     if (loai === 3) return "TOC_CHAY";
     if (loai === 4) return "TRO_THU";
+    if (loai === 5) return "RUNG";
     return "CONG";
   }
   const normalized = loai.toUpperCase().trim();
@@ -223,7 +240,7 @@ export default function BuildGuidesTab({
     setNgocDo(g.ngoc_do || "");
     setNgocTim(g.ngoc_tim || "");
     setNgocXanh(g.ngoc_xanh || "");
-    setIsActive(g.kich_hoat);
+    setIsActive(g.kich_hoat ?? false);
 
     // Reconstruct item slots
     const remappedItems = Array(6).fill("");
@@ -432,7 +449,7 @@ export default function BuildGuidesTab({
         <div>
           <h2 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
             <LucideIcon name="Shield" className="text-indigo-500" size={20} />
-            Hệ thống Giáo án & Đồ Game
+            Trang bị
           </h2>
           <p className="text-slate-400 text-xs mt-1">
             Quản lý các bộ khuyến nghị trang bị (1 tướng có thể có nhiều lối lên
@@ -604,7 +621,7 @@ export default function BuildGuidesTab({
                         {item ? (
                           <div className="flex flex-col items-center justify-center w-full h-full mt-2">
                             <img
-                              src={item.url_hinh_anh}
+                              src={item.url_hinh_anh ?? undefined}
                               alt={item.ten_trang_bi}
                               className="w-11 h-11 object-cover rounded border border-slate-200 shadow-md"
                               referrerPolicy="no-referrer"
@@ -659,7 +676,7 @@ export default function BuildGuidesTab({
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center gap-3">
                             <img
-                              src={spell?.url_hinh_anh}
+                              src={spell?.url_hinh_anh ?? undefined}
                               className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow"
                               alt="Spell"
                               referrerPolicy="no-referrer"
@@ -725,6 +742,18 @@ export default function BuildGuidesTab({
                         activeSelector.type === "badge" &&
                         activeSelector.key === key;
 
+                      const isBranch = idx === 0;
+                      const displayName =
+                        badge && isBranch
+                          ? branchNameMap[getBadgeBranch(badge)] ||
+                            badge.ten_phu_hieu
+                          : badge?.ten_phu_hieu || "";
+                      const displayImg =
+                        badge && isBranch
+                          ? branchImageMap[getBadgeBranch(badge)] ||
+                            badge.url_hinh_anh
+                          : badge?.url_hinh_anh || null;
+
                       return (
                         <div
                           key={key}
@@ -745,13 +774,13 @@ export default function BuildGuidesTab({
                           {badge ? (
                             <div className="flex flex-col items-center justify-center w-full mt-1.5">
                               <img
-                                src={badge.url_hinh_anh}
+                                src={displayImg ?? undefined}
                                 className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow-sm"
                                 alt="Badge"
                                 referrerPolicy="no-referrer"
                               />
                               <span className="text-[8.5px] font-black text-slate-600 mt-1.5 truncate w-full">
-                                {badge.ten_phu_hieu}
+                                {displayName}
                               </span>
                               <button
                                 type="button"
@@ -790,6 +819,18 @@ export default function BuildGuidesTab({
                           activeSelector.type === "badge" &&
                           activeSelector.key === key;
 
+                        const isBranch = idx === 0;
+                        const displayName =
+                          badge && isBranch
+                            ? branchNameMap[getBadgeBranch(badge)] ||
+                              badge.ten_phu_hieu
+                            : badge?.ten_phu_hieu || "";
+                        const displayImg =
+                          badge && isBranch
+                            ? branchImageMap[getBadgeBranch(badge)] ||
+                              badge.url_hinh_anh
+                            : badge?.url_hinh_anh || null;
+
                         return (
                           <div
                             key={key}
@@ -808,13 +849,13 @@ export default function BuildGuidesTab({
                             {badge ? (
                               <div className="flex flex-col items-center justify-center w-full mt-1.5">
                                 <img
-                                  src={badge.url_hinh_anh}
+                                  src={displayImg ?? undefined}
                                   className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow-sm"
                                   alt="Badge"
                                   referrerPolicy="no-referrer"
                                 />
                                 <span className="text-[8.5px] font-black text-slate-600 mt-1.5 truncate w-full">
-                                  {badge.ten_phu_hieu}
+                                  {displayName}
                                 </span>
                                 <button
                                   type="button"
@@ -851,6 +892,18 @@ export default function BuildGuidesTab({
                           activeSelector.type === "badge" &&
                           activeSelector.key === key;
 
+                        const isBranch = idx === 0;
+                        const displayName =
+                          badge && isBranch
+                            ? branchNameMap[getBadgeBranch(badge)] ||
+                              badge.ten_phu_hieu
+                            : badge?.ten_phu_hieu || "";
+                        const displayImg =
+                          badge && isBranch
+                            ? branchImageMap[getBadgeBranch(badge)] ||
+                              badge.url_hinh_anh
+                            : badge?.url_hinh_anh || null;
+
                         return (
                           <div
                             key={key}
@@ -869,13 +922,13 @@ export default function BuildGuidesTab({
                             {badge ? (
                               <div className="flex flex-col items-center justify-center w-full mt-1.5">
                                 <img
-                                  src={badge.url_hinh_anh}
+                                  src={displayImg ?? undefined}
                                   className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow-sm"
                                   alt="Badge"
                                   referrerPolicy="no-referrer"
                                 />
                                 <span className="text-[8.5px] font-black text-slate-600 mt-1.5 truncate w-full">
-                                  {badge.ten_phu_hieu}
+                                  {displayName}
                                 </span>
                                 <button
                                   type="button"
@@ -1227,7 +1280,7 @@ export default function BuildGuidesTab({
                             title={item.mo_ta || ""}
                           >
                             <img
-                              src={item.url_hinh_anh}
+                              src={item.url_hinh_anh ?? undefined}
                               className="w-8 h-8 rounded-lg object-cover border border-slate-200"
                               alt=""
                               referrerPolicy="no-referrer"
@@ -1257,9 +1310,52 @@ export default function BuildGuidesTab({
                     activeKey === "NHANH_PHU_2_1";
 
                   if (isBranchSlot) {
-                    const branchBadges = badges.filter((b) =>
-                      branchRepresentativeIds.includes(b.id),
-                    );
+                    const branchLabels: Record<string, string> = {
+                      THANH_KHOI_NGUYEN: "Thành Khởi Nguyên",
+                      THAP_QUANG_MINH: "Tháp Quang Minh",
+                      VUC_HON_MANG: "Vực Hỗn Mang",
+                      RUNG_NGUYEN_SINH: "Rừng Nguyên Sinh",
+                    };
+
+                    const branchBackgrounds: Record<string, string> = {
+                      THANH_KHOI_NGUYEN:
+                        "/image/phu_hieu/thanh_khoi_nguyen/thanh-khoi-nguyen.png",
+                      THAP_QUANG_MINH:
+                        "/image/phu_hieu/thap_quang_minh/thap-quang-minh.png",
+                      VUC_HON_MANG:
+                        "/image/phu_hieu/vuc_hon_mang/vuc-hon-mang.png",
+                      RUNG_NGUYEN_SINH:
+                        "/image/phu_hieu/rung_nguyen_sinh/rung-nguyen-sinh.png",
+                    };
+
+                    const branchesKeys = [
+                      "THANH_KHOI_NGUYEN",
+                      "THAP_QUANG_MINH",
+                      "VUC_HON_MANG",
+                      "RUNG_NGUYEN_SINH",
+                    ];
+                    const branchBadges = branchesKeys
+                      .map((bKey) => {
+                        const firstRealBadge = badges.find(
+                          (b) => getBadgeBranch(b) === bKey,
+                        );
+                        if (!firstRealBadge) return null;
+                        return {
+                          id: firstRealBadge.id,
+                          ten_phu_hieu: branchLabels[bKey],
+                          url_hinh_anh:
+                            branchBackgrounds[bKey] ||
+                            firstRealBadge.url_hinh_anh,
+                          branchKey: bKey,
+                        };
+                      })
+                      .filter(Boolean) as {
+                      id: string;
+                      ten_phu_hieu: string;
+                      url_hinh_anh: string | null;
+                      branchKey: string;
+                    }[];
+
                     return (
                       <div className="space-y-3">
                         <div className="text-left py-1">
@@ -1272,8 +1368,15 @@ export default function BuildGuidesTab({
                         </div>
                         <div className="grid grid-cols-1 gap-2 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
                           {branchBadges.map((b) => {
+                            const equippedId = activeKey
+                              ? selectedBadges[activeKey]
+                              : null;
+                            const equippedBadge = badges.find(
+                              (bg) => bg.id === equippedId,
+                            );
                             const isEquippedInActive =
-                              activeKey && selectedBadges[activeKey] === b.id;
+                              equippedBadge &&
+                              getBadgeBranch(equippedBadge) === b.branchKey;
                             return (
                               <div
                                 key={b.id}
@@ -1290,7 +1393,7 @@ export default function BuildGuidesTab({
                                 }`}
                               >
                                 <img
-                                  src={b.url_hinh_anh}
+                                  src={b.url_hinh_anh ?? undefined}
                                   className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm shrink-0"
                                   alt=""
                                   referrerPolicy="no-referrer"
@@ -1362,11 +1465,10 @@ export default function BuildGuidesTab({
                   const filteredBadges = badges.filter((b) => {
                     const bBranch = getBadgeBranch(b);
                     const isSameBranch = bBranch === parentBranch;
-                    const isNotRep = !branchRepresentativeIds.includes(b.id);
                     const matchesSearch = b.ten_phu_hieu
                       .toLowerCase()
                       .includes(searchTerm.toLowerCase());
-                    return isSameBranch && isNotRep && matchesSearch;
+                    return isSameBranch && matchesSearch;
                   });
 
                   return (
@@ -1416,7 +1518,7 @@ export default function BuildGuidesTab({
                                 }`}
                               >
                                 <img
-                                  src={b.url_hinh_anh}
+                                  src={b.url_hinh_anh ?? undefined}
                                   className="w-7 h-7 rounded-full object-cover border border-slate-200 shadow-sm shrink-0"
                                   alt=""
                                   referrerPolicy="no-referrer"
@@ -1468,7 +1570,7 @@ export default function BuildGuidesTab({
                             title={s.mo_ta || ""}
                           >
                             <img
-                              src={s.url_hinh_anh}
+                              src={s.url_hinh_anh ?? undefined}
                               className="w-7 h-7 rounded-full object-cover border border-slate-200 shadow-sm"
                               alt=""
                               referrerPolicy="no-referrer"
@@ -1551,7 +1653,7 @@ export default function BuildGuidesTab({
                         title={item.ten_trang_bi}
                       >
                         <img
-                          src={item.url_hinh_anh}
+                          src={item.url_hinh_anh ?? undefined}
                           className="w-7 h-7 object-cover rounded-md border border-slate-200"
                           alt="Equip icon"
                           referrerPolicy="no-referrer"

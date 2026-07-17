@@ -25,15 +25,7 @@ export default function PublicPostsTab({
     <div className="space-y-6 animate-in fade-in duration-300 pb-8 text-left">
       {/* Section Title */}
       <div className="flex items-center gap-2">
-        <div
-          className="w-1.5 h-4 rounded-full"
-          style={{ backgroundColor: appearance.accentColor }}
-        ></div>
-        <h2
-          className={`text-xl font-bold uppercase tracking-wider ${
-            isDarkPublic ? "text-slate-400" : "text-slate-500"
-          }`}
-        >
+        <h2 className={`text-xl font-bold uppercase tracking-wider text-black`}>
           Bài viết
         </h2>
       </div>
@@ -84,7 +76,7 @@ export default function PublicPostsTab({
               </p>
 
               {post.url_hinh_anh && (
-                <div className="rounded-md overflow-hidden border border-slate-100/10 dark:border-slate-800/80 bg-slate-950 flex items-center justify-center max-h-96">
+                <div className="rounded-md overflow-hidden border border-slate-100/10 /80 bg-slate-950 flex items-center justify-center max-h-96">
                   <img
                     src={post.url_hinh_anh}
                     alt="Status visual assets"
@@ -95,7 +87,7 @@ export default function PublicPostsTab({
               )}
 
               {/* Interactive edge-aligned reactions: Like, Contact, Share */}
-              <div className="flex justify-between items-center w-full border-t border-slate-100/10 dark:border-slate-800/60 pt-3 px-1">
+              <div className="flex justify-between items-center w-full border-t border-slate-100/10 /60 pt-3 px-1">
                 {/* Like Button */}
                 <button
                   onClick={() => {
@@ -179,13 +171,9 @@ export default function PublicPostsTab({
 
         {posts.length === 0 && (
           <div
-            className={`text-center p-12 border border-dashed rounded-3xl font-sans text-xs ${
-              isDarkPublic
-                ? "border-slate-800 text-slate-500 bg-slate-900/50"
-                : "border-slate-200 text-slate-400 bg-slate-50/50"
-            }`}
+            className={`text-center p-12 border border-dashed rounded-3xl font-sans text-xs border-slate-200 text-slate-400 bg-slate-50/50`}
           >
-            Chưa có status/bài viết nào được đăng gần đây.
+            Chưa có nào được đăng gần đây.
           </div>
         )}
       </div>

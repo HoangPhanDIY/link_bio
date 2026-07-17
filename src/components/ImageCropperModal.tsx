@@ -235,16 +235,16 @@ export default function ImageCropperModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800">
+      <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 ">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-850">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+        <div className="px-5 py-4 border-b border-slate-100  flex justify-between items-center bg-slate-50 ">
+          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
             <LucideIcon name="Crop" className="text-indigo-500" size={16} />
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition"
+            className="p-1.5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition"
           >
             <LucideIcon name="X" size={16} />
           </button>
@@ -344,7 +344,7 @@ export default function ImageCropperModal({
             </svg>
           </div>
 
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 text-center">
+          <p className="text-[11px] text-slate-400  mt-2 text-center">
             Kéo và thả để di chuyển ảnh khớp với vùng chọn
           </p>
 
@@ -360,7 +360,7 @@ export default function ImageCropperModal({
                 step="0.01"
                 value={zoom}
                 onChange={(e) => setZoom(parseFloat(e.target.value))}
-                className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none"
+                className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none"
               />
               <LucideIcon name="ZoomIn" className="text-slate-400" size={14} />
             </div>
@@ -368,11 +368,11 @@ export default function ImageCropperModal({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 bg-slate-50 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2.5">
+        <div className="px-5 py-4 bg-slate-50  border-t border-slate-100  flex justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 transition cursor-pointer"
+            className="px-4 py-2 rounded text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
           >
             Hủy bỏ
           </button>

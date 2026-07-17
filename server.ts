@@ -4,10 +4,31 @@ import fs from "fs";
 import multer from "multer";
 import { createServer as createViteServer } from "vite";
 import * as googleTTS from "google-tts-api";
+import { GoogleGenAI } from "@google/genai";
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Initialize Gemini Client lazily
+  let aiClient: GoogleGenAI | null = null;
+  function getGeminiClient() {
+    if (!aiClient) {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is not defined");
+      }
+      aiClient = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          }
+        }
+      });
+    }
+    return aiClient;
+  }
 
   // Create upload folder if not exists
   // Đường dẫn mới trỏ vào trong thư mục public/uploads
@@ -106,20 +127,51 @@ async function startServer() {
     res.json({ success: true, alerts });
   });
 
-  // API to generate TTS using google-tts-api
+  // API to generate TTS using google-tts-api or Gemini API based on gender parameter
   app.get("/api/tts", async (req, res) => {
     try {
       const text = req.query.text as string;
       const lang = (req.query.lang as string) || "vi";
+      const gender = (req.query.gender as string) || "default";
       
       if (!text) {
         return res.status(400).json({ error: "Text is required" });
       }
 
-      // google-tts-api has a limit of 200 characters per request for standard TTS.
-      // Truncate cleanText to 200 characters.
+      // Truncate cleanText to 200 characters to keep requests clean and fast
       const cleanText = text.substring(0, 200);
 
+      // Use Gemini TTS ONLY for natural male Vietnamese voice if the key is configured (Google Translate TTS lacks a male option)
+      if (gender === "male" && process.env.GEMINI_API_KEY) {
+        try {
+          const ai = getGeminiClient();
+          const voiceName = "Puck";
+
+          const response = await ai.models.generateContent({
+            model: "gemini-3.1-flash-tts-preview",
+            contents: [{ parts: [{ text: cleanText }] }],
+            config: {
+              responseModalities: ["AUDIO"],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: { voiceName: voiceName },
+                },
+              },
+            },
+          });
+
+          const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+          if (base64Audio) {
+            const buffer = Buffer.from(base64Audio, "base64");
+            res.set("Content-Type", "audio/wav");
+            return res.send(buffer);
+          }
+        } catch (geminiError) {
+          console.error("Gemini TTS failed, falling back to standard Google TTS:", geminiError);
+        }
+      }
+
+      // Default or fallback: Google Translate TTS
       const base64 = await googleTTS.getAudioBase64(cleanText, {
         lang: lang,
         slow: false,

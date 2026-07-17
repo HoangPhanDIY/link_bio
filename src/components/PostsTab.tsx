@@ -158,16 +158,6 @@ export default function PostsTab({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-slate-800">
-          Bài viết & Status
-        </h1>
-        <p className="text-slate-500 text-sm mt-0.5">
-          Đăng trạng thái, chia sẻ suy nghĩ và thông báo đến người theo dõi của
-          bạn ở chế độ công khai.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left column: Create Post Form */}
         <div
@@ -372,8 +362,8 @@ export default function PostsTab({
 
             {posts.length === 0 && (
               <div className="text-center p-12 border border-dashed border-slate-200 rounded-md font-sans text-sm text-slate-400 bg-white">
-                Chưa có status/bài viết nào được đăng. Hãy bắt đầu đăng suy nghĩ
-                đầu tiên của bạn!
+                Chưa có bài viết nào được đăng. Hãy bắt đầu đăng suy nghĩ đầu
+                tiên của bạn!
               </div>
             )}
           </div>

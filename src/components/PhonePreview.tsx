@@ -48,7 +48,8 @@ export default function PhonePreview({
     return "font-sans";
   };
 
-  const isDark = colorMode === "dark" || (colorMode === "system" && mode === "dark");
+  const isDark =
+    colorMode === "dark" || (colorMode === "system" && mode === "dark");
   const isSystem = colorMode === "system";
 
   return (
@@ -69,11 +70,6 @@ export default function PhonePreview({
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 4px #1e293b",
         }}
       >
-        {/* Dynamic Island / Speaker Notch */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-[22px] bg-slate-900 rounded-b-2xl z-40 flex items-center justify-center">
-          <div className="w-12 h-1 bg-slate-800 rounded-full"></div>
-        </div>
-
         {/* Inner Phone Screen Canvas with scrollbar hidden */}
         <div
           className={`h-full overflow-y-auto preview-scroll pb-12 transition-all duration-300 ${
@@ -82,7 +78,8 @@ export default function PhonePreview({
               : "bg-slate-50 text-slate-900"
           } ${getFontFamilyClass()}`}
           style={{
-            backgroundColor: isSystem && backgroundColor ? backgroundColor : undefined,
+            backgroundColor:
+              isSystem && backgroundColor ? backgroundColor : undefined,
           }}
         >
           {/* Banner Graphic Card */}
@@ -111,7 +108,8 @@ export default function PhonePreview({
             <div
               className={`w-20 h-20 rounded-full border-4 ${isDark ? "border-slate-950" : "border-white"} shadow-md overflow-hidden bg-slate-200 transition-colors duration-300`}
               style={{
-                borderColor: isSystem && backgroundColor ? backgroundColor : undefined,
+                borderColor:
+                  isSystem && backgroundColor ? backgroundColor : undefined,
               }}
             >
               <img
@@ -200,11 +198,16 @@ export default function PhonePreview({
                       }`}
                       style={{
                         boxShadow: "0 2px 8px rgba(0,0,0,0.015)",
-                        backgroundColor: isSystem && linkBackgroundColor ? linkBackgroundColor : undefined,
-                        borderColor: isSystem && linkBackgroundColor
-                          ? "transparent"
-                          : undefined,
-                        color: isSystem && linkTextColor ? linkTextColor : undefined,
+                        backgroundColor:
+                          isSystem && linkBackgroundColor
+                            ? linkBackgroundColor
+                            : undefined,
+                        borderColor:
+                          isSystem && linkBackgroundColor
+                            ? "transparent"
+                            : undefined,
+                        color:
+                          isSystem && linkTextColor ? linkTextColor : undefined,
                       }}
                     >
                       {/* Left Side Icon */}
@@ -212,7 +215,7 @@ export default function PhonePreview({
                         className={`w-9 h-9 rounded flex items-center justify-center mr-3 shrink-0 transition-all ${
                           isCustomIcon(link.icon)
                             ? "p-0 bg-transparent border-0"
-                            : "p-1 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            : "p-1 bg-white shadow-sm border border-slate-100  text-slate-800 "
                         }`}
                       >
                         <BrandIcon
@@ -229,7 +232,10 @@ export default function PhonePreview({
                           style={
                             {
                               "--hover-color": brandIconColor,
-                              color: isSystem && linkTextColor ? linkTextColor : undefined,
+                              color:
+                                isSystem && linkTextColor
+                                  ? linkTextColor
+                                  : undefined,
                             } as React.CSSProperties
                           }
                         >
@@ -241,7 +247,12 @@ export default function PhonePreview({
                       <LucideIcon
                         name="chevron_right"
                         className={`shrink-0 transition-transform group-hover:translate-x-0.5 ${isDark ? "text-slate-600" : "text-slate-300"}`}
-                        style={{ color: isSystem && linkTextColor ? linkTextColor : undefined }}
+                        style={{
+                          color:
+                            isSystem && linkTextColor
+                              ? linkTextColor
+                              : undefined,
+                        }}
                         size={14}
                       />
                     </div>

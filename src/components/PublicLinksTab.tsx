@@ -25,13 +25,7 @@ export default function PublicLinksTab({
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Section Title */}
       <div className="flex items-center gap-2">
-        <div
-          className="w-1.5 h-4 rounded-full"
-          style={{ backgroundColor: appearance.accentColor }}
-        ></div>
-        <h2
-          className={`text-xl font-bold uppercase tracking-wider ${isDarkPublic ? "text-slate-500" : "text-slate-400"}`}
-        >
+        <h2 className={`text-xl font-bold uppercase tracking-wider text-black`}>
           Liên kết cá nhân
         </h2>
       </div>
@@ -54,10 +48,12 @@ export default function PublicLinksTab({
                     : "bg-white shadow-xs hover:bg-slate-50/50"
                 }`}
                 style={{
-                  backgroundColor: (isSystem && appearance.linkBackgroundColor) || undefined,
-                  borderColor: isSystem && appearance.linkBackgroundColor
-                    ? "transparent"
-                    : `${appearance.accentColor}30`, // semi-transparent primary color border
+                  backgroundColor:
+                    (isSystem && appearance.linkBackgroundColor) || undefined,
+                  borderColor:
+                    isSystem && appearance.linkBackgroundColor
+                      ? "transparent"
+                      : `${appearance.accentColor}30`, // semi-transparent primary color border
                   borderLeft: `5px solid ${appearance.accentColor}`, // solid main primary color thick left accent
                 }}
               >
@@ -65,7 +61,7 @@ export default function PublicLinksTab({
                   className={`w-11 h-11 rounded-xl flex items-center justify-center mr-4 shrink-0 transition-all ${
                     isCustomIcon(link.icon)
                       ? "p-0 bg-transparent border-0"
-                      : "p-1 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                      : "p-1 bg-white  shadow-sm border border-slate-100  text-slate-800 "
                   }`}
                 >
                   <BrandIcon
@@ -100,7 +96,9 @@ export default function PublicLinksTab({
                   name="chevron_right"
                   className="transition-transform group-hover:translate-x-1"
                   style={{
-                    color: (isSystem && appearance.linkTextColor) || appearance.accentColor,
+                    color:
+                      (isSystem && appearance.linkTextColor) ||
+                      appearance.accentColor,
                   }}
                   size={18}
                 />

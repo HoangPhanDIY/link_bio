@@ -1,8 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 // User's Supabase credentials
-const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://pmrbxahvgqfhmppfqvub.supabase.co';
-const SUPABASE_KEY = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_mLl6N8V4lPdC0HADECLwUg_Yd14r7q_';
+const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL;
+const SUPABASE_KEY = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -165,7 +165,7 @@ export interface DBBuildGuide {
   luot_xem: number;
   created_at?: string;
   updated_at?: string;
-  
+
   // Joins
   tuong?: DBChampion;
   phu_tro?: DBSpell;
@@ -219,7 +219,6 @@ export interface DBPost {
   created_at?: string;
   updated_at?: string;
   creator?: DBUser;
-
 }
 
 export interface DBTag {
@@ -238,7 +237,6 @@ export interface DBDonation {
   trang_thai: number; // 0=chờ xử lý, 1=đã xác nhận, 2=đã hủy
   xac_nhan_boi: string | null;
   created_at?: string;
-
 }
 
 export interface DBMessage {
@@ -248,7 +246,4 @@ export interface DBMessage {
   noi_dung: string;
   trang_thai: number; // 0=mới, 1=đã đọc, 2=đã trả lời
   created_at?: string;
-
 }
-
-

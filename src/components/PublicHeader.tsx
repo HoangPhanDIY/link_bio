@@ -31,16 +31,13 @@ export default function PublicHeader({
       </div>
 
       {/* 2. Avatar overlaps the banner slightly and the text aligns to its lower quarter consistently */}
-      <div className="relative px-4 sm:px-8 z-10 md:-mt-12 -mt-6 mb-8">
+      <div className="relative px-4 sm:px-8 z-10 md:-mt-12 -mt-6 mb-4">
         <div className="flex items-end gap-4">
           {/* Overlapping Avatar */}
           <div className="shrink-0 -mt-2">
             <div
-              className={`md:w-36 md:h-36 w-24 h-24 sm:w-18 sm:h-18 rounded-full border-4 shadow-xl overflow-hidden transition-all duration-300 ${
-                isDarkPublic
-                  ? "border-slate-900 bg-slate-950"
-                  : "border-white bg-white"
-              }`}
+              className={`md:w-36 md:h-36 w-24 h-24 sm:w-18 sm:h-18 rounded-full border-2 shadow-xl overflow-hidden transition-all duration-300`}
+              style={{ borderColor: appearance.accentColor }}
             >
               <img
                 src={
@@ -56,12 +53,12 @@ export default function PublicHeader({
           {/* Identity details */}
           <div className="flex-1 min-w-0 text-left self-end pb-2">
             <h1
-              className={`text-xl sm:text-2xl md:text-3xl font-black leading-tight tracking-tight ${isDarkPublic ? "text-white" : "text-slate-800"}`}
+              className={`text-xl sm:text-2xl md:text-3xl font-black leading-tight tracking-tight text-slate-800`}
             >
               {appearance.name || "N/A"}
             </h1>
             <p
-              className={`text-xs sm:text-sm font-medium mt-1 leading-relaxed max-w-2xl ${isDarkPublic ? "text-slate-400" : "text-slate-600"}`}
+              className={`text-xs sm:text-sm font-medium mt-1 leading-relaxed max-w-2xl text-slate-600`}
             >
               {appearance.bio || "N/A"}
             </p>
@@ -70,7 +67,7 @@ export default function PublicHeader({
       </div>
 
       {/* 3. Sliding Banner (Banner chạy slide) */}
-      <div className="w-full relative overflow-hidden rounded-md sm:rounded-3xl shadow-md mt-6">
+      {/* <div className="w-full relative overflow-hidden rounded-md sm:rounded-3xl shadow-md mt-2">
         <BannerSlideshow
           images={
             appearance.selectedBanners && appearance.selectedBanners.length > 0
@@ -80,11 +77,11 @@ export default function PublicHeader({
           autoplayInterval={5000}
           className="h-40 sm:h-56 md:h-64 w-full"
         />
-      </div>
+      </div> */}
 
       {/* 4. Subtle accent color divider for public layout space */}
       <div
-        className="h-[1px] w-full mt-6 opacity-20"
+        className="h-[1px] w-full mt-2 opacity-20"
         style={{ backgroundColor: appearance.accentColor }}
       />
     </>

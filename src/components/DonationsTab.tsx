@@ -85,36 +85,17 @@ export default function DonationsTab({
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Main Title and description */}
-        <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-center space-y-1">
-          <div className="flex items-center gap-2">
-            <span
-              className="p-2 rounded-lg bg-pink-50"
-              style={{
-                color: accentColor,
-                backgroundColor: `${accentColor}10`,
-              }}
-            >
-              <LucideIcon name="Heart" size={20} />
-            </span>
-            <h2 className="font-display text-lg font-bold text-slate-800">
-              Quản lý ủng hộ (Donate)
-            </h2>
-          </div>
-          <p className="text-slate-400 text-xs pl-1">
-            Theo dõi, kiểm tra trạng thái và duyệt các lượt ủng hộ từ khán giả.
-          </p>
-        </div>
 
         {/* Total Amount Metric */}
         <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
-          <span className="text-[10px] uppercase  tracking-wider text-slate-400 font-bold">
-            Đã duyệt (Đã chuyển)
+          <span className="text-[10px] uppercase  tracking-wider text-black font-bold">
+            Đã nhận
           </span>
           <div className="mt-2">
-            <span className="text-2xl font-black text-emerald-600">
+            <span className="text-2xl font-black text-black">
               {formatMoney(paidAmount)}
             </span>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-black mt-1">
               Từ {donations.filter((d) => d.trang_thai === 1).length} lượt ủng
               hộ thực tế
             </p>
@@ -123,7 +104,7 @@ export default function DonationsTab({
 
         {/* Pending Amount Metric */}
         <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
-          <span className="text-[10px] uppercase  tracking-wider text-slate-400 font-bold">
+          <span className="text-[10px] uppercase  tracking-wider text-black font-bold">
             Chờ duyệt (Chưa ck)
           </span>
           <div className="mt-2">

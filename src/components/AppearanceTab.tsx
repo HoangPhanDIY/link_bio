@@ -305,7 +305,7 @@ export default function AppearanceTab({
               <LucideIcon name="User" size={20} />
             </div>
             <h2 className="font-display text-lg font-bold text-slate-800">
-              Thông tin cá nhân
+              Thông tin
             </h2>
           </div>
 
@@ -320,7 +320,7 @@ export default function AppearanceTab({
             ) : (
               <LucideIcon name="Save" size={13} />
             )}
-            <span>Lưu thông tin</span>
+            <span>Lưu</span>
           </button>
         </div>
 
@@ -420,7 +420,7 @@ export default function AppearanceTab({
 
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 ">
-                Đường dẫn URL Ảnh bìa (Ảnh tĩnh)
+                Đường dẫn URL Ảnh bìa
               </label>
               <input
                 type="text"
@@ -450,7 +450,7 @@ export default function AppearanceTab({
               <LucideIcon name="Palette" size={20} />
             </div>
             <h2 className="font-display text-lg font-bold text-slate-800">
-              Cấu hình giao diện
+              Giao diện
             </h2>
           </div>
 
@@ -465,7 +465,7 @@ export default function AppearanceTab({
             ) : (
               <LucideIcon name="Save" size={13} />
             )}
-            <span>Lưu giao diện</span>
+            <span>Lưu</span>
           </button>
         </div>
 
@@ -504,7 +504,7 @@ export default function AppearanceTab({
           {/* Typography Selector */}
           <div className="space-y-3">
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider ">
-              Phông chữ / Typography
+              Phông chữ
             </label>
             <select
               value={fontFamily}
@@ -525,12 +525,8 @@ export default function AppearanceTab({
           <div className="space-y-3 md:col-span-2">
             <div className="flex flex-col gap-1">
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider ">
-                Cấu hình màu sắc chủ đạo
+                Màu sắc chủ đạo
               </label>
-              <p className="text-xs text-slate-400">
-                Lựa chọn màu sắc nhấn nổi bật cho các nút bấm, biểu tượng và
-                liên kết chính của toàn bộ Website.
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3.5 pt-1">
@@ -587,7 +583,7 @@ export default function AppearanceTab({
           {/* Custom Web Page & Link Colors Customization */}
           <div className="space-y-4 md:col-span-2 pt-4 border-t border-slate-100">
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider ">
-              Tùy chỉnh màu nâng cao (Nền & Thẻ liên kết)
+              Tùy chỉnh màu nâng cao
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -718,16 +714,12 @@ export default function AppearanceTab({
                 </div>
               </div>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">
-              * Để trống ("Tự động") để sử dụng màu sắc đồng bộ thông minh theo
-              giao diện Sáng/Tối và Màu chủ đạo bạn đã chọn.
-            </p>
           </div>
 
           {/* Custom Loading GIFs */}
           <div className="space-y-4 md:col-span-2 pt-6 border-t border-slate-100">
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider ">
-              Tùy chỉnh ảnh GIF chờ tải (Loading States)
+              Tùy chỉnh ảnh GIF chờ tải
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -736,10 +728,6 @@ export default function AppearanceTab({
                 <label className="block text-[11px] font-bold text-slate-600 uppercase">
                   Ảnh GIF chờ tải trang web
                 </label>
-                <p className="text-[10px] text-slate-400">
-                  Hiển thị khi người dùng lần đầu tiên truy cập website (Admin &
-                  Trang công khai).
-                </p>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-1 shadow-xs">
                     <img
@@ -782,10 +770,6 @@ export default function AppearanceTab({
                 <label className="block text-[11px] font-bold text-slate-600 uppercase">
                   Ảnh GIF chờ tải dữ liệu trang
                 </label>
-                <p className="text-[10px] text-slate-400">
-                  Hiển thị tại các mục tin nhắn, ủng hộ, giáo án, v.v. khi hệ
-                  thống đang xử lý truy vấn.
-                </p>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-1 shadow-xs">
                     <img
@@ -828,20 +812,25 @@ export default function AppearanceTab({
           {/* Maintenance Mode Option */}
           <div className="space-y-4 md:col-span-2 pt-6 border-t border-slate-100">
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Chế độ Bảo trì (Maintenance Mode)
+              Chế độ Bảo trì
             </h4>
 
             <div className="p-4 border border-amber-100 rounded-xl bg-amber-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${bao_tri ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`} />
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full ${bao_tri ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}
+                  />
                   <label className="block text-sm font-bold text-slate-800">
                     Bật chế độ bảo trì Website
                   </label>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
-                  Khi kích hoạt, khách truy cập thông thường sẽ thấy trang thông báo bảo trì hệ thống. 
-                  Chỉ các tài khoản <span className="font-semibold text-slate-700">Admin</span> đã đăng nhập mới có thể vượt qua và tiếp tục truy cập/quản trị website bình thường.
+                  Khi kích hoạt, khách truy cập thông thường sẽ thấy trang thông
+                  báo bảo trì hệ thống. Chỉ các tài khoản{" "}
+                  <span className="font-semibold text-slate-700">Admin</span> đã
+                  đăng nhập mới có thể vượt qua và tiếp tục truy cập/quản trị
+                  website bình thường.
                 </p>
               </div>
 
@@ -880,11 +869,8 @@ export default function AppearanceTab({
             </div>
             <div>
               <h2 className="font-display text-lg font-bold text-slate-800">
-                Cấu hình ủng hộ & Donate
+                Donate
               </h2>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Thiết lập tài khoản ngân hàng và ví MoMo hiển thị tại mục Ủng hộ
-              </p>
             </div>
           </div>
 
@@ -899,7 +885,7 @@ export default function AppearanceTab({
             ) : (
               <LucideIcon name="Save" size={13} />
             )}
-            <span>Lưu cấu hình</span>
+            <span>Lưu</span>
           </button>
         </div>
 
@@ -1049,20 +1035,13 @@ export default function AppearanceTab({
                   className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs outline-none focus:border-indigo-500 text-slate-800 disabled:bg-slate-100/50"
                 />
               </div>
-
-              <div className="opacity-65 pt-2">
-                <p className="text-[10px] text-slate-400 italic">
-                  * Hệ thống sẽ tự động tạo mã QR Code (VietQR / MoMo) để người
-                  hâm mộ quét và ủng hộ nhanh chóng nhất.
-                </p>
-              </div>
             </div>
           </div>
 
           {/* Donation Note (Full width) */}
           <div className="md:col-span-2 space-y-3">
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider ">
-              Lời nhắn gửi người ủng hộ (Donate Note)
+              Lời nhắn gửi người ủng hộ
             </label>
             <textarea
               rows={3}
@@ -1091,21 +1070,9 @@ export default function AppearanceTab({
               <LucideIcon name="Image" size={20} />
             </div>
             <h2 className="font-display text-lg font-bold text-slate-800">
-              Quản lý ảnh bìa Slideshow
+              Quản lý Banner
             </h2>
           </div>
-          <button
-            type="button"
-            className="text-xs font-bold underline hover:opacity-80"
-            style={{ color: accentColor }}
-            onClick={() =>
-              alert(
-                "Kích hoạt nhiều ảnh bìa cùng lúc để kích hoạt slideshow tự động chuyển đổi sau mỗi 5 giây!",
-              )
-            }
-          >
-            Hướng dẫn slideshow
-          </button>
         </div>
 
         {/* Upload Custom Banner to DB */}
@@ -1114,7 +1081,7 @@ export default function AppearanceTab({
           className="bg-slate-50 p-4 rounded border border-slate-100 space-y-4"
         >
           <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider ">
-            Thêm ảnh bìa mới vào Database
+            Thêm ảnh bìa mới
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1178,7 +1145,7 @@ export default function AppearanceTab({
         <div className="space-y-3">
           <div className="flex flex-col gap-1">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider ">
-              Kho ảnh bìa trong Database ({dbBanners.length} ảnh)
+              Kho ảnh bìa ({dbBanners.length} ảnh)
             </label>
             <p className="text-slate-400 text-[11px]">
               Tích chọn nhiều ảnh bìa bên dưới để hiển thị slideshow. Bạn cũng
@@ -1269,7 +1236,7 @@ export default function AppearanceTab({
 
             {dbBanners.length === 0 && (
               <div className="col-span-full py-12 text-center text-slate-400 text-xs border border-dashed rounded">
-                Không có ảnh bìa nào trong Database.
+                Không có ảnh bìa nào.
               </div>
             )}
           </div>
@@ -1291,13 +1258,8 @@ export default function AppearanceTab({
             </div>
             <div>
               <h2 className="font-display text-lg font-bold text-slate-800">
-                Nhận tin nhắn lời chúc từ người dùng truy cập
+                Nhận tin nhắn
               </h2>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Thay thế phần Đăng ký Email cũ bằng biểu mẫu Nhắn tin liên hệ.
-                Người truy cập có thể để lại lời nhắn & gửi thẳng lên Database
-                của bạn.
-              </p>
             </div>
           </div>
           <button

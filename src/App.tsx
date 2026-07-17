@@ -1,32 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BioLink, AppearanceSettings, ActivityLog } from "./types";
 
-const BANNER_OPTIONS = [
-  {
-    id: "banner-1",
-    name: "Thành Khởi Nguyên",
-    url: "/image/phu_hieu/thanh_khoi_nguyen/background_ThanhKhoiNguyen_1.jpg",
-    description: "Bản đồ Thành Khởi Nguyên with ánh sáng xanh kì ảo",
-  },
-  {
-    id: "banner-2",
-    name: "Tháp Quang Minh",
-    url: "/image/phu_hieu/thap_quang_minh/background_ThapQuangMinh_1.jpg",
-    description: "Đỉnh Tháp Quang Minh tráng lệ rực rỡ",
-  },
-  {
-    id: "banner-3",
-    name: "Vực Hỗn Mang",
-    url: "/image/phu_hieu/vuc_hon_mang/background_VucHonMang_1.jpg",
-    description: "Vực Hỗn Mang u tối đầy huyền bí",
-  },
-  {
-    id: "banner-4",
-    name: "Cấm Chọn Liên Quân",
-    url: "/image/pick/ban-pick.png",
-    description: "Giao diện cấm chọn giải đấu Liên Quân Mobile chuyên nghiệp",
-  },
-];
 import DashboardTab from "./components/DashboardTab";
 import ManageLinksTab from "./components/ManageLinksTab";
 import AppearanceTab from "./components/AppearanceTab";
@@ -99,7 +73,7 @@ export default function App() {
     accentColor: "#4648d4",
     bannerUrl: "",
     avatarUrl: "/image/tuong/DauSi/Florentino.jpg",
-    name: "Admin",
+    name: "HoangDEV",
     bio: "",
     newsletterEnabled: false,
     featuredBannerEnabled: true,
@@ -163,10 +137,12 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  const [colorMode, setColorMode] = useState<"light" | "dark" | "system">(() => {
-    const saved = localStorage.getItem("vivid_persona_color_mode");
-    return (saved as "light" | "dark" | "system") || "system";
-  });
+  const [colorMode, setColorMode] = useState<"light" | "dark" | "system">(
+    () => {
+      const saved = localStorage.getItem("vivid_persona_color_mode");
+      return (saved as "light" | "dark" | "system") || "system";
+    },
+  );
 
   useEffect(() => {
     localStorage.setItem("vivid_persona_color_mode", colorMode);
@@ -359,7 +335,9 @@ export default function App() {
 
           return {
             ...prev,
-            name: profile ? profile.ten_hien_thi || profile.ten_dang_nhap || prev.name : prev.name,
+            name: profile
+              ? profile.ten_hien_thi || profile.ten_dang_nhap || prev.name
+              : prev.name,
             bio: profile ? profile.tieu_su || prev.bio : prev.bio,
             avatarUrl: profile
               ? profile.avatar_url || prev.avatarUrl
@@ -430,9 +408,7 @@ export default function App() {
             streamAlertDuration: profile
               ? profile.stream_alert_duration || prev.streamAlertDuration
               : prev.streamAlertDuration,
-            bao_tri: profile
-              ? profile.bao_tri ?? prev.bao_tri
-              : prev.bao_tri,
+            bao_tri: profile ? (profile.bao_tri ?? prev.bao_tri) : prev.bao_tri,
           };
         });
       } catch (err) {
@@ -1269,7 +1245,9 @@ export default function App() {
 
   const activeLinksCount = links.filter((l) => l.enabled).length;
 
-  const isDarkPublic = colorMode === "dark" || (colorMode === "system" && appearance.mode === "dark");
+  const isDarkPublic =
+    colorMode === "dark" ||
+    (colorMode === "system" && appearance.mode === "dark");
 
   // Font class resolver for the public page to dynamically apply selected theme font
   const getFontFamilyClass = () => {
@@ -1306,7 +1284,7 @@ export default function App() {
       <div className="fixed inset-0 flex flex-col items-center justify-center z-50">
         <div className="flex flex-col items-center gap-4">
           <img
-            src={appearance.loadingWebGif || "/giphy.webp"}
+            src={"/giphy.webp"}
             alt="Loading..."
             className="w-32 h-32 object-contain"
             referrerPolicy="no-referrer"
@@ -1321,10 +1299,15 @@ export default function App() {
 
   if (!isAdminMode && appearance.bao_tri && loggedInUser?.vai_tro !== 1) {
     return (
-      <div 
+      <div
         className="min-h-screen flex flex-col justify-between items-center p-6 bg-slate-950 text-slate-100 relative overflow-hidden"
         style={{
-          fontFamily: appearance.fontFamily === "Plus Jakarta Sans" ? "Plus Jakarta Sans" : appearance.fontFamily === "JetBrains Mono" ? "JetBrains Mono" : "Inter"
+          fontFamily:
+            appearance.fontFamily === "Plus Jakarta Sans"
+              ? "Plus Jakarta Sans"
+              : appearance.fontFamily === "JetBrains Mono"
+                ? "JetBrains Mono"
+                : "Inter",
         }}
       >
         {/* Decorative background gradients */}
@@ -1363,18 +1346,12 @@ export default function App() {
         {/* Subtle top bar */}
         <div className="w-full max-w-5xl flex justify-between items-center py-4 z-10">
           <div className="flex items-center gap-2">
-            <span className="font-display text-lg font-black tracking-tight" style={{ color: appearance.accentColor || "#3b82f6" }}>
-              {appearance.name || "Alex Rivera"}
-            </span>
-          </div>
-          <div>
-            <button
-              onClick={() => setIsLoggingIn(true)}
-              className="px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+            <span
+              className="font-display text-lg font-black tracking-tight"
+              style={{ color: appearance.accentColor || "#3b82f6" }}
             >
-              <LucideIcon name="LogIn" size={13} />
-              <span>Đăng nhập Admin</span>
-            </button>
+              {appearance.name || "N/A"}
+            </span>
           </div>
         </div>
 
@@ -1382,9 +1359,7 @@ export default function App() {
         <div className="flex-1 flex flex-col items-center justify-center max-w-md text-center space-y-6 px-4 z-10">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-xl animate-pulse" />
-            <div 
-              className="relative p-6 rounded-2xl border border-amber-500/20 bg-slate-900 text-amber-400 flex items-center justify-center shadow-lg"
-            >
+            <div className="relative p-6 rounded-2xl border border-amber-500/20 bg-slate-900 text-amber-400 flex items-center justify-center shadow-lg">
               <LucideIcon name="Construction" size={48} />
             </div>
           </div>
@@ -1394,19 +1369,24 @@ export default function App() {
               Hệ Thống Đang Bảo Trì
             </h1>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Trang web đang được nâng cấp hoặc bảo trì định kỳ để mang lại trải nghiệm tốt nhất. Chúng tôi sẽ trở lại sớm nhất có thể.
+              Trang web đang được nâng cấp hoặc bảo trì định kỳ để mang lại trải
+              nghiệm tốt nhất. Chúng tôi sẽ trở lại sớm nhất có thể.
             </p>
           </div>
 
           {/* Progress state */}
           <div className="w-full p-4 rounded-xl border border-slate-900 bg-slate-900/50 space-y-3">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500 font-bold uppercase tracking-wider">Trạng thái</span>
-              <span className="text-amber-400 font-bold">Đang cấu hình lại...</span>
+              <span className="text-slate-500 font-bold uppercase tracking-wider">
+                Trạng thái
+              </span>
+              <span className="text-amber-400 font-bold">
+                Đang cấu hình lại...
+              </span>
             </div>
             <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-              <div 
-                className="h-full rounded-full bg-amber-500 animate-pulse" 
+              <div
+                className="h-full rounded-full bg-amber-500 animate-pulse"
                 style={{ width: "65%" }}
               />
             </div>
@@ -1415,7 +1395,10 @@ export default function App() {
 
         {/* Footer */}
         <div className="w-full max-w-5xl text-center py-6 border-t border-slate-900 text-slate-500 text-[11px] z-10">
-          <p>© 2026 {appearance.name || "Alex Rivera"}. Tất cả quyền được bảo lưu.</p>
+          <p>
+            © 2026 {appearance.name || "Alex Rivera"}. Tất cả quyền được bảo
+            lưu.
+          </p>
         </div>
 
         {/* Render login dialog on maintenance screen if clicked */}
@@ -1426,7 +1409,10 @@ export default function App() {
               setLoggedInUser(user);
               setIsAuthenticated(true);
               setIsLoggingIn(false);
-              localStorage.setItem("vivid_persona_session", JSON.stringify(user));
+              localStorage.setItem(
+                "vivid_persona_session",
+                JSON.stringify(user),
+              );
               if (user.vai_tro === 1) {
                 setIsAdminMode(true);
                 setActiveTab("links");
@@ -1593,47 +1579,11 @@ export default function App() {
                 </button>
               )}
 
-              {/* Theme Selector (Sáng / Tối / Hệ thống) */}
-              <div className={`flex items-center gap-1 border p-1 rounded-xl transition-all ${isDarkPublic ? "border-slate-800 bg-slate-900/40" : "border-slate-200 bg-slate-100/50"}`}>
-                <button
-                  onClick={() => setColorMode("light")}
-                  className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
-                    colorMode === "light"
-                      ? "bg-white text-indigo-600 shadow-xs font-bold"
-                      : isDarkPublic ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-850"
-                  }`}
-                  title="Chế độ Sáng"
-                >
-                  <LucideIcon name="Sun" size={13} />
-                </button>
-                <button
-                  onClick={() => setColorMode("dark")}
-                  className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
-                    colorMode === "dark"
-                      ? "bg-slate-800 text-amber-400 shadow-xs font-bold"
-                      : isDarkPublic ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-850"
-                  }`}
-                  title="Chế độ Tối"
-                >
-                  <LucideIcon name="Moon" size={13} />
-                </button>
-                <button
-                  onClick={() => setColorMode("system")}
-                  className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
-                    colorMode === "system"
-                      ? "bg-indigo-600 text-white shadow-xs font-bold"
-                      : isDarkPublic ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-850"
-                  }`}
-                  title="Chế độ Hệ thống (Custom Admin)"
-                >
-                  <LucideIcon name="Palette" size={13} />
-                </button>
-              </div>
-
               {/* Share Website Button with 'Link' icon - Next to login button on the right */}
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className={`p-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${isDarkPublic ? "border-slate-800 text-slate-300 hover:bg-slate-900/60" : "border-slate-200 text-slate-600 hover:bg-slate-50"} bg-transparent active:scale-95`}
+                className={`px-2 py-1.5 rounded-md text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-90 shadow-sm active:scale-95`}
+                style={{ backgroundColor: appearance.accentColor }}
                 title="Chia sẻ trang web"
               >
                 <LucideIcon name="Link" size={14} />
@@ -2082,7 +2032,9 @@ export default function App() {
           <div className="p-4 border-t border-slate-800 space-y-3">
             {/* Theme switcher for Admin */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Giao diện chính</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                Giao diện chính
+              </span>
               <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl">
                 <button
                   onClick={() => setColorMode("light")}
@@ -2151,7 +2103,7 @@ export default function App() {
         className={`flex-grow w-full mx-auto transition-all duration-300 ${
           isAdminMode
             ? "max-w-7xl px-4 sm:px-6 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
-            : "max-w-5xl px-4 sm:px-6 py-6 sm:py-12 pb-16 sm:pb-24 flex flex-col" // Khoảng đệm khi là User
+            : "max-w-5xl px-4 sm:px-6 py-6 sm:py-12 pt-0 pb-16 sm:pb-24 flex flex-col" // Khoảng đệm khi là User
         }`}
       >
         {isAdminMode ? (
@@ -2297,7 +2249,7 @@ export default function App() {
             <PublicHeader appearance={appearance} isDarkPublic={isDarkPublic} />
 
             {/* 5. Main public content area */}
-            <div className="w-full mt-6 space-y-6">
+            <div className="w-full mt-2 space-y-3">
               {publicTab === "links" && (
                 <PublicLinksTab
                   links={links}
@@ -2333,6 +2285,7 @@ export default function App() {
                     setDonations((prev) => [saved, ...prev]);
                   }}
                   hasLoadedDonations={hasLoadedDonations}
+                  onSuccessRedirect={() => setPublicTab("links")}
                 />
               )}
 
@@ -2359,8 +2312,8 @@ export default function App() {
               )}
 
               {/* Footer and branding navigation inline */}
-              <div className="pt-4 pb-4 border-t border-slate-100/50 dark:border-slate-900/50 flex flex-col items-center sm:flex-row sm:justify-between gap-4">
-                <div className="flex gap-6 text-slate-400 dark:text-slate-500 text-xs font-medium">
+              <div className="pt-4 pb-0 border-t border-slate-100/50 flex flex-col items-center sm:flex-row sm:justify-between gap-4">
+                <div className="flex gap-6 text-slate-400 text-xs font-medium">
                   <a
                     href="#privacy"
                     className="hover:text-indigo-500 transition-colors"
@@ -2382,10 +2335,7 @@ export default function App() {
                 </div>
 
                 <div className="flex flex-col items-center sm:items-end">
-                  <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-indigo-500 animate-pulse">
-                    Hoang DEV
-                  </span>
-                  <p className="text-[15px] text-slate-400 dark:text-slate-500 mt-1">
+                  <p className="text-[15px] text-slate-400 mt-1">
                     © 2026 {appearance.name}. Design by HoangDEV.
                   </p>
                 </div>
@@ -2444,7 +2394,7 @@ export default function App() {
         <footer className="py-6 text-center text-xs text-slate-400 border-t border-slate-100/60 mt-8 bg-white transition-colors duration-300">
           <div className="max-w-7xl mx-auto px-6 space-y-1">
             <p className="font-display font-extrabold text-slate-500 text-[10px] tracking-wider uppercase">
-              Vivid Persona Applet
+              Hoàng Ao Nhây
             </p>
             <p className="text-[10px]">
               © 2026 {appearance.name || "Alex Rivera"}. Các cấu hình không gian

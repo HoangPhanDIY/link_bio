@@ -231,7 +231,7 @@ export default function ManageLinksTab({
                 className={`w-12 h-12 rounded flex items-center justify-center font-bold transition-all ${
                   isCustomIcon(link.icon)
                     ? "p-0 bg-transparent border-0"
-                    : "p-1 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                    : "p-1 bg-white shadow-sm border border-slate-100  text-slate-800 "
                 }`}
               >
                 <BrandIcon
