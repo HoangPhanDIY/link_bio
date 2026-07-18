@@ -15,8 +15,8 @@ import MessagesTab from "./components/MessagesTab";
 import DonationsTab from "./components/DonationsTab";
 import PostsTab from "./components/PostsTab";
 import ShareModal from "./components/ShareModal";
-import StreamTab from "./components/StreamTab";
-import StreamOverlay from "./components/StreamOverlay";
+// import StreamTab from "./components/StreamTab";
+// import StreamOverlay from "./components/StreamOverlay";
 import { dbService } from "./dbService";
 import {
   supabase,
@@ -2394,10 +2394,10 @@ export default function App() {
         <footer className="py-6 text-center text-xs text-slate-400 border-t border-slate-100/60 mt-8 bg-white transition-colors duration-300">
           <div className="max-w-7xl mx-auto px-6 space-y-1">
             <p className="font-display font-extrabold text-slate-500 text-[10px] tracking-wider uppercase">
-              Hoàng Ao Nhây
+              Hoàng DEV
             </p>
             <p className="text-[10px]">
-              © 2026 {appearance.name || "Alex Rivera"}. Các cấu hình không gian
+              © 2026 {appearance.name || "HoangDEV"}. Các cấu hình không gian
               làm việc Admin được lưu trữ cục bộ.
             </p>
           </div>

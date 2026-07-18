@@ -49,13 +49,13 @@ export default function ShareModal({
       url: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
     },
     {
-      name: "Twitter / X",
+      name: "X",
       icon: "Twitter",
       color: "#1DA1F2",
       url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`,
     },
   ];
-
+  return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-slate-800">
@@ -77,8 +77,8 @@ export default function ShareModal({
         </div>
 
         <p className="text-xs text-slate-500 font-medium leading-relaxed">
-          Chia sẻ trang hồ sơ Vivid Persona của bạn đến bạn bè hoặc cộng đồng
-          thông qua các ứng dụng yêu thích.
+          Chia sẻ trang hồ sơ của tôi đến bạn bè hoặc cộng đồng thông qua các
+          ứng dụng yêu thích.
         </p>
 
         {/* Copy link bar */}

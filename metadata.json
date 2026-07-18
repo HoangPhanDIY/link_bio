@@ -1,8 +1,6 @@
 {
-  "name": "Hoàng Ao Nhây - Bio Link & Giáo Án",
-  "description": "Trang tổng hợp liên kết sinh động và giáo án lên đồ Liên Quân Mobile cực đỉnh của Hoàng Ao Nhây.",
+  "name": "Hoàng DEV",
+  "description": "Trang tổng hợp liên kết sinh động và giáo án lên đồ Liên Quân Mobile cực đỉnh của Hoàng DEV.",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
