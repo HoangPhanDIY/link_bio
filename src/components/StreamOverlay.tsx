@@ -193,6 +193,7 @@ export default function StreamOverlay() {
     setCurrentAlert(nextAlert);
 
     const playNotification = async () => {
+      const startTime = Date.now();
       let isChimePlaying = false;
       let isTtsPlaying = false;
 
@@ -318,28 +319,80 @@ export default function StreamOverlay() {
 
             ttsAudio.onerror = (e) => {
               console.warn(
-                "Server TTS failed/blocked, falling back to local speech synthesis:",
+                "Server TTS failed/blocked, trying direct client-side Google Translate TTS:",
                 e,
               );
               clearTimeout(maxTtsTimer);
               isTtsPlaying = false;
-              playLocalSpeechSynthesis(speakText, resolve);
+              playClientGoogleTTS(speakText, resolve);
             };
 
             ttsAudio.play().catch((err) => {
               console.warn(
-                "Server TTS autoplay failed, falling back to local speech synthesis:",
+                "Server TTS autoplay failed, trying direct client-side Google Translate TTS:",
                 err,
               );
               clearTimeout(maxTtsTimer);
               isTtsPlaying = false;
-              playLocalSpeechSynthesis(speakText, resolve);
+              playClientGoogleTTS(speakText, resolve);
             });
           } catch (err) {
             console.error(err);
-            playLocalSpeechSynthesis(speakText, resolve);
+            playClientGoogleTTS(speakText, resolve);
           }
         });
+      };
+
+      const playClientGoogleTTS = (text: string, resolveFn: () => void) => {
+        try {
+          isTtsPlaying = true;
+          const encodedText = encodeURIComponent(text.substring(0, 200));
+          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodedText}`;
+          const ttsAudio = new Audio(directUrl);
+          ttsAudio.volume = 1.0;
+
+          const maxTtsTimer = setTimeout(() => {
+            if (isTtsPlaying) {
+              isTtsPlaying = false;
+              resolveFn();
+            }
+          }, 25000);
+
+          ttsAudio.onended = () => {
+            clearTimeout(maxTtsTimer);
+            if (isTtsPlaying) {
+              isTtsPlaying = false;
+              resolveFn();
+            }
+          };
+
+          ttsAudio.onerror = (e) => {
+            console.warn(
+              "Direct client-side Google TTS failed, falling back to local speech synthesis:",
+              e,
+            );
+            clearTimeout(maxTtsTimer);
+            isTtsPlaying = false;
+            playLocalSpeechSynthesis(text, resolveFn);
+          };
+
+          ttsAudio.play().catch((err) => {
+            console.warn(
+              "Direct client-side Google TTS autoplay failed, falling back to local speech synthesis:",
+              err,
+            );
+            clearTimeout(maxTtsTimer);
+            isTtsPlaying = false;
+            playLocalSpeechSynthesis(text, resolveFn);
+          });
+        } catch (err) {
+          console.error(
+            "Direct client-side Google TTS init failed, falling back to local speech synthesis:",
+            err,
+          );
+          isTtsPlaying = false;
+          playLocalSpeechSynthesis(text, resolveFn);
+        }
       };
 
       const playLocalSpeechSynthesis = (
@@ -355,6 +408,8 @@ export default function StreamOverlay() {
           window.speechSynthesis.cancel();
 
           const utterance = new SpeechSynthesisUtterance(text);
+          // Store utterance in a global property to prevent Chrome garbage-collection bug (crucial for OBS browser source)
+          (window as any)._activeUtterance = utterance;
           utterance.lang = "vi-VN";
           utterance.rate = 1.0;
           utterance.pitch = 1.0;
@@ -447,6 +502,19 @@ export default function StreamOverlay() {
       await playChime();
       await playTTS();
 
+      // Ensure the alert is shown for at least stream_alert_duration seconds
+      const elapsed = Date.now() - startTime;
+      let durationSecs = Number(streamSettings.stream_alert_duration);
+      if (isNaN(durationSecs) || durationSecs <= 0) {
+        durationSecs = 8;
+      }
+      const minDuration = durationSecs * 1000;
+      if (elapsed < minDuration) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, minDuration - elapsed),
+        );
+      }
+
       // Clear safety timeout and finish!
       clearTimeout(safetyTimeout);
       finishAlert();
@@ -460,6 +528,56 @@ export default function StreamOverlay() {
       id="stream-overlay-root"
       className="relative w-screen h-screen bg-transparent flex flex-col items-center justify-center overflow-hidden select-none"
     >
+      {/* 1. Unlock Autoplay Interaction Screen */}
+      {showUnlockOverlay && (
+        <div
+          className="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6 text-center pointer-events-auto cursor-pointer"
+          onClick={unlockAudio}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="max-w-md p-8 rounded-3xl border border-indigo-500/30 bg-slate-900/80 shadow-[0_0_50px_rgba(99,102,241,0.2)] space-y-6 flex flex-col items-center"
+          >
+            <div className="w-16 h-16 bg-indigo-600/10 rounded-full flex items-center justify-center border border-indigo-500/20 text-indigo-400 animate-bounce">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                />
+              </svg>
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-xl font-bold text-white tracking-tight">
+                Kích hoạt âm thanh & giọng đọc
+              </h1>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Trình duyệt yêu cầu bạn tương tác với màn hình một lần để cho
+                phép phát âm thanh thông báo và đọc giọng nói tự động.
+              </p>
+            </div>
+
+            <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition transform hover:scale-105">
+              🔊 Click để kích hoạt âm thanh
+            </button>
+
+            <span className="text-[11px] text-slate-500">
+              * Đối với OBS: Click chuột phải vào Browser Source → Chọn "Tương
+              tác" (Interact) rồi bấm nút này.
+            </span>
+          </motion.div>
+        </div>
+      )}
+
       {/* 2. Main Alert Overlay Content */}
       <div className="w-full h-full flex items-center justify-center pointer-events-none">
         <AnimatePresence>
@@ -470,10 +588,10 @@ export default function StreamOverlay() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -100, scale: 0.8 }}
               transition={{ type: "spring", damping: 15, stiffness: 100 }}
-              className="flex flex-col items-center text-center space-y-4 max-w-xl p-8 rounded-3xl"
+              className="flex flex-col items-center text-center space-y-4 max-w-xl p-8 rounded-3xl bg-slate-950/95 border-2 border-indigo-500 shadow-[0_0_50px_rgba(79,70,229,0.3)] backdrop-blur-md"
             >
               {/* Custom Alert Gif */}
-              <div className="w-56 h-56 flex items-center justify-center overflow-hidden rounded-2xl">
+              <div className="w-56 h-56 flex items-center justify-center overflow-hidden rounded-2xl bg-black/40">
                 <img
                   src={streamSettings.stream_alert_gif}
                   alt="Alert Effect"
@@ -483,13 +601,10 @@ export default function StreamOverlay() {
 
               {/* Alert content */}
               <div className="space-y-2">
-                <h2 className="text-4xl font-black text-amber-400 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] animate-pulse-subtle">
+                <h2 className="text-2xl font-black text-amber-400 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] animate-pulse-subtle">
                   {(() => {
-                    // 1. Lấy template thô hoặc dùng text mặc định nếu trống
-                    let cleanTemplate =
-                      streamSettings.stream_alert_template || "đã ủng hộ";
-
-                    // 2. Nếu template có chứa từ khóa {name} hoặc {amount}, ta thay thế trực tiếp
+                    const cleanTemplate =
+                      streamSettings.stream_alert_template || "đã ủng hộ bạn";
                     if (
                       cleanTemplate.includes("{name}") ||
                       cleanTemplate.includes("{amount}")
@@ -498,23 +613,17 @@ export default function StreamOverlay() {
                         .replace("{name}", currentAlert.name)
                         .replace(
                           "{amount}",
-                          `${currentAlert.amount.toLocaleString("vi-VN")}đ`,
+                          currentAlert.amount.toLocaleString("vi-VN"),
                         );
                     }
-                    return `${currentAlert.name} ${cleanTemplate} ${currentAlert.amount.toLocaleString("vi-VN")}đ`;
+                    return `${currentAlert.name} ${currentAlert.amount.toLocaleString("vi-VN")}đ ${cleanTemplate}`;
                   })()}
                 </h2>
                 {currentAlert.message && (
-                  <div className="px-6 py-3 border border-white/10 rounded-md bg-black/40 backdrop-blur-sm max-w-2xl mx-auto">
-                    <h2
-                      className="text-white text-2xl font-bold italic text-center leading-relaxed tracking-wide"
-                      style={{
-                        filter:
-                          "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.9))",
-                      }}
-                    >
+                  <div className="px-6 py-3 bg-slate-900/80 border border-indigo-500/10 rounded-xl">
+                    <p className="text-base text-slate-200 font-medium italic drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
                       "{currentAlert.message}"
-                    </h2>
+                    </p>
                   </div>
                 )}
               </div>
