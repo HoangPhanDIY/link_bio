@@ -153,12 +153,11 @@ async function startServer() {
       // Truncate cleanText to 200 characters to keep requests clean and fast
       const cleanText = text.substring(0, 200);
 
-      // Use Gemini TTS if the key is configured to avoid Google Translate IP blocking on Vercel
-      if (process.env.GEMINI_API_KEY) {
+      // Use Gemini TTS ONLY for natural male Vietnamese voice if the key is configured (Google Translate TTS lacks a male option)
+      if (gender === "male" && process.env.GEMINI_API_KEY) {
         try {
           const ai = getGeminiClient();
-          // Use "Puck" for male voice, and "Kore" or "Zephyr" for female voice
-          const voiceName = gender === "male" ? "Puck" : "Kore";
+          const voiceName = "Puck";
 
           const response = await ai.models.generateContent({
             model: "gemini-3.1-flash-tts-preview",
