@@ -1,4 +1,4 @@
 #upcode
 git add .
 git commit -m "update"
-git push origin main
+git push old-origin main

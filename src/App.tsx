@@ -15,8 +15,8 @@ import MessagesTab from "./components/MessagesTab";
 import DonationsTab from "./components/DonationsTab";
 import PostsTab from "./components/PostsTab";
 import ShareModal from "./components/ShareModal";
-// import StreamTab from "./components/StreamTab";
-// import StreamOverlay from "./components/StreamOverlay";
+import StreamTab from "./components/StreamTab";
+import StreamOverlay from "./components/StreamOverlay";
 import { dbService } from "./dbService";
 import {
   supabase,
