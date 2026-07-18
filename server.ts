@@ -23,8 +23,8 @@ async function startServer() {
         httpOptions: {
           headers: {
             "User-Agent": "aistudio-build",
-          }
-        }
+          },
+        },
       });
     }
     return aiClient;
@@ -40,8 +40,14 @@ async function startServer() {
   }
 
   // Serve image and uploads folder statically
-  app.use("/image", express.static(path.join(process.cwd(), "public", "image")));
-  app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+  app.use(
+    "/image",
+    express.static(path.join(process.cwd(), "public", "image")),
+  );
+  app.use(
+    "/uploads",
+    express.static(path.join(process.cwd(), "public", "uploads")),
+  );
 
   // Configure multer storage
   const storage = multer.diskStorage({
@@ -97,7 +103,9 @@ async function startServer() {
   app.post("/api/donate-alert", (req, res) => {
     const { name, amount, message, isTest } = req.body;
     if (!name || amount === undefined) {
-      return res.status(400).json({ success: false, message: "Thiếu thông tin name hoặc amount" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Thiếu thông tin name hoặc amount" });
     }
 
     const newAlert: StreamAlert = {
@@ -116,7 +124,11 @@ async function startServer() {
       pendingAlerts.shift();
     }
 
-    res.json({ success: true, alert: newAlert, message: "Đã gửi thông tin lên live stream thành công!" });
+    res.json({
+      success: true,
+      alert: newAlert,
+      message: "Đã gửi thông tin lên live stream thành công!",
+    });
   });
 
   // API for the overlay to fetch new stream alerts
@@ -133,7 +145,7 @@ async function startServer() {
       const text = req.query.text as string;
       const lang = (req.query.lang as string) || "vi";
       const gender = (req.query.gender as string) || "default";
-      
+
       if (!text) {
         return res.status(400).json({ error: "Text is required" });
       }
@@ -160,14 +172,18 @@ async function startServer() {
             },
           });
 
-          const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+          const base64Audio =
+            response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
           if (base64Audio) {
             const buffer = Buffer.from(base64Audio, "base64");
             res.set("Content-Type", "audio/wav");
             return res.send(buffer);
           }
         } catch (geminiError) {
-          console.error("Gemini TTS failed, falling back to standard Google TTS:", geminiError);
+          console.error(
+            "Gemini TTS failed, falling back to standard Google TTS:",
+            geminiError,
+          );
         }
       }
 
@@ -184,7 +200,9 @@ async function startServer() {
       res.send(buffer);
     } catch (error: any) {
       console.error("TTS generation error:", error);
-      res.status(500).json({ error: error.message || "Failed to generate TTS" });
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to generate TTS" });
     }
   });
 
