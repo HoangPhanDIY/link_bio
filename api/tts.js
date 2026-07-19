@@ -1,9 +1,11 @@
 import googleTTS from "google-tts-api";
 
-// Hàm giả định lấy Gemini Client - giữ đúng cấu trúc dự án gốc của bạn
+// Hàm giả định lấy Gemini Client - bạn hãy điều chỉnh lại cho đúng với thư viện bạn đang import ở dự án gốc
 function getGeminiClient() {
+  // Đoạn này phụ thuộc vào cách bạn khởi tạo SDK Gemini của Google
+  // Ví dụ với @google/genai mới: return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   if (global.geminiClient) return global.geminiClient;
-  // Khởi tạo client của bạn ở đây nếu cần...
+  // Khởi tạo client của bạn ở đây...
 }
 
 export default async function handler(req, res) {
@@ -21,6 +23,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text is required" });
     }
 
+    // Cắt ngắn cleanText xuống 200 ký tự
+    const cleanText = text.substring(0, 200);
+
     // Sử dụng Gemini TTS nếu là giọng nữ và có API KEY
     if (gender === "female" && process.env.GEMINI_API_KEY) {
       try {
@@ -29,7 +34,7 @@ export default async function handler(req, res) {
 
         const response = await ai.models.generateContent({
           model: "gemini-3.1-flash-tts-preview",
-          contents: [{ parts: [{ text: text }] }], // Gửi NGUYÊN chuỗi text không cắt xén
+          contents: [{ parts: [{ text: cleanText }] }],
           config: {
             responseModalities: ["AUDIO"],
             speechConfig: {
@@ -56,20 +61,16 @@ export default async function handler(req, res) {
     }
 
     // Mặc định hoặc dự phòng: Dùng Google Translate TTS
-    // Sử dụng getAllAudioBase64 để băm nhỏ chuỗi dài tự động, tránh bị lỗi giới hạn URL của Google
-    const results = await googleTTS.getAllAudioBase64(text, {
+    const base64 = await googleTTS.getAudioBase64(cleanText, {
       lang: lang,
       slow: false,
       host: "https://translate.google.com",
       timeout: 10000,
     });
 
-    // Nối tất cả các mảng chunk base64 trả về thành một file buffer audio/mpeg duy nhất
-    const buffers = results.map((item) => Buffer.from(item.base64, "base64"));
-    const finalBuffer = Buffer.concat(buffers);
-
+    const buffer = Buffer.from(base64, "base64");
     res.setHeader("Content-Type", "audio/mpeg");
-    return res.status(200).send(finalBuffer);
+    return res.status(200).send(buffer);
   } catch (error) {
     console.error("TTS generation error:", error);
     return res

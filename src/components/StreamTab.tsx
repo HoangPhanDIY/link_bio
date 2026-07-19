@@ -59,26 +59,6 @@ export default function StreamTab({
   // System voices list
   const [systemVoices, setSystemVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-  // Default sounds
-  const DEFAULT_SOUNDS = [
-    {
-      name: "Chime cổ điển",
-      url: "https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav",
-    },
-    {
-      name: "Retro Level Up",
-      url: "https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav",
-    },
-    {
-      name: "Game Coin",
-      url: "https://assets.mixkit.co/active_storage/sfx/2017/2017-84.wav",
-    },
-    {
-      name: "Magic Wand",
-      url: "https://assets.mixkit.co/active_storage/sfx/2018/2018-84.wav",
-    },
-  ];
-
   // Fetch dynamic list of system voices
   useEffect(() => {
     if ("speechSynthesis" in window) {
