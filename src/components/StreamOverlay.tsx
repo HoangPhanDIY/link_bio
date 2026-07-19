@@ -466,14 +466,14 @@ export default function StreamOverlay() {
           {currentAlert && (
             <motion.div
               key={currentAlert.id}
-              initial={{ opacity: 0, y: 100, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -100, scale: 0.8 }}
-              transition={{ type: "spring", damping: 15, stiffness: 100 }}
-              className="flex flex-col items-center text-center space-y-4 max-w-xl p-8 rounded-3xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: "linear" }}
+              className="flex flex-col items-center text-center space-y-4 max-w-2xl p-8 bg-transparent"
             >
               {/* Custom Alert Gif */}
-              <div className="w-56 h-56 flex items-center justify-center overflow-hidden rounded-2xl">
+              <div className="w-56 h-56 flex items-center justify-center overflow-hidden rounded-2xl bg-transparent">
                 <img
                   src={streamSettings.stream_alert_gif}
                   alt="Alert Effect"
@@ -482,8 +482,8 @@ export default function StreamOverlay() {
               </div>
 
               {/* Alert content */}
-              <div className="space-y-2">
-                <h2 className="text-4xl font-black text-amber-400 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] animate-pulse-subtle">
+              <div className="space-y-2 bg-transparent w-full">
+                <h2 className="text-2xl font-black text-amber-400 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] animate-pulse-subtle">
                   {(() => {
                     // 1. Lấy template thô hoặc dùng text mặc định nếu trống
                     let cleanTemplate =
@@ -505,22 +505,22 @@ export default function StreamOverlay() {
                   })()}
                 </h2>
                 {currentAlert.message && (
-                  <div className="px-6 py-3 border border-white/10 rounded-md bg-black/40 backdrop-blur-sm max-w-2xl mx-auto">
-                    <h2
-                      className="text-white text-2xl font-bold italic text-center leading-relaxed tracking-wide"
-                      style={{
-                        filter:
-                          "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.9))",
-                      }}
-                    >
-                      "{currentAlert.message}"
-                    </h2>
+                  <div className="w-full bg-transparent px-6 py-2">
+                    {/* Hộp chứa tự động giãn theo chiều cao của chữ, không giới hạn kích thước, hiển thị hoàn toàn text */}
+                    <div className="overflow-visible text-center w-full">
+                      <h2
+                        className="text-white text-3xl font-bold italic leading-relaxed tracking-wide whitespace-pre-wrap break-words"
+                        style={{
+                          filter:
+                            "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.9))",
+                        }}
+                      >
+                        "{currentAlert.message}"
+                      </h2>
+                    </div>
                   </div>
                 )}
               </div>
-
-              {/* Accent light shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-indigo-500/10 to-transparent rounded-3xl pointer-events-none" />
             </motion.div>
           )}
         </AnimatePresence>
