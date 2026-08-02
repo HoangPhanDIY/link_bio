@@ -40,6 +40,36 @@ async function handleQuery<T = any>(promise: any): Promise<T | null> {
   }
 }
 
+// Simple in-memory cache to reduce repeated SELECTs on hot paths
+const _cache: Record<string, { ts: number; data: any }> = {};
+const CACHE_TTL_MS = 30 * 1000; // cache entries live for 30 seconds by default
+
+function readCache(key: string) {
+  const e = _cache[key];
+  if (!e) return null;
+  if (Date.now() - e.ts > CACHE_TTL_MS) {
+    delete _cache[key];
+    return null;
+  }
+  return e.data;
+}
+
+function writeCache(key: string, data: any) {
+  try {
+    _cache[key] = { ts: Date.now(), data };
+  } catch (err) {
+    // ignore cache write errors
+  }
+}
+
+function clearCache(key?: string) {
+  if (!key) {
+    for (const k of Object.keys(_cache)) delete _cache[k];
+    return;
+  }
+  delete _cache[key];
+}
+
 // Helper to generate a slug from string
 function makeSlug(str: string): string {
   return str
@@ -169,20 +199,27 @@ export const dbService = {
       };
     }
 
-    // Fetch related configuration rows
-    const gd = await handleQuery(
-      supabase.from("cai_dat_giao_dien").select("*").eq("id", 1).maybeSingle(),
-    );
-    const dn = await handleQuery(
-      supabase.from("cai_dat_donate").select("*").eq("id", 1).maybeSingle(),
-    );
-    const sa = await handleQuery(
-      supabase
-        .from("cai_dat_stream_alert")
-        .select("*")
-        .eq("id", 1)
-        .maybeSingle(),
-    );
+    // Fetch related configuration rows in parallel and return cached combined profile when possible
+    const cachedCombined = readCache("profile_combined");
+    if (cachedCombined) {
+      return cachedCombined as DBUser;
+    }
+
+    const [gd, dn, sa] = await Promise.all([
+      handleQuery(
+        supabase.from("cai_dat_giao_dien").select("*").eq("id", 1).maybeSingle(),
+      ),
+      handleQuery(
+        supabase.from("cai_dat_donate").select("*").eq("id", 1).maybeSingle(),
+      ),
+      handleQuery(
+        supabase
+          .from("cai_dat_stream_alert")
+          .select("*")
+          .eq("id", 1)
+          .maybeSingle(),
+      ),
+    ]);
 
     // Merge into compatible big structure for UI backward compatibility
     const combined: any = {
@@ -220,6 +257,13 @@ export const dbService = {
       stream_alert_tts: sa?.alert_tts ?? true,
       stream_alert_duration: sa?.alert_duration || 8,
     };
+
+    // Cache combined profile for a short TTL to speed up repeated page loads
+    try {
+      writeCache("profile_combined", combined);
+    } catch (err) {
+      /* noop */
+    }
 
     return combined as DBUser;
   },
@@ -461,14 +505,21 @@ export const dbService = {
   // 2. CATEGORIES & LINKS
   // ==========================================
   async getCategories(): Promise<DBCategory[]> {
+    const cached = readCache("categories");
+    if (cached) return cached as DBCategory[];
+
     const data = await handleQuery(
       supabase
         .from("danh_muc")
         .select("*")
         .order("thu_tu_uu_tien", { ascending: true }),
     );
-    return (data || []) as DBCategory[];
+
+    const res = (data || []) as DBCategory[];
+    writeCache("categories", res);
+    return res;
   },
+
 
   async saveCategory(
     category: Partial<DBCategory>,
@@ -506,6 +557,9 @@ export const dbService = {
   },
 
   async getLinks(): Promise<DBLink[]> {
+    const cached = readCache("links");
+    if (cached) return cached as DBLink[];
+
     const data = await handleQuery(
       supabase
         .from("duong_dan")
@@ -513,10 +567,13 @@ export const dbService = {
         .order("thu_tu_uu_tien", { ascending: true }),
     );
     // Map url_lien_ket to url_lienketing for compatibility
-    return ((data || []) as any[]).map((item) => ({
+    const res = ((data || []) as any[]).map((item) => ({
       ...item,
       url_lienketing: item.url_lien_ket,
     })) as DBLink[];
+
+    writeCache("links", res);
+    return res;
   },
 
   async saveLink(link: Partial<DBLink>): Promise<DBLink | null> {
@@ -561,16 +618,22 @@ export const dbService = {
   // 3. BANNERS
   // ==========================================
   async getBanners(): Promise<DBBanner[]> {
+    const cached = readCache("banners");
+    if (cached) return cached as DBBanner[];
+
     const data = await handleQuery(
       supabase
         .from("banner")
         .select("*")
         .order("thu_tu_uu_tien", { ascending: true }),
     );
-    return ((data || []) as any[]).map((item) => ({
+    const res = ((data || []) as any[]).map((item) => ({
       ...item,
       url_dieu_huong: item.url_lien_ket,
     })) as DBBanner[];
+
+    writeCache("banners", res);
+    return res;
   },
 
   async saveBanner(banner: Partial<DBBanner>): Promise<DBBanner | null> {
@@ -614,39 +677,75 @@ export const dbService = {
   // 4. GAME LIBRARY
   // ==========================================
   async getChampions(): Promise<DBChampion[]> {
+    const cached = readCache("champions");
+    if (cached) return cached as DBChampion[];
+
     const data = await handleQuery(
       supabase.from("tuong").select("*").order("ten_tuong"),
     );
-    return (data || []) as DBChampion[];
+    const res = (data || []) as DBChampion[];
+    writeCache("champions", res);
+    return res;
   },
 
   async getItems(): Promise<DBItem[]> {
+    const cached = readCache("items");
+    if (cached) return cached as DBItem[];
+
     const data = await handleQuery(
       supabase.from("trang_bi").select("*").order("cap", { ascending: false }),
     );
-    return (data || []) as DBItem[];
+    const res = (data || []) as DBItem[];
+    writeCache("items", res);
+    return res;
   },
 
   async getSpells(): Promise<DBSpell[]> {
+    const cached = readCache("spells");
+    if (cached) return cached as DBSpell[];
+
     const data = await handleQuery(
       supabase.from("phu_tro").select("*").order("ten_phu_tro"),
     );
-    return (data || []) as DBSpell[];
+    const res = (data || []) as DBSpell[];
+    writeCache("spells", res);
+    return res;
   },
 
   async getBadges(): Promise<DBBadge[]> {
+    const cached = readCache("badges");
+    if (cached) return cached as DBBadge[];
+
     const data = await handleQuery(
       supabase.from("phu_hieu").select("*").order("ten_phu_hieu"),
     );
-    return (data || []) as DBBadge[];
+    const res = (data || []) as DBBadge[];
+    writeCache("badges", res);
+    return res;
   },
 
   async getRunes(): Promise<DBRune[]> {
+    const cached = readCache("runes");
+    if (cached) return cached as DBRune[];
+
     const data = await handleQuery(
       supabase.from("ngoc").select("*").order("mau", { ascending: true }),
     );
-    return (data || []) as DBRune[];
+    const res = (data || []) as DBRune[];
+    writeCache("runes", res);
+    return res;
   },
+
+  async getInitialData(): Promise<{ profile: DBUser | null; categories: DBCategory[]; links: DBLink[]; banners: DBBanner[] }> {
+    // Parallelize the common initial page queries so the frontend can call one endpoint
+    const [profile, categories, links, banners] = await Promise.all([
+      this.getProfile(),
+      this.getCategories(),
+      this.getLinks(),
+      this.getBanners(),
+    ]);
+    return { profile, categories, links, banners };
+  }
 
   async seedGameLibraryIfNeeded(): Promise<void> {
     await ensureConfigTables();
