@@ -745,7 +745,7 @@ export const dbService = {
       this.getBanners(),
     ]);
     return { profile, categories, links, banners };
-  }
+  },
 
   async seedGameLibraryIfNeeded(): Promise<void> {
     await ensureConfigTables();
