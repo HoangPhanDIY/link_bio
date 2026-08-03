@@ -292,19 +292,13 @@ export default function AppearanceTab({
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* SECTION 1: Profile Settings (Name & Bio) */}
-      <section className="bg-white p-6 sm:p-8 rounded-md border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 sm:p-8 shadow-xl space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div
-              className="p-2 rounded-lg bg-indigo-50"
-              style={{
-                color: accentColor,
-                backgroundColor: `${accentColor}10`,
-              }}
-            >
+            <div className="p-2 border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
               <LucideIcon name="User" size={20} />
             </div>
-            <h2 className="font-display text-lg font-bold text-slate-800">
+            <h2 className="font-display text-lg font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase tracking-wider">
               Thông tin
             </h2>
           </div>
@@ -313,10 +307,10 @@ export default function AppearanceTab({
             type="button"
             onClick={handleSavePersonalInfoClick}
             disabled={isSavingProfile}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 text-white text-xs font-extrabold transition-all disabled:opacity-50 cursor-pointer shadow-md"
           >
             {isSavingProfile ? (
-              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white animate-spin" />
             ) : (
               <LucideIcon name="Save" size={13} />
             )}
@@ -326,21 +320,25 @@ export default function AppearanceTab({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Avatar & Banner Upload with Preview */}
-          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-6 items-center justify-around w-full border-b lg:border-b-0 lg:border-r border-slate-100 pb-6 lg:pb-0 lg:pr-6">
+          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-6 items-center justify-around w-full border-b lg:border-b-0 lg:border-r border-[#bd9867]/30 pb-6 lg:pb-0 lg:pr-6">
             {/* Avatar Upload */}
             <div className="flex flex-col items-center text-center">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ">
+              <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider mb-2">
                 Ảnh đại diện
               </label>
-              <div className="relative group w-24 h-24 rounded-full overflow-hidden border-2 border-slate-100 bg-slate-50 shrink-0">
+              <div className="relative group w-24 h-24 overflow-hidden border-2 border-[#bd9867] bg-slate-900 shrink-0">
                 <img
                   src={avatarUrl || "/image/tuong/DauSi/Florentino.jpg"}
                   alt={name}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
-                  <LucideIcon name="Upload" className="text-white" size={18} />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+                  <LucideIcon
+                    name="Upload"
+                    className="text-[#fce3bc]"
+                    size={18}
+                  />
                 </div>
                 <input
                   type="file"
@@ -356,26 +354,30 @@ export default function AppearanceTab({
 
             {/* Profile Banner Upload */}
             <div className="flex flex-col items-center w-full max-w-[200px] sm:max-w-xs text-center">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ">
+              <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider mb-2">
                 Ảnh bìa hồ sơ
               </label>
-              <div className="relative group w-full aspect-[16/9] rounded overflow-hidden border-2 border-slate-100 bg-slate-50 shrink-0 shadow-sm">
+              <div className="relative group w-full aspect-[16/9] overflow-hidden border-2 border-[#bd9867] bg-slate-900 shrink-0 shadow-md">
                 {bannerUrl ? (
                   <img
                     src={bannerUrl}
                     alt="Ảnh bìa hồ sơ"
-                    className="w-full h-full object-cover animate-pulse-subtle"
+                    className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-indigo-950 to-slate-950 flex items-center justify-center">
-                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider ">
+                  <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                       Chưa có ảnh bìa
                     </span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
-                  <LucideIcon name="Upload" className="text-white" size={18} />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+                  <LucideIcon
+                    name="Upload"
+                    className="text-[#fce3bc]"
+                    size={18}
+                  />
                 </div>
                 <input
                   type="file"
@@ -393,33 +395,33 @@ export default function AppearanceTab({
           {/* Text fields */}
           <div className="lg:col-span-8 space-y-4 w-full">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 ">
+              <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider mb-1.5">
                 Họ và tên
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => onUpdateAppearance({ name: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded px-4 py-2.5 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm text-slate-800"
+                className="w-full bg-slate-900 border border-[#bd9867]/60 px-4 py-2.5 focus:border-[#fce3bc] outline-none transition-all text-sm text-white placeholder-slate-500 font-semibold"
                 placeholder="Ví dụ: Alex Rivera"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 ">
+              <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider mb-1.5">
                 Tiểu sử ngắn / Mô tả
               </label>
               <textarea
                 value={bio}
                 rows={3}
                 onChange={(e) => onUpdateAppearance({ bio: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded px-4 py-2.5 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm text-slate-800 leading-relaxed resize-none"
+                className="w-full bg-slate-900 border border-[#bd9867]/60 px-4 py-2.5 focus:border-[#fce3bc] outline-none transition-all text-sm text-white leading-relaxed resize-none font-medium placeholder-slate-500"
                 placeholder="Mô tả ngắn về bản thân hoặc công việc của bạn..."
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 ">
+              <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider mb-1.5">
                 Đường dẫn URL Ảnh bìa
               </label>
               <input
@@ -428,7 +430,7 @@ export default function AppearanceTab({
                 onChange={(e) =>
                   onUpdateAppearance({ bannerUrl: e.target.value })
                 }
-                className="w-full bg-slate-50 border border-slate-200 rounded px-4 py-2.5 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-xs text-slate-750 "
+                className="w-full bg-slate-900 border border-[#bd9867]/60 px-4 py-2.5 focus:border-[#fce3bc] outline-none transition-all text-xs text-white placeholder-slate-500 font-mono"
                 placeholder="Nhập địa chỉ URL của ảnh bìa tĩnh..."
               />
             </div>
@@ -437,19 +439,13 @@ export default function AppearanceTab({
       </section>
 
       {/* SECTION 2: Appearance Settings (Theme, Font, Color) */}
-      <section className="bg-white p-6 sm:p-8 rounded-md border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 sm:p-8 shadow-xl space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div
-              className="p-2 rounded-lg bg-indigo-50"
-              style={{
-                color: accentColor,
-                backgroundColor: `${accentColor}10`,
-              }}
-            >
+            <div className="p-2 border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
               <LucideIcon name="Palette" size={20} />
             </div>
-            <h2 className="font-display text-lg font-bold text-slate-800">
+            <h2 className="font-display text-lg font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase tracking-wider">
               Giao diện
             </h2>
           </div>
@@ -458,10 +454,10 @@ export default function AppearanceTab({
             type="button"
             onClick={handleSaveInterfaceSettingsClick}
             disabled={isSavingInterface}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 text-white text-xs font-extrabold transition-all disabled:opacity-50 cursor-pointer shadow-md"
           >
             {isSavingInterface ? (
-              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white animate-spin" />
             ) : (
               <LucideIcon name="Save" size={13} />
             )}
@@ -472,17 +468,17 @@ export default function AppearanceTab({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Theme Interface Mode Toggle */}
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider ">
+            <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider">
               Chế độ hiển thị
             </label>
-            <div className="flex p-1.5 bg-slate-100 rounded w-fit">
+            <div className="flex p-1 bg-slate-950 border border-[#bd9867]/40 w-fit gap-1">
               <button
                 type="button"
                 onClick={() => handleModeChange("light")}
-                className={`px-5 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                className={`px-5 py-2 font-black text-xs transition-all cursor-pointer ${
                   mode === "light"
-                    ? "bg-white text-slate-800 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white"
+                    : "text-slate-300 hover:text-[#fce3bc]"
                 }`}
               >
                 Giao diện Sáng
@@ -490,10 +486,10 @@ export default function AppearanceTab({
               <button
                 type="button"
                 onClick={() => handleModeChange("dark")}
-                className={`px-5 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                className={`px-5 py-2 font-black text-xs transition-all cursor-pointer ${
                   mode === "dark"
-                    ? "bg-slate-950 text-white shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white"
+                    : "text-slate-300 hover:text-[#fce3bc]"
                 }`}
               >
                 Giao diện Tối
@@ -503,13 +499,13 @@ export default function AppearanceTab({
 
           {/* Typography Selector */}
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider ">
+            <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider">
               Phông chữ
             </label>
             <select
               value={fontFamily}
               onChange={handleFontChange}
-              className="w-full bg-slate-50 border border-slate-200 rounded px-4 py-3 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm text-slate-800 font-semibold"
+              className="w-full bg-slate-900 border border-[#bd9867]/60 px-4 py-3 focus:border-[#fce3bc] outline-none transition-all text-sm text-white font-bold"
             >
               <option value="Plus Jakarta Sans">
                 Plus Jakarta Sans (Hiện đại)
@@ -524,7 +520,7 @@ export default function AppearanceTab({
           {/* Accent Color Picker swatches */}
           <div className="space-y-3 md:col-span-2">
             <div className="flex flex-col gap-1">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider ">
+              <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider">
                 Màu sắc chủ đạo
               </label>
             </div>
@@ -536,17 +532,13 @@ export default function AppearanceTab({
                   type="button"
                   onClick={() => handleAccentChange(accent.hex)}
                   title={accent.label}
-                  className="w-10 h-10 rounded-full transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer border shadow-xs"
+                  className="w-10 h-10 transition-all hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer border shadow-sm"
                   style={{
                     backgroundColor: accent.hex,
                     borderColor:
                       accentColor.toLowerCase() === accent.hex.toLowerCase()
-                        ? "#000000"
-                        : "rgba(0,0,0,0.06)",
-                    boxShadow:
-                      accentColor.toLowerCase() === accent.hex.toLowerCase()
-                        ? "0 0 0 3px rgba(99, 102, 241, 0.25)"
-                        : undefined,
+                        ? "#fce3bc"
+                        : "rgba(255,255,255,0.2)",
                   }}
                 >
                   {accentColor.toLowerCase() === accent.hex.toLowerCase() && (
@@ -556,12 +548,12 @@ export default function AppearanceTab({
               ))}
 
               {/* Custom hex color input box */}
-              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+              <div className="flex items-center gap-2 pl-2 border-l border-[#bd9867]/40">
                 <input
                   type="color"
                   value={accentColor}
                   onChange={(e) => handleAccentChange(e.target.value)}
-                  className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0"
+                  className="w-8 h-8 cursor-pointer border-0 p-0"
                 />
                 <input
                   type="text"
@@ -574,15 +566,15 @@ export default function AppearanceTab({
                       handleAccentChange(e.target.value);
                     }
                   }}
-                  className="w-24 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs  font-bold outline-none text-slate-800"
+                  className="w-24 bg-slate-900 border border-[#bd9867]/60 px-2 py-1 text-xs font-bold outline-none text-white"
                 />
               </div>
             </div>
           </div>
 
           {/* Custom Web Page & Link Colors Customization */}
-          <div className="space-y-4 md:col-span-2 pt-4 border-t border-slate-100">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider ">
+          <div className="space-y-4 md:col-span-2 pt-4 border-t border-[#bd9867]/40">
+            <h4 className="text-xs font-extrabold text-[#fce3bc] uppercase tracking-wider">
               Tùy chỉnh màu nâng cao
             </h4>
 
@@ -590,7 +582,7 @@ export default function AppearanceTab({
               {/* Web Page Background Color */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[11px] font-bold text-slate-500">
+                  <label className="block text-[11px] font-bold text-slate-300">
                     Màu nền trang web
                   </label>
                   {backgroundColor && (
@@ -599,7 +591,7 @@ export default function AppearanceTab({
                       onClick={() =>
                         onUpdateAppearance({ backgroundColor: "" })
                       }
-                      className="text-[9px] font-bold text-red-500 hover:underline cursor-pointer"
+                      className="text-[9px] font-bold text-red-400 hover:underline cursor-pointer"
                     >
                       Xóa/Tự động
                     </button>
@@ -615,7 +607,7 @@ export default function AppearanceTab({
                     onChange={(e) =>
                       onUpdateAppearance({ backgroundColor: e.target.value })
                     }
-                    className="w-10 h-10 rounded cursor-pointer border border-slate-200 p-0.5 shrink-0"
+                    className="w-10 h-10 cursor-pointer border border-[#bd9867]/60 p-0.5 shrink-0"
                   />
                   <input
                     type="text"
@@ -624,7 +616,7 @@ export default function AppearanceTab({
                     onChange={(e) =>
                       onUpdateAppearance({ backgroundColor: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs  outline-none focus:border-indigo-500 text-slate-800"
+                    className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white"
                   />
                 </div>
               </div>
@@ -632,7 +624,7 @@ export default function AppearanceTab({
               {/* Link Card Background Color */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[11px] font-bold text-slate-500">
+                  <label className="block text-[11px] font-bold text-slate-300">
                     Màu nền thẻ liên kết
                   </label>
                   {linkBackgroundColor && (
@@ -641,7 +633,7 @@ export default function AppearanceTab({
                       onClick={() =>
                         onUpdateAppearance({ linkBackgroundColor: "" })
                       }
-                      className="text-[9px] font-bold text-red-500 hover:underline cursor-pointer"
+                      className="text-[9px] font-bold text-red-400 hover:underline cursor-pointer"
                     >
                       Xóa/Tự động
                     </button>
@@ -659,7 +651,7 @@ export default function AppearanceTab({
                         linkBackgroundColor: e.target.value,
                       })
                     }
-                    className="w-10 h-10 rounded cursor-pointer border border-slate-200 p-0.5 shrink-0"
+                    className="w-10 h-10 cursor-pointer border border-[#bd9867]/60 p-0.5 shrink-0"
                   />
                   <input
                     type="text"
@@ -670,7 +662,7 @@ export default function AppearanceTab({
                         linkBackgroundColor: e.target.value,
                       })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs  outline-none focus:border-indigo-500 text-slate-800"
+                    className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white"
                   />
                 </div>
               </div>
@@ -678,14 +670,14 @@ export default function AppearanceTab({
               {/* Link Card Text Color */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[11px] font-bold text-slate-500">
+                  <label className="block text-[11px] font-bold text-slate-300">
                     Màu chữ thẻ liên kết
                   </label>
                   {linkTextColor && (
                     <button
                       type="button"
                       onClick={() => onUpdateAppearance({ linkTextColor: "" })}
-                      className="text-[9px] font-bold text-red-500 hover:underline cursor-pointer"
+                      className="text-[9px] font-bold text-red-400 hover:underline cursor-pointer"
                     >
                       Xóa/Tự động
                     </button>
@@ -700,7 +692,7 @@ export default function AppearanceTab({
                     onChange={(e) =>
                       onUpdateAppearance({ linkTextColor: e.target.value })
                     }
-                    className="w-10 h-10 rounded cursor-pointer border border-slate-200 p-0.5 shrink-0"
+                    className="w-10 h-10 cursor-pointer border border-[#bd9867]/60 p-0.5 shrink-0"
                   />
                   <input
                     type="text"
@@ -709,7 +701,7 @@ export default function AppearanceTab({
                     onChange={(e) =>
                       onUpdateAppearance({ linkTextColor: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs  outline-none focus:border-indigo-500 text-slate-800"
+                    className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white"
                   />
                 </div>
               </div>
@@ -717,19 +709,19 @@ export default function AppearanceTab({
           </div>
 
           {/* Custom Loading GIFs */}
-          <div className="space-y-4 md:col-span-2 pt-6 border-t border-slate-100">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider ">
+          <div className="space-y-4 md:col-span-2 pt-6 border-t border-[#bd9867]/40">
+            <h4 className="text-xs font-extrabold text-[#fce3bc] uppercase tracking-wider">
               Tùy chỉnh ảnh GIF chờ tải
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Web Loading GIF */}
-              <div className="space-y-2 p-4 border border-slate-100 rounded-xl bg-slate-50/50">
-                <label className="block text-[11px] font-bold text-slate-600 uppercase">
+              <div className="space-y-2 p-4 border border-[#bd9867]/40 bg-black/40">
+                <label className="block text-[11px] font-bold text-[#fce3bc] uppercase">
                   Ảnh GIF chờ tải trang web
                 </label>
                 <div className="flex items-center gap-4 mt-2">
-                  <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-1 shadow-xs">
+                  <div className="w-16 h-16 bg-slate-900 border border-[#bd9867] overflow-hidden flex items-center justify-center p-1 shadow-sm">
                     <img
                       src={loadingWebGif || "/giphy.webp"}
                       alt="Web GIF"
@@ -738,7 +730,7 @@ export default function AppearanceTab({
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded text-xs transition-colors cursor-pointer text-center">
+                    <label className="px-3 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold text-xs transition-colors cursor-pointer text-center">
                       {isUploadingWebGif
                         ? "Đang tải lên..."
                         : "Tải lên tệp .gif"}
@@ -756,7 +748,7 @@ export default function AppearanceTab({
                         onClick={() =>
                           onUpdateAppearance({ loadingWebGif: "/giphy.webp" })
                         }
-                        className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer text-left"
+                        className="text-[10px] font-bold text-red-400 hover:underline cursor-pointer text-left"
                       >
                         Khôi phục mặc định
                       </button>
@@ -766,12 +758,12 @@ export default function AppearanceTab({
               </div>
 
               {/* Data Loading GIF */}
-              <div className="space-y-2 p-4 border border-slate-100 rounded-xl bg-slate-50/50">
-                <label className="block text-[11px] font-bold text-slate-600 uppercase">
+              <div className="space-y-2 p-4 border border-[#bd9867]/40 bg-black/40">
+                <label className="block text-[11px] font-bold text-[#fce3bc] uppercase">
                   Ảnh GIF chờ tải dữ liệu trang
                 </label>
                 <div className="flex items-center gap-4 mt-2">
-                  <div className="w-16 h-16 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-1 shadow-xs">
+                  <div className="w-16 h-16 bg-slate-900 border border-[#bd9867] overflow-hidden flex items-center justify-center p-1 shadow-sm">
                     <img
                       src={loadingDataGif || "/giphy.webp"}
                       alt="Data GIF"
@@ -780,7 +772,7 @@ export default function AppearanceTab({
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded text-xs transition-colors cursor-pointer text-center">
+                    <label className="px-3 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold text-xs transition-colors cursor-pointer text-center">
                       {isUploadingDataGif
                         ? "Đang tải lên..."
                         : "Tải lên tệp .gif"}
@@ -798,7 +790,7 @@ export default function AppearanceTab({
                         onClick={() =>
                           onUpdateAppearance({ loadingDataGif: "/giphy.webp" })
                         }
-                        className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer text-left"
+                        className="text-[10px] font-bold text-red-400 hover:underline cursor-pointer text-left"
                       >
                         Khôi phục mặc định
                       </button>
@@ -810,25 +802,25 @@ export default function AppearanceTab({
           </div>
 
           {/* Maintenance Mode Option */}
-          <div className="space-y-4 md:col-span-2 pt-6 border-t border-slate-100">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <div className="space-y-4 md:col-span-2 pt-6 border-t border-[#bd9867]/40">
+            <h4 className="text-xs font-extrabold text-[#fce3bc] uppercase tracking-wider">
               Chế độ Bảo trì
             </h4>
 
-            <div className="p-4 border border-amber-100 rounded-xl bg-amber-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-4 border border-[#bd9867]/60 bg-black/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-2.5 h-2.5 rounded-full ${bao_tri ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}
+                    className={`w-2.5 h-2.5 ${bao_tri ? "bg-amber-400 animate-pulse" : "bg-slate-600"}`}
                   />
-                  <label className="block text-sm font-bold text-slate-800">
+                  <label className="block text-sm font-extrabold text-[#fce3bc]">
                     Bật chế độ bảo trì Website
                   </label>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
+                <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
                   Khi kích hoạt, khách truy cập thông thường sẽ thấy trang thông
                   báo bảo trì hệ thống. Chỉ các tài khoản{" "}
-                  <span className="font-semibold text-slate-700">Admin</span> đã
+                  <span className="font-semibold text-[#fce3bc]">Admin</span> đã
                   đăng nhập mới có thể vượt qua và tiếp tục truy cập/quản trị
                   website bình thường.
                 </p>
@@ -838,12 +830,12 @@ export default function AppearanceTab({
                 <button
                   type="button"
                   onClick={() => onUpdateAppearance({ bao_tri: !bao_tri })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
-                    bao_tri ? "bg-amber-500" : "bg-slate-200"
+                  className={`relative inline-flex h-6 w-11 items-center transition-colors focus:outline-none cursor-pointer border border-[#bd9867] ${
+                    bao_tri ? "bg-amber-600" : "bg-slate-900"
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-4 w-4 bg-[#fce3bc] transition-transform ${
                       bao_tri ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
@@ -855,20 +847,14 @@ export default function AppearanceTab({
       </section>
 
       {/* SECTION 2.5: Donation & Bank Settings */}
-      <section className="bg-white p-6 sm:p-8 rounded-md border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 sm:p-8 shadow-xl space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div
-              className="p-2 rounded-lg bg-indigo-50"
-              style={{
-                color: accentColor,
-                backgroundColor: `${accentColor}10`,
-              }}
-            >
+            <div className="p-2 border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
               <LucideIcon name="Heart" size={20} />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-slate-800">
+              <h2 className="font-display text-lg font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase tracking-wider">
                 Donate
               </h2>
             </div>
@@ -878,10 +864,10 @@ export default function AppearanceTab({
             type="button"
             onClick={handleSaveDonationSettingsClick}
             disabled={isSavingDonation}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 text-white text-xs font-extrabold transition-all disabled:opacity-50 cursor-pointer shadow-md"
           >
             {isSavingDonation ? (
-              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white animate-spin" />
             ) : (
               <LucideIcon name="Save" size={13} />
             )}
@@ -891,15 +877,15 @@ export default function AppearanceTab({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
           {/* Bank Settings Block */}
-          <div className="space-y-4 p-5 rounded-md border border-slate-100 bg-slate-50/50">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+          <div className="space-y-4 p-5 border border-[#bd9867]/40 bg-black/40">
+            <div className="flex justify-between items-center border-b border-[#bd9867]/40 pb-2">
               <div className="flex items-center gap-2">
                 <LucideIcon
                   name="Landmark"
                   size={16}
-                  className="text-indigo-500"
+                  className="text-[#fce3bc]"
                 />
-                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                <h3 className="font-extrabold text-xs uppercase tracking-wider text-[#fce3bc]">
                   Tài khoản Ngân hàng
                 </h3>
               </div>
@@ -910,9 +896,9 @@ export default function AppearanceTab({
                   onChange={(e) =>
                     onUpdateAppearance({ bankEnabled: e.target.checked })
                   }
-                  className="rounded border-slate-200 text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                  className="border-[#bd9867] text-[#bd9867] w-3.5 h-3.5"
                 />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
                   Hiển thị
                 </span>
               </label>
@@ -922,7 +908,7 @@ export default function AppearanceTab({
               className={`space-y-3 transition-opacity ${bankEnabled ? "opacity-100" : "opacity-50"}`}
             >
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ">
+                <label className="block text-[10px] font-bold text-[#fce3bc] uppercase tracking-wider mb-1">
                   Tên Ngân hàng
                 </label>
                 <input
@@ -933,12 +919,12 @@ export default function AppearanceTab({
                   onChange={(e) =>
                     onUpdateAppearance({ bankName: e.target.value })
                   }
-                  className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs outline-none focus:border-indigo-500 text-slate-800 disabled:bg-slate-100/50"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white disabled:bg-slate-950/50 placeholder-slate-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ">
+                <label className="block text-[10px] font-bold text-[#fce3bc] uppercase tracking-wider mb-1">
                   Số tài khoản (STK)
                 </label>
                 <input
@@ -949,12 +935,12 @@ export default function AppearanceTab({
                   onChange={(e) =>
                     onUpdateAppearance({ bankAccount: e.target.value })
                   }
-                  className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs outline-none focus:border-indigo-500 text-slate-800 disabled:bg-slate-100/50"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white disabled:bg-slate-950/50 placeholder-slate-500 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ">
+                <label className="block text-[10px] font-bold text-[#fce3bc] uppercase tracking-wider mb-1">
                   Tên chủ tài khoản (CTK)
                 </label>
                 <input
@@ -967,22 +953,22 @@ export default function AppearanceTab({
                       bankOwner: e.target.value.toUpperCase(),
                     })
                   }
-                  className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs outline-none focus:border-indigo-500 text-slate-800 font-bold uppercase disabled:bg-slate-100/50"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white font-bold uppercase disabled:bg-slate-950/50 placeholder-slate-500"
                 />
               </div>
             </div>
           </div>
 
           {/* MoMo Settings Block */}
-          <div className="space-y-4 p-5 rounded-md border border-slate-100 bg-slate-50/50">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+          <div className="space-y-4 p-5 border border-[#bd9867]/40 bg-black/40">
+            <div className="flex justify-between items-center border-b border-[#bd9867]/40 pb-2">
               <div className="flex items-center gap-2">
                 <LucideIcon
                   name="Smartphone"
                   size={16}
-                  className="text-pink-500"
+                  className="text-pink-400"
                 />
-                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                <h3 className="font-extrabold text-xs uppercase tracking-wider text-[#fce3bc]">
                   Ví điện tử MoMo
                 </h3>
               </div>
@@ -993,9 +979,9 @@ export default function AppearanceTab({
                   onChange={(e) =>
                     onUpdateAppearance({ momoEnabled: e.target.checked })
                   }
-                  className="rounded border-slate-200 text-pink-600 focus:ring-pink-500 w-3.5 h-3.5"
+                  className="border-[#bd9867] text-[#bd9867] w-3.5 h-3.5"
                 />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
                   Hiển thị
                 </span>
               </label>
@@ -1005,7 +991,7 @@ export default function AppearanceTab({
               className={`space-y-3 transition-opacity ${momoEnabled ? "opacity-100" : "opacity-50"}`}
             >
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ">
+                <label className="block text-[10px] font-bold text-[#fce3bc] uppercase tracking-wider mb-1">
                   Số điện thoại MoMo
                 </label>
                 <input
@@ -1016,12 +1002,12 @@ export default function AppearanceTab({
                   onChange={(e) =>
                     onUpdateAppearance({ momoNumber: e.target.value })
                   }
-                  className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs outline-none focus:border-indigo-500 text-slate-800 disabled:bg-slate-100/50"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white disabled:bg-slate-950/50 placeholder-slate-500 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ">
+                <label className="block text-[10px] font-bold text-[#fce3bc] uppercase tracking-wider mb-1">
                   Tên người nhận MoMo
                 </label>
                 <input
@@ -1032,7 +1018,7 @@ export default function AppearanceTab({
                   onChange={(e) =>
                     onUpdateAppearance({ momoName: e.target.value })
                   }
-                  className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs outline-none focus:border-indigo-500 text-slate-800 disabled:bg-slate-100/50"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white disabled:bg-slate-950/50 placeholder-slate-500"
                 />
               </div>
             </div>
@@ -1040,7 +1026,7 @@ export default function AppearanceTab({
 
           {/* Donation Note (Full width) */}
           <div className="md:col-span-2 space-y-3">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider ">
+            <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider">
               Lời nhắn gửi người ủng hộ
             </label>
             <textarea
@@ -1050,26 +1036,20 @@ export default function AppearanceTab({
               onChange={(e) =>
                 onUpdateAppearance({ donateNote: e.target.value })
               }
-              className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs outline-none focus:border-indigo-500 text-slate-800 leading-relaxed"
+              className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white leading-relaxed placeholder-slate-500"
             />
           </div>
         </div>
       </section>
 
       {/* SECTION 3: Banner Slideshow Database Management */}
-      <section className="bg-white p-6 sm:p-8 rounded-md border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 sm:p-8 shadow-xl space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div
-              className="p-2 rounded-lg bg-indigo-50"
-              style={{
-                color: accentColor,
-                backgroundColor: `${accentColor}10`,
-              }}
-            >
+            <div className="p-2 border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
               <LucideIcon name="Image" size={20} />
             </div>
-            <h2 className="font-display text-lg font-bold text-slate-800">
+            <h2 className="font-display text-lg font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase tracking-wider">
               Quản lý Banner
             </h2>
           </div>
@@ -1078,15 +1058,15 @@ export default function AppearanceTab({
         {/* Upload Custom Banner to DB */}
         <form
           onSubmit={handleAddBannerSubmit}
-          className="bg-slate-50 p-4 rounded border border-slate-100 space-y-4"
+          className="bg-black/40 p-4 border border-[#bd9867]/40 space-y-4"
         >
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider ">
+          <h3 className="text-xs font-extrabold text-[#fce3bc] uppercase tracking-wider">
             Thêm ảnh bìa mới
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">
+              <label className="block text-[11px] font-bold text-slate-300 mb-1">
                 Tên ảnh bìa
               </label>
               <input
@@ -1094,11 +1074,11 @@ export default function AppearanceTab({
                 placeholder="Ví dụ: Banner Ngày Tết, Banner Gaming..."
                 value={newBannerTitle}
                 onChange={(e) => setNewBannerTitle(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500"
+                className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white placeholder-slate-500"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">
+              <label className="block text-[11px] font-bold text-slate-300 mb-1">
                 Nhập URL hình ảnh
               </label>
               <input
@@ -1106,15 +1086,15 @@ export default function AppearanceTab({
                 placeholder="/image/phu_hieu/thanh_khoi_nguyen/background_ThanhKhoiNguyen_1.jpg"
                 value={newBannerUrl}
                 onChange={(e) => setNewBannerUrl(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 "
+                className="w-full bg-slate-900 border border-[#bd9867]/60 px-3 py-2 text-xs outline-none focus:border-[#fce3bc] text-white placeholder-slate-500 font-mono"
               />
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-            <div className="relative inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer hover:text-slate-800">
-              <LucideIcon name="Upload" size={14} className="text-slate-400" />
-              <span className="font-semibold underline">
+            <div className="relative inline-flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer hover:text-[#fce3bc]">
+              <LucideIcon name="Upload" size={14} className="text-[#bd9867]" />
+              <span className="font-bold underline">
                 Hoặc tải tệp từ thiết bị của bạn
               </span>
               <input
@@ -1124,7 +1104,7 @@ export default function AppearanceTab({
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
               {isUploadingBanner && (
-                <span className="text-[10px] text-indigo-500 animate-pulse ml-2">
+                <span className="text-[10px] text-[#fce3bc] animate-pulse ml-2">
                   (Đang đọc tệp...)
                 </span>
               )}
@@ -1132,8 +1112,7 @@ export default function AppearanceTab({
 
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-2 text-white rounded text-xs font-bold transition-all shadow-xs hover:brightness-110 flex items-center justify-center gap-1.5 cursor-pointer"
-              style={{ backgroundColor: accentColor }}
+              className="w-full sm:w-auto px-5 py-2 text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-xs font-black transition-all shadow-md hover:brightness-110 flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <LucideIcon name="Plus" size={14} />
               <span>Tải ảnh & Thêm vào Slideshow</span>
@@ -1144,10 +1123,10 @@ export default function AppearanceTab({
         {/* Preset & Custom Banners List from DB */}
         <div className="space-y-3">
           <div className="flex flex-col gap-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider ">
+            <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider">
               Kho ảnh bìa ({dbBanners.length} ảnh)
             </label>
-            <p className="text-slate-400 text-[11px]">
+            <p className="text-slate-300 text-[11px]">
               Tích chọn nhiều ảnh bìa bên dưới để hiển thị slideshow. Bạn cũng
               có thể xóa các ảnh bìa tự thêm.
             </p>
@@ -1160,16 +1139,11 @@ export default function AppearanceTab({
               return (
                 <div
                   key={banner.id}
-                  className={`relative rounded overflow-hidden border-2 transition-all group aspect-[16/9] ${
+                  className={`relative overflow-hidden border-2 transition-all group aspect-[16/9] ${
                     isSelectedInSlideshow
-                      ? "scale-[1.01]"
-                      : "border-slate-100 opacity-60 hover:opacity-100"
+                      ? "scale-[1.01] border-[#fce3bc]"
+                      : "border-[#bd9867]/40 opacity-60 hover:opacity-100"
                   }`}
-                  style={{
-                    borderColor: isSelectedInSlideshow
-                      ? accentColor
-                      : "transparent",
-                  }}
                 >
                   <img
                     src={banner.url_hinh_anh}
@@ -1177,7 +1151,7 @@ export default function AppearanceTab({
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-2">
+                  <div className="absolute inset-0 bg-black/60 flex flex-col justify-between p-2">
                     <div className="flex justify-between items-center">
                       {/* Checkbox toggle status */}
                       <button
@@ -1189,10 +1163,10 @@ export default function AppearanceTab({
                             !banner.kich_hoat,
                           )
                         }
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-white shadow-sm transition-all cursor-pointer ${
+                        className={`w-6 h-6 flex items-center justify-center text-white shadow-sm transition-all cursor-pointer ${
                           isSelectedInSlideshow
-                            ? "bg-emerald-500"
-                            : "bg-slate-700/80 hover:bg-slate-600"
+                            ? "bg-emerald-600"
+                            : "bg-slate-800/80 hover:bg-slate-700"
                         }`}
                         title={
                           isSelectedInSlideshow
@@ -1219,14 +1193,14 @@ export default function AppearanceTab({
                             onDeleteBanner(banner.id, banner.url_hinh_anh);
                           }
                         }}
-                        className="w-6 h-6 rounded-full bg-red-600/90 hover:bg-red-500 flex items-center justify-center text-white shadow-sm transition-opacity opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className="w-6 h-6 bg-red-600 hover:bg-red-500 flex items-center justify-center text-white shadow-sm transition-opacity opacity-0 group-hover:opacity-100 cursor-pointer"
                         title="Xóa khỏi Database"
                       >
                         <LucideIcon name="Trash2" size={11} />
                       </button>
                     </div>
 
-                    <span className="text-white text-[10px] font-bold bg-black/60 px-1.5 py-0.5 rounded truncate w-fit max-w-full">
+                    <span className="text-[#fce3bc] text-[10px] font-bold bg-black/80 px-1.5 py-0.5 border border-[#bd9867]/40 truncate w-fit max-w-full">
                       {banner.tieu_de || "Không tên"}
                     </span>
                   </div>
@@ -1235,7 +1209,7 @@ export default function AppearanceTab({
             })}
 
             {dbBanners.length === 0 && (
-              <div className="col-span-full py-12 text-center text-slate-400 text-xs border border-dashed rounded">
+              <div className="col-span-full py-12 text-center text-slate-400 text-xs border border-dashed border-[#bd9867]/40">
                 Không có ảnh bìa nào.
               </div>
             )}
@@ -1244,20 +1218,14 @@ export default function AppearanceTab({
       </section>
 
       {/* SECTION 4: Messaging Integrations */}
-      <section className="bg-white p-6 sm:p-8 rounded-md border border-slate-100 shadow-sm space-y-4">
+      <section className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 sm:p-8 shadow-xl space-y-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div
-              className="p-2 rounded-lg bg-indigo-50"
-              style={{
-                color: accentColor,
-                backgroundColor: `${accentColor}10`,
-              }}
-            >
+            <div className="p-2 border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
               <LucideIcon name="MessageSquare" size={20} />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-slate-800">
+              <h2 className="font-display text-lg font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase tracking-wider">
                 Nhận tin nhắn
               </h2>
             </div>
@@ -1266,15 +1234,12 @@ export default function AppearanceTab({
             onClick={() =>
               onUpdateAppearance({ newsletterEnabled: !newsletterEnabled })
             }
-            className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-300 focus:outline-none relative cursor-pointer ${
-              newsletterEnabled ? "" : "bg-slate-200"
+            className={`w-11 h-6 p-0.5 transition-colors duration-300 focus:outline-none relative cursor-pointer border border-[#bd9867] ${
+              newsletterEnabled ? "bg-amber-600" : "bg-slate-900"
             }`}
-            style={{
-              backgroundColor: newsletterEnabled ? accentColor : undefined,
-            }}
           >
             <div
-              className={`w-5 h-5 rounded-full bg-white shadow-md transform duration-300 ${
+              className={`w-5 h-5 bg-[#fce3bc] shadow-md transform duration-300 ${
                 newsletterEnabled ? "translate-x-5" : "translate-x-0"
               }`}
             />

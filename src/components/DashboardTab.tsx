@@ -357,55 +357,49 @@ export default function DashboardTab({
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       {/* Toast alert popup */}
       {showNotification && (
-        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded shadow-2xl border border-slate-800 flex items-center gap-2.5 text-xs font-bold animate-bounce">
+        <div className="fixed top-5 right-5 z-50 bg-slate-950 text-[#fce3bc] px-4 py-3 shadow-2xl border border-[#bd9867] flex items-center gap-2.5 text-xs font-bold animate-bounce">
           <LucideIcon name="Check" className="text-emerald-400" size={16} />
           {showNotification}
         </div>
       )}
 
       {/* Welcome Header */}
-      <div>
-        <h1 className="font-display text-xl sm:text-2xl font-bold text-slate-800">
+      {/* <div>
+        <h1 className="font-display text-xl sm:text-2xl font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase tracking-wide">
           Tổng quan hệ thống
         </h1>
-        <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
+        <p className="text-slate-300 text-xs sm:text-sm mt-0.5 font-medium">
           Chỉ số hiệu suất thời gian thực cho {name || "Admin"}.
         </p>
-      </div>
+      </div> */}
 
       {/* Metric Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
         {metrics.map((card, i) => (
           <div
             key={i}
-            className="bg-white border border-slate-100 rounded-md p-4 sm:p-5 hover:shadow-md transition-shadow shadow-xs relative overflow-hidden"
+            className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-4 sm:p-5 hover:border-[#bd9867] transition-all shadow-lg relative overflow-hidden"
           >
             <div className="flex justify-between items-start mb-3">
-              <div
-                className="p-2.5 rounded flex items-center justify-center font-bold"
-                style={{
-                  backgroundColor: `${accentColor}10`,
-                  color: accentColor,
-                }}
-              >
+              <div className="p-2.5 border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc] flex items-center justify-center font-bold">
                 <LucideIcon name={card.icon} size={18} />
               </div>
               <span
-                className={`text-[10px] font-bold  px-2 py-0.5 rounded-md ${
+                className={`text-[10px] font-bold px-2 py-0.5 border ${
                   card.change === "Ổn định"
-                    ? "bg-slate-100 text-slate-500"
+                    ? "border-slate-700 bg-slate-900 text-slate-300"
                     : card.isPositive
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-rose-50 text-rose-600"
+                      ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-400"
+                      : "border-rose-500/60 bg-rose-950/40 text-rose-400"
                 }`}
               >
                 {card.change}
               </span>
             </div>
-            <h3 className="text-[11px] sm:text-xs font-semibold text-slate-400 font-sans">
+            <h3 className="text-[11px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider font-sans">
               {card.title}
             </h3>
-            <p className="text-xl sm:text-2xl font-bold text-slate-850 mt-1  tracking-tight">
+            <p className="text-xl sm:text-2xl font-extrabold bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent mt-1 tracking-tight">
               {card.value}
             </p>
           </div>
@@ -415,19 +409,19 @@ export default function DashboardTab({
       {/* Interactive Charts & Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Chart Column */}
-        <div className="lg:col-span-2 bg-white border border-slate-100 rounded-md p-4 sm:p-6 shadow-xs">
+        <div className="lg:col-span-2 bg-[#1d182b]/90 border border-[#bd9867]/60 p-4 sm:p-6 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-            <h2 className="font-display font-bold text-slate-850 text-sm sm:text-base">
+            <h2 className="font-display font-bold bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent text-sm sm:text-base uppercase tracking-wider">
               Lưu lượng click theo thời gian
             </h2>
-            <div className="flex p-1 bg-slate-100 rounded self-start sm:self-auto">
+            <div className="flex p-1 bg-slate-950/80 border border-[#bd9867]/40 self-start sm:self-auto gap-1">
               <button
                 type="button"
                 onClick={() => setChartView("daily")}
-                className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-[10px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                   chartView === "daily"
-                    ? "bg-white text-slate-800 shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white"
+                    : "text-slate-300 hover:text-[#fce3bc]"
                 }`}
               >
                 Ngày
@@ -435,10 +429,10 @@ export default function DashboardTab({
               <button
                 type="button"
                 onClick={() => setChartView("weekly")}
-                className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-[10px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                   chartView === "weekly"
-                    ? "bg-white text-slate-800 shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white"
+                    : "text-slate-300 hover:text-[#fce3bc]"
                 }`}
               >
                 Tuần
@@ -446,10 +440,10 @@ export default function DashboardTab({
               <button
                 type="button"
                 onClick={() => setChartView("monthly")}
-                className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 text-[10px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                   chartView === "monthly"
-                    ? "bg-white text-slate-800 shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white"
+                    : "text-slate-300 hover:text-[#fce3bc]"
                 }`}
               >
                 Tháng
@@ -466,52 +460,43 @@ export default function DashboardTab({
               >
                 <defs>
                   <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={accentColor}
-                      stopOpacity={0.2}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={accentColor}
-                      stopOpacity={0.0}
-                    />
+                    <stop offset="5%" stopColor="#bd9867" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#bd9867" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
-                  stroke="#f1f5f9"
+                  stroke="#332a4a"
                   strokeDasharray="3 3"
                   vertical={false}
                 />
                 <XAxis
                   dataKey="date"
-                  stroke="#94a3b8"
+                  stroke="#bd9867"
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
-                  stroke="#94a3b8"
+                  stroke="#bd9867"
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderRadius: "12px",
-                    border: "none",
-                    color: "#ffffff",
+                    backgroundColor: "#1d182b",
+                    borderColor: "#bd9867",
+                    color: "#fce3bc",
                     fontFamily: "sans-serif",
                     fontSize: "11px",
                     fontWeight: "bold",
                   }}
-                  itemStyle={{ color: "#ffffff" }}
+                  itemStyle={{ color: "#fce3bc" }}
                 />
                 <Area
                   type="monotone"
                   dataKey="clicks"
-                  stroke={accentColor}
+                  stroke="#fce3bc"
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#chartColor)"
@@ -522,8 +507,8 @@ export default function DashboardTab({
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="bg-white border border-slate-100 rounded-md p-4 sm:p-6 shadow-xs space-y-6">
-          <h2 className="font-display font-bold text-slate-850 text-sm sm:text-base">
+        <div className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-4 sm:p-6 shadow-xl space-y-6">
+          <h2 className="font-display font-bold bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent text-sm sm:text-base uppercase tracking-wider">
             Hoạt động gần đây
           </h2>
           <div className="space-y-5 overflow-y-auto max-h-[300px] pr-1">
@@ -532,27 +517,27 @@ export default function DashboardTab({
                 {/* Colored dot identifier indicator */}
                 <div className="pt-1.5 shrink-0">
                   <div
-                    className={`w-2 h-2 rounded-full ring-4 ${
+                    className={`w-2 h-2 ${
                       log.type === "create"
-                        ? "bg-indigo-500 ring-indigo-50"
+                        ? "bg-amber-400"
                         : log.type === "milestone"
-                          ? "bg-emerald-500 ring-emerald-50"
+                          ? "bg-emerald-400"
                           : log.type === "spike"
-                            ? "bg-rose-500 ring-rose-50"
-                            : "bg-slate-500 ring-slate-100"
+                            ? "bg-rose-400"
+                            : "bg-slate-400"
                     }`}
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-slate-700 text-xs sm:text-sm font-sans leading-relaxed break-words">
+                  <p className="text-slate-200 text-xs sm:text-sm font-sans leading-relaxed break-words">
                     {log.message}
                     {log.boldText && (
-                      <span className="font-bold text-slate-900 ml-0.5">
+                      <span className="font-bold text-[#fce3bc] ml-0.5">
                         {log.boldText}
                       </span>
                     )}
                   </p>
-                  <span className="text-[9px] text-slate-400  mt-0.5 block">
+                  <span className="text-[9px] text-[#bd9867] mt-0.5 block">
                     {log.time}
                   </span>
                 </div>
@@ -569,9 +554,9 @@ export default function DashboardTab({
       </div>
 
       {/* Top Performing Links Table */}
-      <div className="bg-white border border-slate-100 rounded-md overflow-hidden shadow-xs">
-        <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="font-display font-bold text-slate-850 text-sm sm:text-base">
+      <div className="bg-[#1d182b]/90 border border-[#bd9867]/60 overflow-hidden shadow-xl">
+        <div className="p-4 sm:p-6 border-b border-[#bd9867]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="font-display font-bold bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent text-sm sm:text-base uppercase tracking-wider">
             Hiệu quả liên kết & Chi tiết lượt click
           </h2>
 
@@ -583,16 +568,15 @@ export default function DashboardTab({
                 placeholder="Tìm kiếm liên kết..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none w-full sm:w-56"
+                className="bg-slate-900 border border-[#bd9867]/60 pl-9 pr-4 py-1.5 text-xs text-white placeholder-slate-500 focus:border-[#fce3bc] outline-none w-full sm:w-56"
               />
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#bd9867]">
                 <LucideIcon name="Search" size={12} />
               </div>
             </div>
             <button
               onClick={handleExportCSV}
-              className="text-white font-bold text-xs px-4 py-2 rounded-lg hover:brightness-110 shadow-xs active:scale-95 transition-all cursor-pointer shrink-0"
-              style={{ backgroundColor: accentColor }}
+              className="text-white font-black text-xs px-4 py-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
             >
               Xuất CSV
             </button>
@@ -603,57 +587,57 @@ export default function DashboardTab({
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left border-collapse min-w-[550px]">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest ">
+              <tr className="bg-black/40 border-b border-[#bd9867]/40">
+                <th className="px-4 sm:px-6 py-4 text-[10px] font-bold text-[#fce3bc] uppercase tracking-widest">
                   Nguồn
                 </th>
-                <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest ">
+                <th className="px-4 sm:px-6 py-4 text-[10px] font-bold text-[#fce3bc] uppercase tracking-widest">
                   Đường dẫn đích
                 </th>
-                <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest ">
+                <th className="px-4 sm:px-6 py-4 text-[10px] font-bold text-[#fce3bc] uppercase tracking-widest">
                   Lượt click
                 </th>
-                <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest ">
+                <th className="px-4 sm:px-6 py-4 text-[10px] font-bold text-[#fce3bc] uppercase tracking-widest">
                   Trạng thái
                 </th>
-                <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                <th className="px-4 sm:px-6 py-4 text-[10px] font-bold text-[#fce3bc] uppercase tracking-widest text-right">
                   Thao tác
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#bd9867]/20">
               {filteredTableData.map((row) => (
                 <tr
                   key={row.id}
-                  className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                  className="hover:bg-[#bd9867]/10 transition-colors group cursor-pointer"
                   onClick={() => setSelectedLinkDetail(row)}
                 >
                   <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold p-0.5 bg-white border border-slate-150">
+                      <div className="w-8 h-8 flex items-center justify-center font-bold p-0.5 bg-slate-900 border border-[#bd9867]">
                         <BrandIcon
                           title={row.source}
                           iconName={row.icon}
                           size={20}
                         />
                       </div>
-                      <span className="text-xs sm:text-sm font-bold text-slate-800">
+                      <span className="text-xs sm:text-sm font-bold text-white">
                         {row.source}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-xs text-indigo-600 font-semibold break-all max-w-[200px]">
+                  <td className="px-4 sm:px-6 py-4 text-xs text-[#fce3bc] font-semibold break-all max-w-[200px]">
                     {row.destUrl}
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-xs font-bold text-slate-700">
+                  <td className="px-4 sm:px-6 py-4 text-xs font-bold text-slate-200">
                     {row.clicks.toLocaleString()}
                   </td>
                   <td className="px-4 sm:px-6 py-4">
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                      className={`text-[10px] font-bold px-2.5 py-1 border ${
                         row.status === "Hoạt động" || row.status === "Active"
-                          ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                          : "bg-slate-100 text-slate-500 border-slate-200"
+                          ? "bg-emerald-950/40 text-emerald-400 border-emerald-500/60"
+                          : "bg-slate-900 text-slate-400 border-slate-700"
                       }`}
                     >
                       {row.status === "Active"
@@ -669,7 +653,7 @@ export default function DashboardTab({
                         e.stopPropagation();
                         setSelectedLinkDetail(row);
                       }}
-                      className="px-3 py-1.5 rounded-md text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 transition-colors cursor-pointer inline-flex items-center gap-1"
+                      className="px-3 py-1.5 text-xs font-bold border border-[#bd9867] bg-black/40 hover:bg-[#bd9867]/20 text-[#fce3bc] transition-colors cursor-pointer inline-flex items-center gap-1"
                     >
                       <LucideIcon name="BarChart2" size={13} />
                       <span>Xem chi tiết</span>
@@ -695,11 +679,11 @@ export default function DashboardTab({
 
       {/* Click Details Modal */}
       {selectedLinkDetail && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 space-y-5 max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-[#1d182b]/95 border border-[#bd9867] max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[85vh] flex flex-col text-white">
+            <div className="flex items-center justify-between pb-3 border-b border-[#bd9867]/40">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 bg-slate-900 border border-[#bd9867] flex items-center justify-center font-bold">
                   <BrandIcon
                     title={selectedLinkDetail.source}
                     iconName={selectedLinkDetail.icon}
@@ -707,10 +691,10 @@ export default function DashboardTab({
                   />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-800 text-base sm:text-lg">
+                  <h3 className="font-extrabold bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent text-base sm:text-lg">
                     Lịch sử click: {selectedLinkDetail.source}
                   </h3>
-                  <p className="text-xs text-indigo-600 font-medium truncate max-w-md">
+                  <p className="text-xs text-[#fce3bc] font-medium truncate max-w-md">
                     {selectedLinkDetail.destUrl}
                   </p>
                 </div>
@@ -718,33 +702,33 @@ export default function DashboardTab({
 
               <button
                 onClick={() => setSelectedLinkDetail(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                className="p-2 text-slate-400 hover:text-white hover:bg-[#bd9867]/20 transition-colors cursor-pointer"
               >
                 <LucideIcon name="X" size={18} />
               </button>
             </div>
 
-            <div className="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+            <div className="flex items-center justify-between bg-black/40 p-3.5 border border-[#bd9867]/40">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">
+                <span className="text-[10px] text-[#bd9867] uppercase tracking-wider font-extrabold block">
                   Tổng lượt click
                 </span>
-                <span className="text-xl font-black text-slate-800">
+                <span className="text-xl font-black text-[#fce3bc]">
                   {selectedLinkDetail.clicks}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">
+                <span className="text-[10px] text-[#bd9867] uppercase tracking-wider font-extrabold block">
                   Trạng thái
                 </span>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                <span className="text-xs font-bold text-emerald-400 bg-emerald-950/40 px-2.5 py-1 border border-emerald-500/60">
                   {selectedLinkDetail.status}
                 </span>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-              <h4 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+              <h4 className="text-xs font-extrabold text-[#fce3bc] uppercase tracking-wider">
                 Nhật ký truy cập gần đây
               </h4>
 
@@ -755,7 +739,7 @@ export default function DashboardTab({
 
                 if (linkLogs.length === 0) {
                   return (
-                    <div className="text-center py-10 text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    <div className="text-center py-10 text-slate-400 text-xs bg-black/30 border border-dashed border-[#bd9867]/40">
                       Chưa ghi nhận nhật ký lượt click chi tiết nào cho liên kết
                       này.
                     </div>
@@ -763,14 +747,14 @@ export default function DashboardTab({
                 }
 
                 return (
-                  <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden bg-white">
+                  <div className="divide-y divide-[#bd9867]/20 border border-[#bd9867]/40 bg-slate-900/80">
                     {linkLogs.map((log, idx) => (
                       <div
                         key={log.id || idx}
-                        className="p-3 flex items-center justify-between text-xs hover:bg-slate-50/80 transition-colors"
+                        className="p-3 flex items-center justify-between text-xs hover:bg-[#bd9867]/10 transition-colors"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                          <div className="w-7 h-7 bg-black/40 border border-[#bd9867] text-[#fce3bc] flex items-center justify-center shrink-0">
                             <LucideIcon
                               name={
                                 (log.thiet_bi || "")
@@ -783,7 +767,7 @@ export default function DashboardTab({
                             />
                           </div>
                           <div>
-                            <span className="font-bold text-slate-700 block">
+                            <span className="font-bold text-slate-200 block">
                               {log.thiet_bi || "Thiết bị không xác định"}
                             </span>
                             <span className="text-[10px] text-slate-400">
@@ -796,7 +780,7 @@ export default function DashboardTab({
                           </div>
                         </div>
 
-                        <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                        <span className="text-[11px] font-mono text-[#fce3bc] bg-black/40 border border-[#bd9867]/40 px-2 py-0.5">
                           {log.ip_address || "Client"}
                         </span>
                       </div>
@@ -809,7 +793,7 @@ export default function DashboardTab({
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedLinkDetail(null)}
-                className="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-colors cursor-pointer"
+                className="px-5 py-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-black hover:brightness-110 transition-colors cursor-pointer"
               >
                 Đóng
               </button>

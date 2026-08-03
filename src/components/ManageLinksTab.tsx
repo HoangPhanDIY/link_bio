@@ -183,14 +183,6 @@ export default function ManageLinksTab({
     <div className="space-y-6">
       {/* Header and Add Action */}
       <div className="flex flex-col justify-between gap-4">
-        <div>
-          <h2 className="font-display text-xl font-bold text-slate-800">
-            Quản lý liên kết
-          </h2>
-          <p className="text-slate-500 text-xs font-sans">
-            Sắp xếp và tùy chỉnh các liên kết của bạn.
-          </p>
-        </div>
         <button
           onClick={() => {
             setEditingLink(null);
@@ -216,7 +208,7 @@ export default function ManageLinksTab({
           return (
             <div
               key={link.id}
-              className={`flex items-center gap-4 p-2 sm:p-4 bg-white border border-slate-100 rounded transition-all duration-300 shadow-sm hover:shadow-md ${
+              className={`flex items-center gap-4 p-2 sm:p-4 bg-[rgba(29, 24, 43, 0.75)] border border-slate-100 transition-all duration-300${
                 isDragged
                   ? "opacity-40 border-dashed border-indigo-400 bg-indigo-50/20"
                   : ""

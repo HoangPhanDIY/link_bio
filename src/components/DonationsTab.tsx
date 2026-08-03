@@ -83,19 +83,17 @@ export default function DonationsTab({
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Main Title and description */}
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Total Amount Metric */}
-        <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
-          <span className="text-[10px] uppercase  tracking-wider text-black font-bold">
+        <div className="bg-[#1d182b]/90 p-6 border border-[#bd9867]/60 shadow-xl flex flex-col justify-between">
+          <span className="text-[10px] uppercase tracking-wider text-[#fce3bc] font-black">
             Đã nhận
           </span>
           <div className="mt-2">
-            <span className="text-2xl font-black text-black">
+            <span className="text-2xl font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
               {formatMoney(paidAmount)}
             </span>
-            <p className="text-[10px] text-black mt-1">
+            <p className="text-[10px] text-slate-300 mt-1 font-semibold">
               Từ {donations.filter((d) => d.trang_thai === 1).length} lượt ủng
               hộ thực tế
             </p>
@@ -103,15 +101,15 @@ export default function DonationsTab({
         </div>
 
         {/* Pending Amount Metric */}
-        <div className="bg-white p-6 rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
-          <span className="text-[10px] uppercase  tracking-wider text-black font-bold">
+        <div className="bg-[#1d182b]/90 p-6 border border-[#bd9867]/60 shadow-xl flex flex-col justify-between">
+          <span className="text-[10px] uppercase tracking-wider text-amber-400 font-black">
             Chờ duyệt (Chưa ck)
           </span>
           <div className="mt-2">
-            <span className="text-2xl font-black text-amber-500">
+            <span className="text-2xl font-black text-amber-300">
               {formatMoney(pendingAmount)}
             </span>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-slate-300 mt-1 font-semibold">
               Từ {donations.filter((d) => d.trang_thai === 0).length} lượt đăng
               ký chờ duyệt
             </p>
@@ -123,7 +121,7 @@ export default function DonationsTab({
       <div className="relative">
         <LucideIcon
           name="Search"
-          className="absolute left-4 top-3.5 text-slate-400"
+          className="absolute left-4 top-3.5 text-[#bd9867]"
           size={18}
         />
         <input
@@ -131,12 +129,12 @@ export default function DonationsTab({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Tìm kiếm ủng hộ theo tên, nội dung, mã nội dung ck hoặc số tiền..."
-          className="w-full bg-white border border-slate-200/80 rounded-md pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm text-slate-800 font-medium placeholder:text-slate-400 shadow-xs"
+          className="w-full bg-[#1d182b]/90 border border-[#bd9867]/60 pl-12 pr-4 py-3.5 focus:border-[#fce3bc] outline-none transition-all text-sm text-white font-medium placeholder:text-slate-500 shadow-md"
         />
         {searchTerm && (
           <button
             onClick={() => setSearchTerm("")}
-            className="absolute right-4 top-3 text-slate-400 hover:text-slate-600 font-bold text-xs"
+            className="absolute right-4 top-3.5 text-[#fce3bc] hover:underline font-bold text-xs cursor-pointer"
           >
             Xóa lọc
           </button>
@@ -144,11 +142,11 @@ export default function DonationsTab({
       </div>
 
       {/* Donations List */}
-      <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-[#1d182b]/90 border border-[#bd9867]/60 shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-[10px] uppercase  tracking-wider font-bold">
+              <tr className="bg-black/60 border-b border-[#bd9867]/40 text-[#fce3bc] text-[10px] uppercase tracking-wider font-extrabold">
                 <th className="py-4 px-6">Người ủng hộ</th>
                 <th className="py-4 px-4">Số tiền</th>
                 <th className="py-4 px-4">Mã CK (Nội dung CK)</th>
@@ -158,15 +156,12 @@ export default function DonationsTab({
                 <th className="py-4 px-6 text-right">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+            <tbody className="divide-y divide-[#bd9867]/20 text-xs text-slate-200">
               {filteredDonations.map((don) => (
-                <tr
-                  key={don.id}
-                  className="hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="py-4 px-6 font-bold text-slate-800 flex items-center gap-2">
+                <tr key={don.id} className="hover:bg-white/5 transition-colors">
+                  <td className="py-4 px-6 font-bold text-white flex items-center gap-2">
                     <span
-                      className="w-2 h-2 rounded-full shrink-0"
+                      className="w-2 h-2 shrink-0"
                       style={{
                         backgroundColor:
                           don.trang_thai === 1 ? "#10b981" : "#f59e0b",
@@ -174,11 +169,11 @@ export default function DonationsTab({
                     />
                     {don.ten_nguoi_ung_ho || "Ẩn danh"}
                   </td>
-                  <td className="py-4 px-4  font-bold text-slate-800 text-sm">
+                  <td className="py-4 px-4 font-black text-[#fce3bc] text-sm">
                     {formatMoney(don.so_tien)}
                   </td>
                   <td className="py-4 px-4">
-                    <span className="bg-slate-100 text-slate-600  font-extrabold px-2 py-1 rounded border text-xs select-all">
+                    <span className="bg-black/60 text-[#fce3bc] font-extrabold px-2 py-1 border border-[#bd9867]/40 text-xs select-all">
                       {don.noi_dung_ck || "N/A"}
                     </span>
                   </td>
@@ -187,7 +182,7 @@ export default function DonationsTab({
                     title={don.noi_dung || ""}
                   >
                     {don.noi_dung || (
-                      <span className="text-slate-400 italic">
+                      <span className="text-slate-500 italic">
                         Không có lời nhắn
                       </span>
                     )}
@@ -199,14 +194,14 @@ export default function DonationsTab({
                     <button
                       onClick={() => handleToggleStatus(don.id, don.trang_thai)}
                       disabled={isUpdating === don.id}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-black cursor-pointer transition-all border ${
                         don.trang_thai === 1
-                          ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          ? "bg-emerald-950/80 border-emerald-500 text-emerald-400 hover:bg-emerald-900"
+                          : "bg-amber-950/80 border-amber-500 text-amber-400 hover:bg-amber-900"
                       }`}
                     >
                       {isUpdating === don.id ? (
-                        <span className="w-2 h-2 border border-current border-t-transparent rounded-full animate-spin" />
+                        <span className="w-2 h-2 border border-current border-t-transparent animate-spin" />
                       ) : (
                         <LucideIcon
                           name={don.trang_thai === 1 ? "CheckCircle" : "Clock"}
@@ -222,10 +217,10 @@ export default function DonationsTab({
                     <button
                       onClick={() => handleDelete(don.id)}
                       disabled={isDeleting === don.id}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-all"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-950/40 p-1.5 transition-all cursor-pointer border border-transparent hover:border-red-500/40"
                     >
                       {isDeleting === don.id ? (
-                        <span className="w-3 h-3 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin inline-block" />
+                        <span className="w-3 h-3 border-2 border-red-400/30 border-t-red-400 animate-spin inline-block" />
                       ) : (
                         <LucideIcon name="Trash2" size={14} />
                       )}
@@ -238,14 +233,14 @@ export default function DonationsTab({
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                      <div className="p-4 rounded-full bg-slate-50 text-slate-300">
+                      <div className="p-4 border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
                         <LucideIcon name="Heart" size={32} />
                       </div>
                       <div className="space-y-1">
-                        <p className="font-bold text-slate-700 text-sm">
+                        <p className="font-extrabold text-[#fce3bc] text-sm">
                           Chưa có giao dịch nào
                         </p>
-                        <p className="text-xs max-w-xs mx-auto">
+                        <p className="text-xs max-w-xs mx-auto text-slate-300">
                           {searchTerm
                             ? "Không tìm thấy giao dịch nào khớp với từ khóa tìm kiếm."
                             : "Trang của bạn chưa có lượt ủng hộ nào mới."}

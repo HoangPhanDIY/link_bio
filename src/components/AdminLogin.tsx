@@ -124,7 +124,10 @@ export default function AdminLogin({
       }
 
       // 2. Try normal user login (using plain-text password)
-      const user = await dbService.loginUser(loginKey.trim(), loginPassword.trim());
+      const user = await dbService.loginUser(
+        loginKey.trim(),
+        loginPassword.trim(),
+      );
       if (user) {
         onLoginSuccess(user);
         if (window.showNotification) {
@@ -145,17 +148,11 @@ export default function AdminLogin({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white w-full max-w-md rounded-2xl border border-slate-100 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-[#1d182b]/95 w-full max-w-md border border-[#bd9867] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Banner header top */}
-        <div
-          className="p-6 text-center border-b border-slate-100 relative space-y-2 bg-gradient-to-b from-slate-50 to-white"
-          style={{ borderTop: `5px solid ${accentColor}` }}
-        >
-          <div
-            className="mx-auto w-12 h-12 rounded-full flex items-center justify-center shadow-md"
-            style={{ backgroundColor: `${accentColor}10`, color: accentColor }}
-          >
+        <div className="p-6 text-center border-b border-[#bd9867]/40 relative space-y-2 bg-slate-900/80">
+          <div className="mx-auto w-12 h-12 flex items-center justify-center shadow-md border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
             <LucideIcon
               name={mode === "login" ? "LogIn" : "UserPlus"}
               size={22}
@@ -163,11 +160,11 @@ export default function AdminLogin({
           </div>
 
           <div>
-            <h2 className="font-display text-lg font-black text-slate-800">
+            <h2 className="font-display text-lg font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
               {mode === "login" && "Đăng nhập"}
               {mode === "register" && "Tạo tài khoản mới"}
             </h2>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className="text-xs text-slate-300 font-medium">
               {mode === "login" && "Sử dụng tài khoản cá nhân để kết nối"}
               {mode === "register" &&
                 "Đăng ký thành viên để khám phá giáo án và tiện ích"}
@@ -176,7 +173,7 @@ export default function AdminLogin({
 
           <button
             onClick={onCancel}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1 rounded-full hover:bg-slate-100"
+            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer p-1 hover:bg-[#bd9867]/20"
             title="Đóng"
           >
             <LucideIcon name="X" size={16} />
@@ -186,11 +183,11 @@ export default function AdminLogin({
         <div className="p-6 sm:p-8 space-y-4">
           {/* Messages block */}
           {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-semibold flex items-start gap-2.5 animate-shake">
+            <div className="p-3 bg-red-950/60 border border-red-500/60 text-red-300 text-xs font-semibold flex items-start gap-2.5 animate-shake">
               <LucideIcon
                 name="AlertCircle"
                 size={14}
-                className="shrink-0 mt-0.5"
+                className="shrink-0 mt-0.5 text-red-400"
               />
               <span className="flex-1">{errorMessage}</span>
             </div>
@@ -200,13 +197,13 @@ export default function AdminLogin({
           {mode === "login" && (
             <form onSubmit={handleLocalLoginSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider font-sans">
                   Email hoặc Tên đăng nhập
                 </label>
                 <div className="relative">
                   <LucideIcon
                     name="Mail"
-                    className="absolute left-3.5 top-3 text-slate-400"
+                    className="absolute left-3.5 top-3 text-[#bd9867]"
                     size={16}
                   />
                   <input
@@ -215,19 +212,19 @@ export default function AdminLogin({
                     placeholder="Nhập email hoặc tên đăng nhập..."
                     value={loginKey}
                     onChange={(e) => setLoginKey(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 text-sm text-slate-800 transition-all font-medium"
+                    className="w-full bg-slate-900/90 border border-[#bd9867]/60 pl-10 pr-4 py-2.5 outline-none focus:border-[#fce3bc] text-sm text-white transition-all font-medium placeholder-slate-500"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider font-sans">
                   Mật khẩu
                 </label>
                 <div className="relative">
                   <LucideIcon
                     name="Lock"
-                    className="absolute left-3.5 top-3 text-slate-400"
+                    className="absolute left-3.5 top-3 text-[#bd9867]"
                     size={16}
                   />
                   <input
@@ -236,7 +233,7 @@ export default function AdminLogin({
                     placeholder="Nhập mật khẩu..."
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 text-sm text-slate-800 transition-all font-medium"
+                    className="w-full bg-slate-900/90 border border-[#bd9867]/60 pl-10 pr-4 py-2.5 outline-none focus:border-[#fce3bc] text-sm text-white transition-all font-medium placeholder-slate-500"
                   />
                 </div>
               </div>
@@ -244,11 +241,10 @@ export default function AdminLogin({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full text-white py-3 rounded-xl font-bold transition-all hover:brightness-105 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
-                style={{ backgroundColor: accentColor }}
+                className="w-full text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] py-3 font-extrabold transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
               >
                 {isSubmitting ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
                 ) : (
                   <LucideIcon name="LogIn" size={16} />
                 )}
@@ -262,10 +258,12 @@ export default function AdminLogin({
                     setMode("register");
                     setErrorMessage(null);
                   }}
-                  className="text-xs text-slate-500 hover:text-indigo-600 font-bold transition-all"
+                  className="text-xs text-slate-300 hover:text-[#fce3bc] font-bold transition-all cursor-pointer"
                 >
                   Bạn chưa có tài khoản?{" "}
-                  <span className="underline">Đăng ký thành viên</span>
+                  <span className="underline text-[#fce3bc]">
+                    Đăng ký thành viên
+                  </span>
                 </button>
               </div>
             </form>
@@ -275,13 +273,13 @@ export default function AdminLogin({
           {mode === "register" && (
             <form onSubmit={handleRegisterDirectly} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider font-sans">
                   Tên đăng nhập (Username)
                 </label>
                 <div className="relative">
                   <LucideIcon
                     name="User"
-                    className="absolute left-3.5 top-3 text-slate-400"
+                    className="absolute left-3.5 top-3 text-[#bd9867]"
                     size={16}
                   />
                   <input
@@ -294,19 +292,19 @@ export default function AdminLogin({
                         e.target.value.toLowerCase().replace(/\s+/g, ""),
                       )
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 text-sm text-slate-800 transition-all font-medium"
+                    className="w-full bg-slate-900/90 border border-[#bd9867]/60 pl-10 pr-4 py-2.5 outline-none focus:border-[#fce3bc] text-sm text-white transition-all font-medium placeholder-slate-500"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider font-sans">
                   Địa chỉ Email
                 </label>
                 <div className="relative">
                   <LucideIcon
                     name="Mail"
-                    className="absolute left-3.5 top-3 text-slate-400"
+                    className="absolute left-3.5 top-3 text-[#bd9867]"
                     size={16}
                   />
                   <input
@@ -315,19 +313,19 @@ export default function AdminLogin({
                     placeholder="Ví dụ: example@gmail.com"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 text-sm text-slate-800 transition-all font-medium"
+                    className="w-full bg-slate-900/90 border border-[#bd9867]/60 pl-10 pr-4 py-2.5 outline-none focus:border-[#fce3bc] text-sm text-white transition-all font-medium placeholder-slate-500"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider font-sans">
                   Mật khẩu
                 </label>
                 <div className="relative">
                   <LucideIcon
                     name="Lock"
-                    className="absolute left-3.5 top-3 text-slate-400"
+                    className="absolute left-3.5 top-3 text-[#bd9867]"
                     size={16}
                   />
                   <input
@@ -336,19 +334,19 @@ export default function AdminLogin({
                     placeholder="Mật khẩu tối thiểu 6 ký tự..."
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 text-sm text-slate-800 transition-all font-medium"
+                    className="w-full bg-slate-900/90 border border-[#bd9867]/60 pl-10 pr-4 py-2.5 outline-none focus:border-[#fce3bc] text-sm text-white transition-all font-medium placeholder-slate-500"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider font-sans">
                   Nhập lại Mật khẩu
                 </label>
                 <div className="relative">
                   <LucideIcon
                     name="Lock"
-                    className="absolute left-3.5 top-3 text-slate-400"
+                    className="absolute left-3.5 top-3 text-[#bd9867]"
                     size={16}
                   />
                   <input
@@ -357,7 +355,7 @@ export default function AdminLogin({
                     placeholder="Xác nhận lại mật khẩu..."
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 text-sm text-slate-800 transition-all font-medium"
+                    className="w-full bg-slate-900/90 border border-[#bd9867]/60 pl-10 pr-4 py-2.5 outline-none focus:border-[#fce3bc] text-sm text-white transition-all font-medium placeholder-slate-500"
                   />
                 </div>
               </div>
@@ -365,11 +363,10 @@ export default function AdminLogin({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full text-white py-3 rounded-xl font-bold transition-all hover:brightness-105 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
-                style={{ backgroundColor: accentColor }}
+                className="w-full text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] py-3 font-extrabold transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
               >
                 {isSubmitting ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
                 ) : (
                   <LucideIcon name="UserPlus" size={16} />
                 )}
@@ -383,10 +380,12 @@ export default function AdminLogin({
                     setMode("login");
                     setErrorMessage(null);
                   }}
-                  className="text-xs text-slate-500 hover:text-indigo-600 font-bold transition-all"
+                  className="text-xs text-slate-300 hover:text-[#fce3bc] font-bold transition-all cursor-pointer"
                 >
                   Đã có tài khoản?{" "}
-                  <span className="underline">Quay lại đăng nhập</span>
+                  <span className="underline text-[#fce3bc]">
+                    Quay lại đăng nhập
+                  </span>
                 </button>
               </div>
             </form>

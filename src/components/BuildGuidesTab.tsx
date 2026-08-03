@@ -41,13 +41,10 @@ const branchNameMap: Record<string, string> = {
 };
 
 const branchImageMap: Record<string, string> = {
-  THANH_KHOI_NGUYEN:
-    "/image/phu_hieu/thanh_khoi_nguyen/thanh-khoi-nguyen.png",
-  THAP_QUANG_MINH:
-    "/image/phu_hieu/thap_quang_minh/thap-quang-minh.png",
+  THANH_KHOI_NGUYEN: "/image/phu_hieu/thanh_khoi_nguyen/thanh-khoi-nguyen.png",
+  THAP_QUANG_MINH: "/image/phu_hieu/thap_quang_minh/thap-quang-minh.png",
   VUC_HON_MANG: "/image/phu_hieu/vuc_hon_mang/vuc-hon-mang.png",
-  RUNG_NGUYEN_SINH:
-    "/image/phu_hieu/rung_nguyen_sinh/rung-nguyen-sinh.png",
+  RUNG_NGUYEN_SINH: "/image/phu_hieu/rung_nguyen_sinh/rung-nguyen-sinh.png",
 };
 
 const matchChampLane = (champ: DBChampion, lane: string): boolean => {
@@ -445,13 +442,13 @@ export default function BuildGuidesTab({
   return (
     <div className="space-y-6">
       {/* Tab Header */}
-      <div className="flex justify-between items-center bg-white p-5 rounded-md border border-slate-100 shadow-sm">
+      <div className="flex justify-between items-center bg-slate-900/50 p-5  border border-[#fce3bc] shadow-sm">
         <div>
-          <h2 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+          <h2 className="text-lg font-black text-[#fce3bc] tracking-tight flex items-center gap-2">
             <LucideIcon name="Shield" className="text-indigo-500" size={20} />
             Trang bị
           </h2>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#fce3bc] text-xs mt-1">
             Quản lý các bộ khuyến nghị trang bị (1 tướng có thể có nhiều lối lên
             đồ khác nhau), bảng ngọc và phù hiệu.
           </p>
@@ -484,8 +481,8 @@ export default function BuildGuidesTab({
           onSubmit={handleSave}
           className="space-y-6 animate-in fade-in duration-200"
         >
-          <div className="flex justify-between items-center bg-white p-4 rounded-md border border-slate-100 shadow-sm">
-            <span className="font-bold text-sm text-slate-800 flex items-center gap-2">
+          <div className="flex justify-between items-center bg-slate-900/50 p-4  border border-[#fce3bc] shadow-sm">
+            <span className="font-bold text-sm text-[#fce3bc] flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
               {editingGuide
                 ? `Chỉnh sửa: ${editingGuide.tieu_de_giao_an || ""}`
@@ -494,7 +491,7 @@ export default function BuildGuidesTab({
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+              className="p-2 hover:bg-slate-100 rounded-full text-[#fce3bc] transition-colors"
             >
               <LucideIcon name="X" size={16} />
             </button>
@@ -503,10 +500,10 @@ export default function BuildGuidesTab({
           {/* Core Grid Layout (2/3 Left Selection Info, 1/3 Right Resource Panel) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Selection Information Column (2/3 width) */}
-            <div className="lg:col-span-8 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+            <div className="lg:col-span-8 bg-slate-900/50 p-6  border border-[#fce3bc] shadow-sm space-y-6">
               {/* Build Title */}
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-black text-slate-400 uppercase  tracking-wider">
+                <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
                   Tiêu đề lối lên đồ *
                 </label>
                 <input
@@ -514,22 +511,22 @@ export default function BuildGuidesTab({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Ví dụ: Đấu Sĩ Solo Đường, Sát Thủ Rừng Siêu Chí Mạng, Full Chống Chịu..."
-                  className="w-full bg-slate-50/50 border border-slate-250/70 rounded px-4 py-2.5 text-xs focus:outline-none focus:border-indigo-500 text-slate-800 font-bold placeholder:font-normal placeholder:text-slate-400"
+                  className="w-full bg-slate-900/50 border border-slate-250/70 rounded px-4 py-2.5 text-xs focus:outline-none focus:border-indigo-500 text-[#fce3bc] font-bold placeholder:font-normal placeholder:text-[#fce3bc]"
                   required
                 />
               </div>
 
               {/* Champion Indicator */}
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-400 uppercase  tracking-wider">
+                <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
                   Tướng đề xuất
                 </label>
                 <div
                   onClick={() => activateSelector("champion")}
-                  className={`relative border-2 rounded-md p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                  className={`relative border-1  p-4 flex items-center gap-4 cursor-pointer transition-all ${
                     activeSelector.type === "champion"
                       ? "border-indigo-500 bg-indigo-50/20 shadow-md ring-2 ring-indigo-50"
-                      : "border-slate-100 hover:border-slate-200 bg-slate-50/40"
+                      : "border-[#fce3bc] hover:border-slate-200 bg-slate-900/50"
                   }`}
                 >
                   {selectedChampId ? (
@@ -539,7 +536,7 @@ export default function BuildGuidesTab({
                       );
                       return (
                         <div className="flex items-center gap-4 w-full">
-                          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-slate-200 shadow-md shrink-0 relative">
+                          <div className="w-16 h-16 rounded-full overflow-hidden border-1 border-slate-200 shadow-md shrink-0 relative">
                             <img
                               src={champ?.url_anh_dai_dien || ""}
                               alt="Champ"
@@ -548,13 +545,13 @@ export default function BuildGuidesTab({
                             />
                           </div>
                           <div className="flex-1 text-left">
-                            <h4 className="font-extrabold text-base text-slate-800">
+                            <h4 className="font-extrabold text-base text-[#fce3bc]">
                               {champ?.ten_tuong}
                             </h4>
                             <span className="inline-block mt-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
                               {champ?.vai_tro || "Chưa rõ"}
                             </span>
-                            <p className="text-[10px] text-slate-400 mt-1">
+                            <p className="text-[10px] text-[#fce3bc] mt-1">
                               Đang chọn tướng này. Nhấn vào để đổi ở bảng bên
                               phải.
                             </p>
@@ -562,7 +559,7 @@ export default function BuildGuidesTab({
                           <button
                             type="button"
                             onClick={(e) => handleClearSlot(e, "champion")}
-                            className="p-1.5 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                            className="p-1.5 hover:bg-slate-900/50 rounded-full text-[#fce3bc] hover:text-[#fce3bc] transition-colors"
                             title="Xóa tướng"
                           >
                             <LucideIcon name="X" size={16} />
@@ -572,13 +569,13 @@ export default function BuildGuidesTab({
                     })()
                   ) : (
                     <div className="flex flex-col items-center justify-center py-5 w-full text-center">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2 border border-slate-150">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-[#fce3bc] mb-2 border border-slate-150">
                         <LucideIcon name="UserPlus" size={20} />
                       </div>
-                      <p className="text-xs font-bold text-slate-600">
+                      <p className="text-xs font-bold text-[#fce3bc]">
                         Chưa chọn Tướng đề xuất
                       </p>
-                      <p className="text-[10px] text-slate-400 mt-1">
+                      <p className="text-[10px] text-[#fce3bc] mt-1">
                         Chọn tướng từ danh mục bên phải để tiếp tục
                       </p>
                     </div>
@@ -589,10 +586,10 @@ export default function BuildGuidesTab({
               {/* 6 Equipment Slots */}
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase  tracking-wider">
+                  <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
                     Lối lên đồ (6 ô trang bị) *
                   </label>
-                  <span className="text-[9.5px] text-slate-400 font-medium">
+                  <span className="text-[9.5px] text-[#fce3bc] font-medium">
                     Nhấp chọn ô để kích hoạt chọn nhanh
                   </span>
                 </div>
@@ -608,13 +605,13 @@ export default function BuildGuidesTab({
                       <div
                         key={idx}
                         onClick={() => activateSelector("item", idx)}
-                        className={`relative aspect-square rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all p-2 ${
+                        className={`relative aspect-square  border-1 flex flex-col items-center justify-center cursor-pointer transition-all p-2 ${
                           isActive
                             ? "border-indigo-500 bg-indigo-50/20 ring-4 ring-indigo-100 shadow-md scale-102"
-                            : "border-slate-100 hover:border-slate-200 bg-slate-50/30"
+                            : "border-[#fce3bc] hover:border-slate-200 bg-slate-900/50/30"
                         }`}
                       >
-                        <span className="absolute top-1.5 left-2 text-[8px] font-black text-slate-400 ">
+                        <span className="absolute top-1.5 left-2 text-[8px] font-black text-[#fce3bc] ">
                           Ô {idx + 1}
                         </span>
 
@@ -626,7 +623,7 @@ export default function BuildGuidesTab({
                               className="w-11 h-11 object-cover rounded border border-slate-200 shadow-md"
                               referrerPolicy="no-referrer"
                             />
-                            <span className="text-[8.5px] font-black text-slate-600 mt-1.5 truncate w-full text-center">
+                            <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full text-center">
                               {item.ten_trang_bi}
                             </span>
                             <button
@@ -639,11 +636,11 @@ export default function BuildGuidesTab({
                             </button>
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-slate-400 mt-2">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-350 border border-slate-150">
+                          <div className="flex flex-col items-center justify-center text-[#fce3bc] mt-2">
+                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[#fce3bc] border border-slate-150">
                               <LucideIcon name="Shield" size={14} />
                             </div>
-                            <span className="text-[8.5px] font-bold text-slate-400 mt-1">
+                            <span className="text-[8.5px] font-bold text-[#fce3bc] mt-1">
                               Nhấp chọn
                             </span>
                           </div>
@@ -656,15 +653,15 @@ export default function BuildGuidesTab({
 
               {/* Spell Section */}
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-400 uppercase  tracking-wider">
+                <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
                   Phép phụ trợ
                 </label>
                 <div
                   onClick={() => activateSelector("spell")}
-                  className={`relative border-2 rounded-md p-3 flex items-center justify-between cursor-pointer transition-all max-w-sm ${
+                  className={`relative border-1  p-3 flex items-center justify-between cursor-pointer transition-all max-w-sm ${
                     activeSelector.type === "spell"
                       ? "border-indigo-500 bg-indigo-50/20 shadow-md ring-2 ring-indigo-50"
-                      : "border-slate-100 hover:border-slate-200 bg-slate-50/30"
+                      : "border-[#fce3bc] hover:border-slate-200 bg-slate-900/50/30"
                   }`}
                 >
                   {selectedSpellId ? (
@@ -682,10 +679,10 @@ export default function BuildGuidesTab({
                               referrerPolicy="no-referrer"
                             />
                             <div className="text-left">
-                              <span className="font-extrabold text-xs text-slate-800">
+                              <span className="font-extrabold text-xs text-[#fce3bc]">
                                 {spell?.ten_phu_tro}
                               </span>
-                              <p className="text-[9px] text-slate-400 mt-0.5">
+                              <p className="text-[9px] text-[#fce3bc] mt-0.5">
                                 Chọn phép phụ trợ khuyên dùng.
                               </p>
                             </div>
@@ -693,7 +690,7 @@ export default function BuildGuidesTab({
                           <button
                             type="button"
                             onClick={(e) => handleClearSlot(e, "spell")}
-                            className="p-1 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                            className="p-1 hover:bg-slate-900/50 rounded-full text-[#fce3bc] hover:text-[#fce3bc] transition-colors cursor-pointer"
                             title="Xóa phép"
                           >
                             <LucideIcon name="X" size={14} />
@@ -702,9 +699,9 @@ export default function BuildGuidesTab({
                       );
                     })()
                   ) : (
-                    <div className="flex items-center gap-2.5 text-slate-400 w-full justify-center py-1.5">
+                    <div className="flex items-center gap-2.5 text-[#fce3bc] w-full justify-center py-1.5">
                       <LucideIcon name="Plus" size={14} />
-                      <span className="text-xs font-bold text-slate-500">
+                      <span className="text-xs font-bold text-[#fce3bc]">
                         Chưa chọn phép phụ trợ
                       </span>
                     </div>
@@ -715,16 +712,16 @@ export default function BuildGuidesTab({
               {/* Badges Layout Selection (4 Main, 2 Sub, 2 Sub) */}
               <div className="space-y-4 pt-2">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase  tracking-wider">
+                  <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
                     Thiết lập hệ thống Phù hiệu
                   </label>
-                  <span className="text-[9.5px] text-slate-400 font-medium">
+                  <span className="text-[9.5px] text-[#fce3bc] font-medium">
                     Chọn lần lượt từng vị trí phù hiệu
                   </span>
                 </div>
 
                 {/* Main Branch - 4 Slots */}
-                <div className="bg-slate-50/50 p-4 rounded-md border border-slate-100 space-y-3">
+                <div className="bg-slate-900/50 p-4  border border-[#fce3bc] space-y-3">
                   <span className="text-[10px] font-black uppercase text-indigo-600  tracking-wider flex items-center gap-1.5">
                     <span className="w-1.5 h-3 rounded-full bg-indigo-600"></span>
                     Nhánh Chính (1 ô chọn nhánh + 3 ô phù hiệu)
@@ -763,10 +760,10 @@ export default function BuildGuidesTab({
                           className={`relative p-3.5 rounded border flex flex-col items-center justify-center text-center gap-1 cursor-pointer transition-all ${
                             isActive
                               ? "border-indigo-500 bg-indigo-50/20 ring-4 ring-indigo-100 shadow-md scale-102"
-                              : "border-slate-200 bg-white hover:border-slate-300"
+                              : "border-slate-200 bg-slate-900/50 hover:border-slate-300"
                           }`}
                         >
-                          <span className="text-[8px] font-black text-slate-400  uppercase tracking-wider">
+                          <span className="text-[8px] font-black text-[#fce3bc]  uppercase tracking-wider">
                             {idx === 0
                               ? "Chọn Nhánh"
                               : `Phù hiệu ${idx === 1 ? "I" : idx === 2 ? "II" : "III"}`}
@@ -779,7 +776,7 @@ export default function BuildGuidesTab({
                                 alt="Badge"
                                 referrerPolicy="no-referrer"
                               />
-                              <span className="text-[8.5px] font-black text-slate-600 mt-1.5 truncate w-full">
+                              <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full">
                                 {displayName}
                               </span>
                               <button
@@ -793,7 +790,7 @@ export default function BuildGuidesTab({
                               </button>
                             </div>
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-slate-50 border border-dashed border-slate-250 flex items-center justify-center text-slate-350 mt-1.5">
+                            <div className="w-10 h-10 rounded-full bg-slate-900/50 border border-dashed border-slate-250 flex items-center justify-center text-[#fce3bc] mt-1.5">
                               <LucideIcon name="Plus" size={14} />
                             </div>
                           )}
@@ -806,7 +803,7 @@ export default function BuildGuidesTab({
                 {/* Sub-branches (2 slots each) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Nhánh Phụ 1 - 2 slots */}
-                  <div className="bg-slate-50/50 p-4 rounded-md border border-slate-100 space-y-3">
+                  <div className="bg-slate-900/50 p-4  border border-[#fce3bc] space-y-3">
                     <span className="text-[10px] font-black uppercase text-amber-600  tracking-wider flex items-center gap-1.5">
                       <span className="w-1.5 h-3 rounded-full bg-amber-500"></span>
                       Nhánh Phụ 1 (1 ô chọn nhánh + 1 ô phù hiệu)
@@ -840,10 +837,10 @@ export default function BuildGuidesTab({
                             className={`relative p-3.5 rounded border flex flex-col items-center justify-center text-center gap-1 cursor-pointer transition-all ${
                               isActive
                                 ? "border-amber-500 bg-amber-50/20 ring-4 ring-amber-100 shadow-md scale-102"
-                                : "border-slate-200 bg-white hover:border-slate-300"
+                                : "border-slate-200 bg-slate-900/50 hover:border-slate-300"
                             }`}
                           >
-                            <span className="text-[8px] font-black text-slate-400  uppercase tracking-wider">
+                            <span className="text-[8px] font-black text-[#fce3bc]  uppercase tracking-wider">
                               {idx === 0 ? "Chọn Nhánh" : "Phù hiệu"}
                             </span>
                             {badge ? (
@@ -854,7 +851,7 @@ export default function BuildGuidesTab({
                                   alt="Badge"
                                   referrerPolicy="no-referrer"
                                 />
-                                <span className="text-[8.5px] font-black text-slate-600 mt-1.5 truncate w-full">
+                                <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full">
                                   {displayName}
                                 </span>
                                 <button
@@ -868,7 +865,7 @@ export default function BuildGuidesTab({
                                 </button>
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-50 border border-dashed border-slate-250 flex items-center justify-center text-slate-350 mt-1.5">
+                              <div className="w-10 h-10 rounded-full bg-slate-900/50 border border-dashed border-slate-250 flex items-center justify-center text-[#fce3bc] mt-1.5">
                                 <LucideIcon name="Plus" size={14} />
                               </div>
                             )}
@@ -879,7 +876,7 @@ export default function BuildGuidesTab({
                   </div>
 
                   {/* Nhánh Phụ 2 - 2 slots */}
-                  <div className="bg-slate-50/50 p-4 rounded-md border border-slate-100 space-y-3">
+                  <div className="bg-slate-900/50 p-4  border border-[#fce3bc] space-y-3">
                     <span className="text-[10px] font-black uppercase text-emerald-600  tracking-wider flex items-center gap-1.5">
                       <span className="w-1.5 h-3 rounded-full bg-emerald-500"></span>
                       Nhánh Phụ 2 (1 ô chọn nhánh + 1 ô phù hiệu)
@@ -913,10 +910,10 @@ export default function BuildGuidesTab({
                             className={`relative p-3.5 rounded border flex flex-col items-center justify-center text-center gap-1 cursor-pointer transition-all ${
                               isActive
                                 ? "border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-100 shadow-md scale-102"
-                                : "border-slate-200 bg-white hover:border-slate-300"
+                                : "border-slate-200 bg-slate-900/50 hover:border-slate-300"
                             }`}
                           >
-                            <span className="text-[8px] font-black text-slate-400  uppercase tracking-wider">
+                            <span className="text-[8px] font-black text-[#fce3bc]  uppercase tracking-wider">
                               {idx === 0 ? "Chọn Nhánh" : "Phù hiệu"}
                             </span>
                             {badge ? (
@@ -927,7 +924,7 @@ export default function BuildGuidesTab({
                                   alt="Badge"
                                   referrerPolicy="no-referrer"
                                 />
-                                <span className="text-[8.5px] font-black text-slate-600 mt-1.5 truncate w-full">
+                                <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full">
                                   {displayName}
                                 </span>
                                 <button
@@ -941,7 +938,7 @@ export default function BuildGuidesTab({
                                 </button>
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-50 border border-dashed border-slate-250 flex items-center justify-center text-slate-350 mt-1.5">
+                              <div className="w-10 h-10 rounded-full bg-slate-900/50 border border-dashed border-slate-250 flex items-center justify-center text-[#fce3bc] mt-1.5">
                                 <LucideIcon name="Plus" size={14} />
                               </div>
                             )}
@@ -955,7 +952,7 @@ export default function BuildGuidesTab({
 
               {/* Arcana inputs */}
               <div className="space-y-3 pt-2">
-                <label className="block text-[10px] font-black text-slate-400 uppercase  tracking-wider">
+                <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
                   Bảng Ngọc đề xuất (Nhập văn bản, nhấn Enter để xuống dòng)
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -969,7 +966,7 @@ export default function BuildGuidesTab({
                       value={ngocDo}
                       onChange={(e) => setNgocDo(e.target.value)}
                       placeholder="Ví dụ:&#10;Công vật lý / Xuyên giáp&#10;Tốc đánh"
-                      className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-rose-500 text-slate-700 font-medium resize-none"
+                      className="w-full bg-slate-900/50 border border-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-rose-500 text-[#fce3bc] font-medium resize-none"
                     />
                   </div>
 
@@ -983,7 +980,7 @@ export default function BuildGuidesTab({
                       value={ngocTim}
                       onChange={(e) => setNgocTim(e.target.value)}
                       placeholder="Ví dụ:&#10;Tốc đánh&#10;Tốc chạy"
-                      className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-purple-500 text-slate-700 font-medium resize-none"
+                      className="w-full bg-slate-900/50 border border-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-purple-500 text-[#fce3bc] font-medium resize-none"
                     />
                   </div>
 
@@ -997,7 +994,7 @@ export default function BuildGuidesTab({
                       value={ngocXanh}
                       onChange={(e) => setNgocXanh(e.target.value)}
                       placeholder="Ví dụ:&#10;Công phép&#10;Giảm hồi chiêu"
-                      className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-slate-700 font-medium resize-none"
+                      className="w-full bg-slate-900/50 border border-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-[#fce3bc] font-medium resize-none"
                     />
                   </div>
                 </div>
@@ -1014,18 +1011,18 @@ export default function BuildGuidesTab({
                 />
                 <label
                   htmlFor="g_active"
-                  className="text-xs font-bold text-slate-500 select-none cursor-pointer"
+                  className="text-xs font-bold text-[#fce3bc] select-none cursor-pointer"
                 >
                   Kích hoạt hiển thị công khai lối lên đồ này
                 </label>
               </div>
 
               {/* Form Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#fce3bc]">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-5 py-2.5 rounded border border-slate-200 hover:bg-slate-50 text-xs font-extrabold text-slate-500 transition-colors cursor-pointer"
+                  className="px-5 py-2.5 rounded border border-slate-200 hover:bg-slate-900/50 text-xs font-extrabold text-[#fce3bc] transition-colors cursor-pointer"
                 >
                   Hủy bỏ
                 </button>
@@ -1048,9 +1045,9 @@ export default function BuildGuidesTab({
             </div>
 
             {/* Right Resource Panel Column (1/3 width) */}
-            <div className="lg:col-span-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4 lg:sticky lg:top-6">
-              <div className="pb-2 border-b border-slate-100">
-                <h3 className="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
+            <div className="lg:col-span-4 bg-slate-900/50 p-5 border border-[#fce3bc] shadow-sm space-y-4 lg:sticky lg:top-6">
+              <div className="pb-2 border-b border-[#fce3bc]">
+                <h3 className="font-black text-[#fce3bc] text-xs uppercase tracking-wider flex items-center gap-2">
                   <LucideIcon
                     name="Compass"
                     className="text-indigo-500"
@@ -1058,7 +1055,7 @@ export default function BuildGuidesTab({
                   />
                   Thư Viện Liên Quân
                 </h3>
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-[#fce3bc] mt-1">
                   Chọn từ danh sách dưới để gán nhanh vào vị trí đang active bên
                   trái.
                 </p>
@@ -1071,18 +1068,18 @@ export default function BuildGuidesTab({
                   placeholder="Tìm kiếm..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded pl-8 pr-4 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-800"
+                  className="w-full bg-slate-900/50 border border-slate-200 rounded pl-8 pr-4 py-2 text-xs focus:outline-none focus:border-indigo-500 text-[#fce3bc]"
                 />
                 <LucideIcon
                   name="Search"
-                  className="absolute left-2.5 top-2.5 text-slate-400"
+                  className="absolute left-2.5 top-2.5 text-[#fce3bc]"
                   size={13}
                 />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm("")}
-                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2.5 top-2.5 text-[#fce3bc] hover:text-[#fce3bc]"
                   >
                     <LucideIcon name="X" size={12} />
                   </button>
@@ -1090,7 +1087,7 @@ export default function BuildGuidesTab({
               </div>
 
               {/* Resource Tabs Header */}
-              <div className="grid grid-cols-4 gap-1 bg-slate-50 p-1 rounded">
+              <div className="grid grid-cols-4 gap-1 bg-slate-900/50 p-1 rounded">
                 {[
                   { id: "champion", label: "Tướng" },
                   { id: "item", label: "Trang bị" },
@@ -1101,10 +1098,10 @@ export default function BuildGuidesTab({
                     type="button"
                     key={tab.id}
                     onClick={() => setRightTab(tab.id as any)}
-                    className={`py-1.5 rounded-lg text-[9px] font-black transition-all ${
+                    className={`py-1.5  text-[9px] font-black transition-all ${
                       rightTab === tab.id
-                        ? "bg-white text-indigo-600 shadow-sm border border-slate-100"
-                        : "text-slate-500 hover:bg-slate-100"
+                        ? "bg-slate-900/50 text-indigo-600 shadow-sm border border-[#fce3bc]"
+                        : "text-[#fce3bc] hover:bg-slate-100"
                     }`}
                   >
                     {tab.label}
@@ -1145,7 +1142,7 @@ export default function BuildGuidesTab({
                             className={`flex items-center gap-2.5 p-2 rounded border cursor-pointer transition-all ${
                               isSelected
                                 ? "bg-indigo-50 border-indigo-200 text-indigo-800 shadow-sm"
-                                : "border-slate-100 hover:bg-slate-50 bg-white hover:border-slate-200"
+                                : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200"
                             }`}
                           >
                             <img
@@ -1158,7 +1155,7 @@ export default function BuildGuidesTab({
                               <span className="block font-bold text-xs truncate">
                                 {c.ten_tuong}
                               </span>
-                              <span className="block text-[8.5px] text-slate-400 truncate">
+                              <span className="block text-[8.5px] text-[#fce3bc] truncate">
                                 {c.vai_tro || "Chưa rõ"}
                               </span>
                             </div>
@@ -1177,13 +1174,13 @@ export default function BuildGuidesTab({
                   {/* Select filters below */}
                   <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-50">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 block">
+                      <label className="text-[9px] font-bold text-[#fce3bc] block">
                         Vai trò
                       </label>
                       <select
                         value={champRole}
                         onChange={(e) => setChampRole(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] focus:outline-none focus:border-indigo-500 text-slate-700 font-semibold"
+                        className="w-full bg-slate-900/50 border border-slate-200  px-2 py-1 text-[10px] focus:outline-none focus:border-indigo-500 text-[#fce3bc] font-semibold"
                       >
                         <option value="ALL">Tất cả vai trò</option>
                         <option value="Đấu sĩ">Đấu sĩ</option>
@@ -1195,13 +1192,13 @@ export default function BuildGuidesTab({
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 block">
+                      <label className="text-[9px] font-bold text-[#fce3bc] block">
                         Đường đi (Lane)
                       </label>
                       <select
                         value={champLane}
                         onChange={(e) => setChampLane(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] focus:outline-none focus:border-indigo-500 text-slate-700 font-semibold"
+                        className="w-full bg-slate-900/50 border border-slate-200  px-2 py-1 text-[10px] focus:outline-none focus:border-indigo-500 text-[#fce3bc] font-semibold"
                       >
                         <option value="ALL">Tất cả các đường</option>
                         <option value="Caesar">Đường Tà Thần</option>
@@ -1232,10 +1229,10 @@ export default function BuildGuidesTab({
                         type="button"
                         key={cat.code}
                         onClick={() => setItemCategory(cat.code)}
-                        className={`px-1.5 py-1 rounded-lg text-[8.5px] font-black transition-all ${
+                        className={`px-1.5 py-1  text-[8.5px] font-black transition-all ${
                           itemCategory === cat.code
                             ? "bg-indigo-600 text-white"
-                            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                            : "bg-slate-900/50 text-[#fce3bc] hover:bg-slate-100"
                         }`}
                       >
                         {cat.label}
@@ -1274,18 +1271,18 @@ export default function BuildGuidesTab({
                               isEquippedInActive
                                 ? "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-50 shadow-sm"
                                 : isAnywhere
-                                  ? "bg-slate-50 border-slate-200 opacity-75"
-                                  : "bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-250"
+                                  ? "bg-slate-900/50 border-slate-200 opacity-75"
+                                  : "bg-slate-900/50 border-[#fce3bc] hover:bg-slate-900/50 hover:border-slate-250"
                             }`}
                             title={item.mo_ta || ""}
                           >
                             <img
                               src={item.url_hinh_anh ?? undefined}
-                              className="w-8 h-8 rounded-lg object-cover border border-slate-200"
+                              className="w-8 h-8  object-cover border border-slate-200"
                               alt=""
                               referrerPolicy="no-referrer"
                             />
-                            <span className="text-[8.5px] font-black text-slate-700 truncate w-full">
+                            <span className="text-[8.5px] font-black text-[#fce3bc] truncate w-full">
                               {item.ten_trang_bi}
                             </span>
                             {isEquippedInActive && (
@@ -1362,7 +1359,7 @@ export default function BuildGuidesTab({
                           <span className="text-[10px] font-black uppercase text-indigo-600  tracking-wider">
                             Chọn Loại Phân Nhánh:
                           </span>
-                          <p className="text-[10px] text-slate-400 mt-0.5">
+                          <p className="text-[10px] text-[#fce3bc] mt-0.5">
                             Chọn 1 trong 4 phân nhánh phù hiệu chính dưới đây:
                           </p>
                         </div>
@@ -1389,7 +1386,7 @@ export default function BuildGuidesTab({
                                 className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition-all ${
                                   isEquippedInActive
                                     ? "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-50 text-indigo-800"
-                                    : "border-slate-100 hover:bg-slate-50 bg-white hover:border-slate-200 shadow-sm"
+                                    : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200 shadow-sm"
                                 }`}
                               >
                                 <img
@@ -1399,10 +1396,10 @@ export default function BuildGuidesTab({
                                   referrerPolicy="no-referrer"
                                 />
                                 <div className="flex-1 min-w-0 text-left">
-                                  <span className="block font-black text-xs text-slate-800">
+                                  <span className="block font-black text-xs text-[#fce3bc]">
                                     {b.ten_phu_hieu}
                                   </span>
-                                  <span className="block text-[10px] text-slate-400 font-medium">
+                                  <span className="block text-[10px] text-[#fce3bc] font-medium">
                                     Click để chọn nhánh này
                                   </span>
                                 </div>
@@ -1434,16 +1431,16 @@ export default function BuildGuidesTab({
 
                   if (!parentId) {
                     return (
-                      <div className="p-8 text-center text-slate-500 text-xs font-semibold space-y-3 bg-slate-50 rounded-md border border-slate-100">
+                      <div className="p-8 text-center text-[#fce3bc] text-xs font-semibold space-y-3 bg-slate-900/50  border border-[#fce3bc]">
                         <LucideIcon
                           name="AlertCircle"
                           className="mx-auto text-amber-500"
                           size={32}
                         />
-                        <p className="font-extrabold text-slate-700">
+                        <p className="font-extrabold text-[#fce3bc]">
                           Chưa chọn loại nhánh
                         </p>
-                        <p className="text-[10px] text-slate-400 font-medium">
+                        <p className="text-[10px] text-[#fce3bc] font-medium">
                           Vui lòng nhấp chọn ô "Chọn Nhánh" đầu tiên để thiết
                           lập loại nhánh cho nhánh này trước.
                         </p>
@@ -1478,18 +1475,18 @@ export default function BuildGuidesTab({
                           <span className="block text-[8px] font-black uppercase text-indigo-700 tracking-wider">
                             Đang xem nhánh:
                           </span>
-                          <span className="block font-black text-[11px] text-slate-800">
+                          <span className="block font-black text-[11px] text-[#fce3bc]">
                             {branchLabelMap[parentBranch] || parentBranch}
                           </span>
                         </div>
-                        <span className="text-[9px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-full border border-indigo-100">
+                        <span className="text-[9px] font-bold text-indigo-600 bg-slate-900/50 px-2 py-0.5 rounded-full border border-indigo-100">
                           {filteredBadges.length} phù hiệu
                         </span>
                       </div>
 
                       <div className="max-h-[350px] overflow-y-auto pr-1 space-y-1.5 scrollbar-thin">
                         {filteredBadges.length === 0 ? (
-                          <div className="p-6 text-center text-slate-400 text-xs">
+                          <div className="p-6 text-center text-[#fce3bc] text-xs">
                             Không tìm thấy phù hiệu nào phù hợp.
                           </div>
                         ) : (
@@ -1513,8 +1510,8 @@ export default function BuildGuidesTab({
                                   isEquippedInActive
                                     ? "bg-indigo-50 border-indigo-200 text-indigo-800"
                                     : isAnywhere
-                                      ? "bg-slate-50 border-slate-200 opacity-80"
-                                      : "border-slate-100 hover:bg-slate-50 bg-white hover:border-slate-200"
+                                      ? "bg-slate-900/50 border-slate-200 opacity-80"
+                                      : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200"
                                 }`}
                               >
                                 <img
@@ -1565,7 +1562,7 @@ export default function BuildGuidesTab({
                             className={`flex items-center gap-2.5 p-2.5 rounded border cursor-pointer transition-all ${
                               isSelected
                                 ? "bg-indigo-50 border-indigo-200 text-indigo-800"
-                                : "border-slate-100 hover:bg-slate-50 bg-white hover:border-slate-200"
+                                : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200"
                             }`}
                             title={s.mo_ta || ""}
                           >
@@ -1602,11 +1599,11 @@ export default function BuildGuidesTab({
           {guides.map((g) => (
             <div
               key={g.id}
-              className="bg-white p-5 rounded-md border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-200"
+              className="bg-slate-900/50 p-5  border border-[#fce3bc] shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-200"
             >
               <div className="flex items-center gap-4">
                 {/* Champion Avatar */}
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-100 shadow-inner shrink-0 relative">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-1 border-[#fce3bc] shadow-inner shrink-0 relative">
                   {g.tuong?.url_anh_dai_dien ? (
                     <img
                       src={g.tuong.url_anh_dai_dien}
@@ -1615,7 +1612,7 @@ export default function BuildGuidesTab({
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[#fce3bc]">
                       <LucideIcon name="User" size={18} />
                     </div>
                   )}
@@ -1623,10 +1620,10 @@ export default function BuildGuidesTab({
 
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm text-slate-800">
+                    <span className="font-bold text-sm text-[#fce3bc]">
                       {g.tuong?.ten_tuong || "Tướng ẩn"}
                     </span>
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-[#fce3bc]">
                       {g.tuong?.vai_tro}
                     </span>
                     <span
@@ -1635,11 +1632,15 @@ export default function BuildGuidesTab({
                       {g.kich_hoat ? "Công khai" : "Ẩn"}
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100 flex items-center gap-1">
-                      <LucideIcon name="Heart" size={11} className="fill-rose-500 text-rose-500" />
+                      <LucideIcon
+                        name="Heart"
+                        size={11}
+                        className="fill-rose-500 text-rose-500"
+                      />
                       <span>{g.luot_xem || 0} lượt thích</span>
                     </span>
                   </div>
-                  <h3 className="font-extrabold text-slate-700 text-xs mt-1.5 flex items-center gap-1">
+                  <h3 className="font-extrabold text-[#fce3bc] text-xs mt-1.5 flex items-center gap-1">
                     <LucideIcon
                       name="Sword"
                       size={12}
@@ -1658,7 +1659,7 @@ export default function BuildGuidesTab({
                       >
                         <img
                           src={item.url_hinh_anh ?? undefined}
-                          className="w-7 h-7 object-cover rounded-md border border-slate-200"
+                          className="w-7 h-7 object-cover  border border-slate-200"
                           alt="Equip icon"
                           referrerPolicy="no-referrer"
                         />
@@ -1672,7 +1673,7 @@ export default function BuildGuidesTab({
               <div className="flex items-center gap-2.5 self-end md:self-auto border-t md:border-t-0 pt-3 md:pt-0 border-slate-50">
                 <button
                   onClick={() => handleStartEdit(g)}
-                  className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-indigo-600 rounded transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                  className="p-2 bg-slate-900/50 hover:bg-slate-100 text-[#fce3bc] hover:text-indigo-600 rounded transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
                 >
                   <LucideIcon name="Edit" size={13} />
                   Sửa
@@ -1693,7 +1694,7 @@ export default function BuildGuidesTab({
           ))}
 
           {guides.length === 0 && (
-            <div className="text-center p-12 border border-dashed border-slate-200 rounded-md font-sans text-sm text-slate-400 bg-slate-50/50">
+            <div className="text-center p-12 border border-dashed border-slate-200  font-sans text-sm text-[#fce3bc] bg-slate-900/50">
               Chưa có giáo án Liên Quân nào được tạo. Nhấp "Tạo Giáo Án Mới" để
               thiết lập bộ giáo án đầu tiên của bạn!
             </div>

@@ -1398,28 +1398,16 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans flex flex-col transition-all duration-500 bg-center bg-cover bg-no-repeat bg-fixed ${
-        isAdminMode
-          ? "bg-[#f7f9fb] text-slate-800 lg:pl-64"
-          : isDarkPublic
-            ? "text-slate-100"
-            : "text-slate-800"
+      className={`min-h-screen font-sans flex flex-col transition-all duration-500 bg-center bg-cover bg-no-repeat bg-fixed text-slate-100 ${
+        isAdminMode ? "lg:pl-64" : ""
       }`}
-      style={
-        !isAdminMode
-          ? {
-              backgroundImage: "url('/image/Decor/bg-academy.jpg')",
-              backgroundPosition: "center center",
-              backgroundSize: "cover",
-              backgroundRepeat: "no-repeat",
-              backgroundAttachment: "fixed",
-              backgroundColor:
-                colorMode === "system" && appearance.backgroundColor
-                  ? appearance.backgroundColor
-                  : undefined,
-            }
-          : undefined
-      }
+      style={{
+        backgroundImage: "url('/image/Decor/bg-academy.jpg')",
+        backgroundPosition: "center center",
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+      }}
     >
       {/* Dynamic Upper-Right Notifications */}
       <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full">
@@ -1568,15 +1556,20 @@ export default function App() {
 
       {/* Mobile Top Header - ONLY visible when in Admin panel on mobile/tablet */}
       {isAdminMode ? (
-        <header className="lg:hidden sticky top-0 z-40 bg-[#f7f9fb]/90 backdrop-blur-md border-b border-slate-100/80 transition-colors duration-300">
-          <div className="flex justify-between items-center w-full px-6 py-4">
+        <header
+          className="lg:hidden sticky top-0 z-40 backdrop-blur-md border-b border-[#bd9867]/60 shadow-[0_4px_24px_rgba(0,0,0,0.3)] bg-cover bg-center bg-no-repeat transition-colors duration-300"
+          style={{
+            backgroundImage: `url('image/Decor/bg-header.jpg')`,
+          }}
+        >
+          <div className="flex justify-between items-center w-full px-4 py-3">
             {/* Left side: Admin label and Mobile 3-gạch Menu trigger */}
             <div className="flex items-center gap-3">
               {/* Mobile 3-gạch Menu button */}
               <div className="relative">
                 <button
                   onClick={() => setIsAdminNavOpen(!isAdminNavOpen)}
-                  className="p-2 border border-slate-200 rounded-xl bg-white shadow-xs text-xs font-black cursor-pointer text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+                  className="p-2 border border-[#bd9867] bg-black/40 text-xs font-black cursor-pointer text-[#fce3bc] hover:bg-[#bd9867]/20 flex items-center justify-center transition-all active:scale-95"
                   title="Menu điều hướng"
                 >
                   <LucideIcon name="Menu" size={18} />
@@ -1591,178 +1584,64 @@ export default function App() {
                     />
 
                     {/* Dropdown popup */}
-                    <div className="absolute left-0 mt-2 w-52 bg-white border border-slate-150 rounded-xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <button
-                        onClick={() => {
-                          setActiveTab("dashboard");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
-                          activeTab === "dashboard"
-                            ? "bg-slate-50 text-indigo-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <LucideIcon
-                          name="Activity"
-                          size={14}
-                          className="text-indigo-500"
-                        />
-                        <span>Dashboard</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("links");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
-                          activeTab === "links"
-                            ? "bg-slate-50 text-emerald-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <LucideIcon
-                          name="Link2"
-                          size={14}
-                          className="text-emerald-500"
-                        />
-                        <span>Links</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("appearance");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
-                          activeTab === "appearance"
-                            ? "bg-slate-50 text-amber-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <LucideIcon
-                          name="Palette"
-                          size={14}
-                          className="text-amber-500"
-                        />
-                        <span>Giao diện</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("posts");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
-                          activeTab === "posts"
-                            ? "bg-slate-50 text-sky-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <LucideIcon
-                          name="FileText"
-                          size={14}
-                          className="text-sky-500"
-                        />
-                        <span>Bài viết</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("messages");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center justify-between text-slate-700 cursor-pointer ${
-                          activeTab === "messages"
-                            ? "bg-slate-50 text-rose-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <LucideIcon
-                            name="MessageSquare"
-                            size={14}
-                            className="text-rose-500"
-                          />
-                          <span>Tin nhắn</span>
-                        </div>
-                        {messages.length > 0 && (
-                          <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
-                            {messages.length}
-                          </span>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("donations");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center justify-between text-slate-700 cursor-pointer ${
-                          activeTab === "donations"
-                            ? "bg-slate-50 text-pink-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <LucideIcon
-                            name="Heart"
-                            size={14}
-                            className="text-red-500"
-                          />
-                          <span>Donate</span>
-                        </div>
-                        {donations.filter((d) => d.trang_thai === 0).length >
-                          0 && (
-                          <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
-                            {donations.filter((d) => d.trang_thai === 0).length}
-                          </span>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("guides");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
-                          activeTab === "guides"
-                            ? "bg-slate-50 text-teal-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <LucideIcon
-                          name="Shield"
-                          size={14}
-                          className="text-teal-500"
-                        />
-                        <span>Trang bị</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("stream");
-                          setIsAdminNavOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-700 cursor-pointer ${
-                          activeTab === "stream"
-                            ? "bg-slate-50 text-indigo-600 font-extrabold"
-                            : ""
-                        }`}
-                      >
-                        <LucideIcon
-                          name="Tv"
-                          size={14}
-                          className="text-indigo-500"
-                        />
-                        <span>Stream Live</span>
-                      </button>
+                    <div className="absolute left-0 mt-2 w-52 bg-slate-950/95 border border-[#bd9867] shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {[
+                        {
+                          id: "dashboard",
+                          label: "Dashboard",
+                          icon: "Activity",
+                        },
+                        { id: "links", label: "Links", icon: "Link2" },
+                        {
+                          id: "appearance",
+                          label: "Giao diện",
+                          icon: "Palette",
+                        },
+                        { id: "posts", label: "Bài viết", icon: "FileText" },
+                        {
+                          id: "messages",
+                          label: "Tin nhắn",
+                          icon: "MessageSquare",
+                          badge: messages.length,
+                        },
+                        {
+                          id: "donations",
+                          label: "Donate",
+                          icon: "Heart",
+                          badge: donations.filter((d) => d.trang_thai === 0)
+                            .length,
+                        },
+                        { id: "guides", label: "Trang bị", icon: "Shield" },
+                        { id: "stream", label: "Stream Live", icon: "Tv" },
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setActiveTab(item.id as any);
+                            setIsAdminNavOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-xs font-extrabold transition-colors flex items-center justify-between cursor-pointer ${
+                            activeTab === item.id
+                              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white"
+                              : "text-[#fce3bc] hover:bg-[#bd9867]/20"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <LucideIcon name={item.icon as any} size={14} />
+                            <span>{item.label}</span>
+                          </div>
+                          {item.badge && item.badge > 0 ? (
+                            <span className="bg-amber-500 text-black text-[9px] px-1.5 py-0.5 font-bold">
+                              {item.badge}
+                            </span>
+                          ) : null}
+                        </button>
+                      ))}
                     </div>
                   </>
                 )}
               </div>
-              <span className="text-xs font-black text-slate-800 tracking-wider">
+              <span className="text-xs font-extrabold bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent tracking-wider uppercase">
                 BẢNG QUẢN TRỊ
               </span>
             </div>
@@ -1771,12 +1650,12 @@ export default function App() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAdminMode(false)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200 bg-white shadow-sm"
+                className="px-3 py-1.5 border border-[#bd9867] bg-black/40 text-xs font-bold text-[#fce3bc] hover:bg-[#bd9867]/20 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <LucideIcon
                   name="Globe"
                   size={14}
-                  className="text-indigo-500 animate-pulse"
+                  className="text-[#fce3bc] animate-pulse"
                 />
                 <span className="hidden sm:inline">Xem trang</span>
               </button>
@@ -1790,7 +1669,7 @@ export default function App() {
                   localStorage.removeItem("vivid_persona_admin_mode");
                   showNotification("Đăng xuất thành công!", "info");
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all flex items-center gap-1.5 cursor-pointer border border-red-200 bg-white shadow-sm"
+                className="px-3 py-1.5 border border-red-500/60 bg-red-950/40 text-xs font-bold text-red-400 hover:bg-red-900/40 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                 title="Đăng xuất"
               >
                 <LucideIcon name="LogOut" size={14} />
@@ -1802,38 +1681,26 @@ export default function App() {
 
       {/* Desktop Left Sidebar - ONLY visible when in Admin panel on desktop */}
       {isAdminMode && (
-        <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 text-slate-200 border-r border-slate-800 z-30 shadow-xl transition-all duration-300">
-          {/* Sidebar Header: Brand / Logo */}
-          <div className="p-6 border-b border-slate-800/80 flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-600/25">
-              <LucideIcon name="Settings" size={18} />
-            </div>
-            <div>
-              <h2 className="text-xs font-black text-white tracking-wider">
-                BẢNG QUẢN TRỊ
-              </h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">
-                Vivid Link Bio
-              </p>
-            </div>
-          </div>
-
+        <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 text-slate-200 border-r border-[#bd9867]/60 z-30 shadow-2xl transition-all duration-300 bg-slate-950/90 backdrop-blur-md">
           {/* User Info */}
           {loggedInUser && (
-            <div className="px-6 py-4 border-b border-slate-800/60 bg-slate-950/25 flex items-center gap-3">
-              <img
-                src={
-                  loggedInUser.avatar_url || "/image/tuong/DauSi/Florentino.jpg"
-                }
-                alt={loggedInUser.ten_dang_nhap}
-                className="w-9 h-9 rounded-full border border-slate-700 object-cover shadow-sm bg-white shrink-0"
-                referrerPolicy="no-referrer"
-              />
+            <div className="px-6 py-4 border-b border-[#bd9867]/40 bg-black/40 flex items-center gap-3">
+              <div className="w-9 h-9 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
+                <img
+                  src={
+                    loggedInUser.avatar_url ||
+                    "/image/tuong/DauSi/Florentino.jpg"
+                  }
+                  alt={loggedInUser.ten_dang_nhap}
+                  className="w-full h-full object-cover bg-slate-900"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
               <div className="truncate">
-                <p className="text-xs font-black text-white truncate leading-tight">
+                <p className="text-xs font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent truncate leading-tight">
                   {loggedInUser.ten_dang_nhap}
                 </p>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">
+                <p className="text-[9px] text-slate-300 font-bold uppercase tracking-wide">
                   {loggedInUser.vai_tro === 1 ? "Quản trị viên" : "Thành viên"}
                 </p>
               </div>
@@ -1841,215 +1708,62 @@ export default function App() {
           )}
 
           {/* Navigation Items */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
-            <button
-              onClick={() => setActiveTab("dashboard")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer ${
-                activeTab === "dashboard"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <LucideIcon
-                name="Activity"
-                size={16}
-                className={
-                  activeTab === "dashboard" ? "text-white" : "text-indigo-400"
-                }
-              />
-              <span>Dashboard</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("links")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer ${
-                activeTab === "links"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <LucideIcon
-                name="Link2"
-                size={16}
-                className={
-                  activeTab === "links" ? "text-white" : "text-indigo-400"
-                }
-              />
-              <span>Links</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("appearance")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer ${
-                activeTab === "appearance"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <LucideIcon
-                name="Palette"
-                size={16}
-                className={
-                  activeTab === "appearance" ? "text-white" : "text-indigo-400"
-                }
-              />
-              <span>Giao diện</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("posts")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer ${
-                activeTab === "posts"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <LucideIcon
-                name="FileText"
-                size={16}
-                className={
-                  activeTab === "posts" ? "text-white" : "text-indigo-400"
-                }
-              />
-              <span>Bài viết</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("messages")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
-                activeTab === "messages"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <LucideIcon
-                  name="MessageSquare"
-                  size={16}
-                  className={
-                    activeTab === "messages" ? "text-white" : "text-indigo-400"
-                  }
-                />
-                <span>Tin nhắn</span>
-              </div>
-              {messages.length > 0 && (
-                <span className="bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">
-                  {messages.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab("donations")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
-                activeTab === "donations"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <LucideIcon
-                  name="Heart"
-                  size={16}
-                  className={
-                    activeTab === "donations" ? "text-white" : "text-indigo-400"
-                  }
-                />
-                <span>Donate</span>
-              </div>
-              {donations.filter((d) => d.trang_thai === 0).length > 0 && (
-                <span className="bg-amber-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold animate-pulse">
-                  {donations.filter((d) => d.trang_thai === 0).length}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab("guides")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer ${
-                activeTab === "guides"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <LucideIcon
-                name="Shield"
-                size={16}
-                className={
-                  activeTab === "guides" ? "text-white" : "text-indigo-400"
-                }
-              />
-              <span>Trang bị</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("stream")}
-              className={`w-full px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer ${
-                activeTab === "stream"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/15 font-black"
-                  : "text-slate-400 hover:bg-slate-850 hover:text-white"
-              }`}
-            >
-              <LucideIcon
-                name="Tv"
-                size={16}
-                className={
-                  activeTab === "stream" ? "text-white" : "text-indigo-400"
-                }
-              />
-              <span>Stream Live</span>
-            </button>
+          <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+            {[
+              { id: "dashboard", label: "Dashboard", icon: "Activity" },
+              { id: "links", label: "Links", icon: "Link2" },
+              { id: "appearance", label: "Giao diện", icon: "Palette" },
+              { id: "posts", label: "Bài viết", icon: "FileText" },
+              {
+                id: "messages",
+                label: "Tin nhắn",
+                icon: "MessageSquare",
+                badge: messages.length,
+              },
+              {
+                id: "donations",
+                label: "Donate",
+                icon: "Heart",
+                badge: donations.filter((d) => d.trang_thai === 0).length,
+              },
+              { id: "guides", label: "Trang bị", icon: "Shield" },
+              { id: "stream", label: "Stream Live", icon: "Tv" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as any)}
+                className={`w-full px-4 py-3 text-xs font-extrabold transition-all flex items-center justify-between cursor-pointer border ${
+                  activeTab === item.id
+                    ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white border-[#bd9867] shadow-md"
+                    : "border-transparent text-slate-300 hover:border-[#bd9867]/40 hover:bg-[#bd9867]/10 hover:text-[#fce3bc]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <LucideIcon
+                    name={item.icon as any}
+                    size={16}
+                    className={
+                      activeTab === item.id ? "text-white" : "text-[#bd9867]"
+                    }
+                  />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && item.badge > 0 ? (
+                  <span className="bg-amber-500 text-black text-[9px] px-2 py-0.5 font-bold">
+                    {item.badge}
+                  </span>
+                ) : null}
+              </button>
+            ))}
           </nav>
 
           {/* Sidebar Footer */}
-          <div className="p-4 border-t border-slate-800 space-y-3">
-            {/* Theme switcher for Admin */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                Giao diện chính
-              </span>
-              <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl">
-                <button
-                  onClick={() => setColorMode("light")}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                    colorMode === "light"
-                      ? "bg-slate-800 text-white shadow-xs font-black"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <LucideIcon name="Sun" size={11} />
-                  <span>Sáng</span>
-                </button>
-                <button
-                  onClick={() => setColorMode("dark")}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                    colorMode === "dark"
-                      ? "bg-slate-800 text-white shadow-xs font-black"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <LucideIcon name="Moon" size={11} />
-                  <span>Tối</span>
-                </button>
-                <button
-                  onClick={() => setColorMode("system")}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                    colorMode === "system"
-                      ? "bg-indigo-600 text-white shadow-xs font-black"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <LucideIcon name="Palette" size={11} />
-                  <span>Hệ thống</span>
-                </button>
-              </div>
-            </div>
-
+          <div className="p-4 border-t border-[#bd9867]/40 space-y-3">
             <button
               onClick={() => setIsAdminMode(false)}
-              className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/80 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="w-full px-4 py-2.5 text-xs font-bold text-[#fce3bc] bg-black/40 hover:bg-[#bd9867]/20 border border-[#bd9867] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
-              <LucideIcon name="Globe" size={14} className="text-indigo-400" />
+              <LucideIcon name="Globe" size={14} className="text-[#fce3bc]" />
               <span>Xem trang chính</span>
             </button>
 
@@ -2062,7 +1776,7 @@ export default function App() {
                 localStorage.removeItem("vivid_persona_admin_mode");
                 showNotification("Đăng xuất thành công!", "info");
               }}
-              className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer border border-red-900/40 bg-transparent shadow-sm"
+              className="w-full px-4 py-2.5 text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer border border-red-900/60 bg-transparent shadow-sm"
             >
               <LucideIcon name="LogOut" size={14} />
               <span>Đăng xuất</span>
@@ -2075,7 +1789,7 @@ export default function App() {
       <main
         className={`flex-grow w-full mx-auto transition-all duration-300 ${
           isAdminMode
-            ? "max-w-7xl px-4 sm:px-6 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
+            ? "px-4 sm:px-6 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
             : "max-w-5xl px-2 sm:px-6 py-6 sm:py-12 pt-0 pb-16 sm:pb-24 flex flex-col" // Khoảng đệm khi là User
         }`}
       >
@@ -2370,21 +2084,6 @@ export default function App() {
         onClose={() => setIsShareModalOpen(false)}
         accentColor={appearance.accentColor}
       />
-
-      {/* Global Application Footer - ONLY shown in Admin panel to keep public profile absolute pure distraction-free */}
-      {isAdminMode ? (
-        <footer className="py-6 text-center text-xs text-slate-400 border-t border-slate-100/60 mt-8 bg-white transition-colors duration-300">
-          <div className="max-w-7xl mx-auto px-6 space-y-1">
-            <p className="font-display font-extrabold text-slate-500 text-[10px] tracking-wider uppercase">
-              Hoàng DEV
-            </p>
-            <p className="text-[10px]">
-              © 2026 {appearance.name || "HoangDEV"}. Các cấu hình không gian
-              làm việc Admin được lưu trữ cục bộ.
-            </p>
-          </div>
-        </footer>
-      ) : null}
     </div>
   );
 }

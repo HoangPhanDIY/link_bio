@@ -164,11 +164,12 @@ export default function PostsTab({
         {/* Left column: Create Post Form */}
         <div
           id="post-form-card"
-          className="lg:col-span-5 bg-white border border-slate-100 rounded-md p-5 shadow-xs space-y-4"
+          className="lg:col-span-5 bg-slate-900/50 border border-slate-100 p-5 shadow-xs space-y-4"
         >
-          <h2 className="font-display font-bold text-slate-800 text-sm sm:text-base flex items-center justify-between">
+          <h2 className="font-display font-bold text-[#fce3bc] text-sm sm:text-base flex items-center justify-between">
             <span>
-              {editingPost ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
+              {editingPost ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"} - Số
+              bài: {posts.length}
             </span>
             {editingPost && (
               <span className="bg-amber-100 text-amber-800 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded animate-pulse">
@@ -179,7 +180,7 @@ export default function PostsTab({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#fce3bc]">
                 Nội dung bài viết *
               </label>
               <textarea
@@ -188,16 +189,16 @@ export default function PostsTab({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Nhập nội dung status của bạn ở đây... (hỗ trợ xuống dòng)"
                 rows={5}
-                className="w-full p-3 rounded border border-slate-200 outline-none transition-all text-xs sm:text-sm font-sans font-medium resize-none focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500 placeholder:text-slate-400"
+                className="w-full p-3 rounded border border-slate-200 outline-none transition-all text-xs sm:text-sm font-sans font-medium resize-none focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500 placeholder:text-[#fce3bc]"
               />
-              <div className="text-right text-[10px] text-slate-400 font-semibold ">
+              <div className="text-right text-[10px] text-[#fce3bc] font-semibold ">
                 {content.length}/1000 kí tự
               </div>
             </div>
 
             {/* Post image select */}
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#fce3bc]">
                 Hình ảnh đính kèm (Không bắt buộc)
               </label>
 
@@ -211,18 +212,18 @@ export default function PostsTab({
                   <button
                     type="button"
                     onClick={() => setImageUrl(null)}
-                    className="absolute top-2 right-2 bg-slate-900/80 hover:bg-slate-900 text-white p-1.5 rounded-full shadow-md transition-colors cursor-pointer"
+                    className="absolute top-2 right-2 bg-slate-900/80 hover:bg-slate-900 text-[#fce3bc] p-1.5 rounded-full shadow-md transition-colors cursor-pointer"
                   >
                     <LucideIcon name="Trash2" size={12} />
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 rounded text-xs font-bold text-slate-600 transition-colors cursor-pointer border-dashed w-full justify-center">
+                  <label className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-50 rounded text-xs font-bold text-[#fce3bc] transition-colors cursor-pointer border-dashed w-full justify-center">
                     <LucideIcon
                       name="Image"
                       size={14}
-                      className="text-slate-400"
+                      className="text-[#fce3bc]"
                     />
                     <span>Chọn và cắt ảnh status</span>
                     <input
@@ -238,13 +239,13 @@ export default function PostsTab({
 
             {/* Associated Bio Link Selection */}
             <div className="space-y-1">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#fce3bc]">
                 Liên kết điều hướng (Nút "Liên hệ")
               </label>
               <select
                 value={selectedLinkId || ""}
                 onChange={(e) => setSelectedLinkId(e.target.value || null)}
-                className="w-full p-2.5 rounded border border-slate-200 outline-none transition-all text-xs sm:text-sm font-sans font-medium focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500 bg-white"
+                className="w-full p-2.5 rounded border border-slate-200 outline-none transition-all text-xs sm:text-sm font-sans font-medium focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500 bg-slate-900/50"
               >
                 <option value="">-- Không điều hướng --</option>
                 {links
@@ -255,7 +256,7 @@ export default function PostsTab({
                     </option>
                   ))}
               </select>
-              <p className="text-[10px] text-slate-400 font-medium">
+              <p className="text-[10px] text-[#fce3bc] font-medium">
                 Chọn liên kết hoạt động để người đọc click nút "Liên hệ" sẽ tự
                 động chuyển hướng đến đó.
               </p>
@@ -266,7 +267,7 @@ export default function PostsTab({
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-4 py-2.5 rounded border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95"
+                  className="px-4 py-2.5 rounded border border-slate-200 hover:bg-slate-50 text-[#fce3bc] font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95"
                 >
                   Hủy bỏ
                 </button>
@@ -274,7 +275,7 @@ export default function PostsTab({
               <button
                 type="submit"
                 disabled={isSubmitting || !content.trim()}
-                className="flex-1 py-2.5 rounded text-white font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:opacity-95 active:scale-[0.99] text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 rounded text-[#fce3bc] font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer hover:opacity-95 active:scale-[0.99] text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: accentColor }}
               >
                 {isSubmitting ? (
@@ -292,10 +293,6 @@ export default function PostsTab({
 
         {/* Right column: Recent Statuses Feed */}
         <div className="lg:col-span-7 space-y-4">
-          <h2 className="font-display font-bold text-slate-800 text-sm sm:text-base">
-            Các status đã đăng ({posts.length})
-          </h2>
-
           <div className="space-y-4">
             {posts.map((post) => {
               const formattedDate = post.created_at
@@ -311,20 +308,32 @@ export default function PostsTab({
               return (
                 <div
                   key={post.id}
-                  className="bg-white border border-slate-100 rounded-md p-5 shadow-xs hover:shadow-md transition-all flex flex-col gap-3 relative group"
+                  className="bg-slate-900/50 border p-5 shadow-xs hover:shadow-md transition-all flex flex-col gap-3 relative group"
                 >
                   <div className="absolute top-4 right-4 flex items-center gap-2 lg:opacity-0 group-hover:opacity-100 transition-all duration-200">
                     {onTogglePinPost && (
                       <button
-                        onClick={() => onTogglePinPost(post.id, post.trang_thai)}
+                        onClick={() =>
+                          onTogglePinPost(post.id, post.trang_thai)
+                        }
                         className={`p-2 rounded transition-colors cursor-pointer ${
                           post.trang_thai === 2
                             ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            : "bg-slate-100 text-[#fce3bc] hover:bg-slate-200"
                         }`}
-                        title={post.trang_thai === 2 ? "Bỏ ghim bài viết" : "Ghim bài viết lên đầu"}
+                        title={
+                          post.trang_thai === 2
+                            ? "Bỏ ghim bài viết"
+                            : "Ghim bài viết lên đầu"
+                        }
                       >
-                        <LucideIcon name="Pin" size={14} className={post.trang_thai === 2 ? "fill-amber-600" : ""} />
+                        <LucideIcon
+                          name="Pin"
+                          size={14}
+                          className={
+                            post.trang_thai === 2 ? "fill-amber-600" : ""
+                          }
+                        />
                       </button>
                     )}
                     <button
@@ -345,34 +354,39 @@ export default function PostsTab({
 
                   <div className="flex items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600 border border-slate-200 shrink-0">
-                        AD
-                      </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-800">
+                          <h4 className="text-xs sm:text-sm font-extrabold white">
                             Quản trị viên
                           </h4>
                           {post.trang_thai === 2 && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-300 text-[10px] font-extrabold uppercase">
-                              <LucideIcon name="Pin" size={10} className="fill-amber-600" />
+                              <LucideIcon
+                                name="Pin"
+                                size={10}
+                                className="fill-amber-600"
+                              />
                               Đã ghim
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10px] text-[#fce3bc]">
                           {formattedDate}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1 text-xs font-bold text-rose-500 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100 shrink-0">
-                      <LucideIcon name="Heart" size={12} className="fill-rose-500" />
+                      <LucideIcon
+                        name="Heart"
+                        size={12}
+                        className="fill-rose-500"
+                      />
                       <span>{post.luot_xem || 0} lượt thích</span>
                     </div>
                   </div>
 
-                  <p className="text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                  <p className="text-[#fce3bc] text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
                     {post.noi_dung}
                   </p>
 
@@ -391,7 +405,7 @@ export default function PostsTab({
             })}
 
             {posts.length === 0 && (
-              <div className="text-center p-12 border border-dashed border-slate-200 rounded-md font-sans text-sm text-slate-400 bg-white">
+              <div className="text-center p-12 border border-dashed border-slate-200 rounded-md font-sans text-sm text-[#fce3bc] bg-slate-900/50">
                 Chưa có bài viết nào được đăng. Hãy bắt đầu đăng suy nghĩ đầu
                 tiên của bạn!
               </div>

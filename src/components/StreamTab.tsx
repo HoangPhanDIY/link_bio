@@ -250,11 +250,11 @@ export default function StreamTab({
   return (
     <div id="stream-tab-container" className="space-y-6">
       {/* Overview Card */}
-      <div className=" border border-indigo-500/20 rounded-md p-6 shadow-xl">
+      <div className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-black font-semibold text-lg">
-              <Tv className="w-5 h-5 animate-pulse" />
+            <div className="flex items-center gap-2 text-[#fce3bc] font-black text-lg uppercase tracking-wider">
+              <Tv className="w-5 h-5 animate-pulse text-[#bd9867]" />
               <span>Tích Hợp Live Stream</span>
             </div>
           </div>
@@ -264,8 +264,7 @@ export default function StreamTab({
                 fetchHistoricalAssets();
                 setShowHistoryModal(true);
               }}
-              className="flex items-center gap-1.5 px-4 py-2 text-white hover:text-white border rounded-md transition text-sm font-medium"
-              style={{ backgroundColor: appearance.accentColor }}
+              className="flex items-center gap-1.5 px-4 py-2 text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 transition text-sm font-extrabold cursor-pointer shadow-md"
             >
               <History className="w-4 h-4 text-white" />
               <span>Thư viện</span>
@@ -274,8 +273,7 @@ export default function StreamTab({
               href={obsLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 text-slate-200 hover:text-white border rounded-md transition text-sm font-medium"
-              style={{ backgroundColor: appearance.accentColor }}
+              className="flex items-center gap-1.5 px-4 py-2 text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 transition text-sm font-extrabold cursor-pointer shadow-md"
             >
               <span>Mở Overlay</span>
               <ExternalLink className="w-4 h-4" />
@@ -284,8 +282,8 @@ export default function StreamTab({
         </div>
 
         {/* OBS Copy link component */}
-        <div className="mt-6 p-4 rounded-md space-y-2">
-          <label className="text-xs font-semibold text-black uppercase tracking-wider block">
+        <div className="mt-6 p-4 bg-black/40 border border-[#bd9867]/40 space-y-2">
+          <label className="text-xs font-black text-[#fce3bc] uppercase tracking-wider block">
             Đường dẫn nguồn trình duyệt
           </label>
           <div className="flex items-center gap-2">
@@ -293,12 +291,11 @@ export default function StreamTab({
               type="text"
               readOnly
               value={obsLink}
-              className="flex-1 border border-slate-700/80 text-black px-3 py-2 rounded-lg text-xs  focus:outline-none"
+              className="flex-1 bg-slate-900 border border-[#bd9867]/60 text-white px-3 py-2 text-xs font-mono focus:outline-none"
             />
             <button
               onClick={copyOBSLink}
-              className="px-4 py-2 text-white rounded-md bg- transition text-xs font-semibold flex items-center gap-1 shrink-0"
-              style={{ backgroundColor: appearance.accentColor }}
+              className="px-4 py-2 text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 transition text-xs font-black flex items-center gap-1 shrink-0 cursor-pointer shadow-md"
             >
               {isCopied ? (
                 <Check className="w-3.5 h-3.5" />
@@ -314,16 +311,16 @@ export default function StreamTab({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left column: Settings */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="border border-slate-800 rounded-md p-6 shadow-md space-y-6">
-            <h3 className="font-semibold text-black flex items-center gap-2 text-base pb-3 border-b border-slate-800">
-              <Settings className="w-4.5 h-4.5 text-black" />
+          <div className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 shadow-xl space-y-6">
+            <h3 className="font-extrabold text-[#fce3bc] flex items-center gap-2 text-base pb-3 border-b border-[#bd9867]/40 uppercase tracking-wider">
+              <Settings className="w-4.5 h-4.5 text-[#bd9867]" />
               <span>Hiệu ứng thông báo</span>
             </h3>
 
             {/* GIF Selector */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-black block">
+                <label className="text-sm font-bold text-white block">
                   Ảnh động hiển thị
                 </label>
                 <button
@@ -332,13 +329,13 @@ export default function StreamTab({
                     setHistoryTab("gif");
                     setShowHistoryModal(true);
                   }}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                  className="text-xs text-[#fce3bc] hover:underline flex items-center gap-1 font-bold cursor-pointer"
                 >
                   <History className="w-3 h-3" /> Sử dụng lại ảnh cũ
                 </button>
               </div>
               <div className="flex gap-4 items-center">
-                <div className="w-20 h-20 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="w-20 h-20 bg-slate-900 border border-[#bd9867] flex items-center justify-center overflow-hidden shrink-0">
                   <img
                     src={appearance.streamAlertGif || "/giphy.webp"}
                     alt="Alert GIF"
@@ -353,9 +350,9 @@ export default function StreamTab({
                       onUpdateAppearance({ streamAlertGif: e.target.value })
                     }
                     placeholder="URL ảnh động .gif hoặc tệp tải lên"
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-900 border border-[#bd9867]/60 text-white px-3 py-2 text-sm outline-none focus:border-[#fce3bc]"
                   />
-                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 rounded-lg transition text-xs font-semibold cursor-pointer">
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white border border-[#bd9867] hover:brightness-110 transition text-xs font-black cursor-pointer shadow-sm">
                     <Upload className="w-3.5 h-3.5" />
                     <span>
                       {isUploadingGif ? "Đang tải lên..." : "Tải lên tệp GIF"}
@@ -375,7 +372,7 @@ export default function StreamTab({
             {/* Sound Selector */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-black block">
+                <label className="text-sm font-bold text-white block">
                   Âm thanh thông báo
                 </label>
                 <button
@@ -384,13 +381,13 @@ export default function StreamTab({
                     setHistoryTab("sound");
                     setShowHistoryModal(true);
                   }}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                  className="text-xs text-[#fce3bc] hover:underline flex items-center gap-1 font-bold cursor-pointer"
                 >
                   <History className="w-3 h-3" /> Thư viện
                 </button>
               </div>
               <div className="flex flex-col gap-3 w-full">
-                {/* Ô input nằm trọn vẹn ở hàng trên */}
+                {/* Input row */}
                 <input
                   type="text"
                   value={appearance.streamAlertSound || ""}
@@ -398,10 +395,10 @@ export default function StreamTab({
                     onUpdateAppearance({ streamAlertSound: e.target.value })
                   }
                   placeholder="URL âm thanh .mp3 / .wav"
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 text-white px-3 py-2 text-sm outline-none focus:border-[#fce3bc]"
                 />
 
-                {/* Hàng chứa 2 nút ở dưới, nằm ngang hàng nhau */}
+                {/* Button actions row */}
                 <div className="flex gap-2 items-center w-full">
                   {appearance.streamAlertSound && (
                     <button
@@ -416,13 +413,13 @@ export default function StreamTab({
                           );
                         });
                       }}
-                      className="flex-1 px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-semibold text-center transition"
+                      className="flex-1 px-3 py-2 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 text-xs font-black text-center transition cursor-pointer"
                     >
                       Nghe thử
                     </button>
                   )}
 
-                  <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 rounded-lg transition text-xs font-semibold cursor-pointer">
+                  <label className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white border border-[#bd9867] hover:brightness-110 transition text-xs font-black cursor-pointer shadow-sm">
                     <Upload className="w-3.5 h-3.5" />
                     <span>
                       {isUploadingSound ? "Đang tải..." : "Tải lên âm thanh"}
@@ -439,10 +436,10 @@ export default function StreamTab({
               </div>
 
               {/* Quick direct sound selector for both system and bucket assets */}
-              <div className="space-y-2 mt-2 bg-slate-950/40 p-3 rounded-md border border-slate-800/80">
-                <div className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+              <div className="space-y-2 mt-2 bg-black/40 p-3 border border-[#bd9867]/40">
+                <div className="text-xs font-extrabold text-[#fce3bc] flex items-center justify-between">
                   <span>Thư viện âm thanh</span>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-slate-300">
                     ({historicalSounds.length} tệp đã tải lên)
                   </span>
                 </div>
@@ -450,7 +447,7 @@ export default function StreamTab({
                   {/* Uploaded sounds in bucket */}
                   {historicalSounds.length > 0 ? (
                     <div>
-                      <div className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider mb-1 mt-1">
+                      <div className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider mb-1 mt-1">
                         Đã tải lên
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -464,14 +461,14 @@ export default function StreamTab({
                           return (
                             <div
                               key={`uploaded-${idx}`}
-                              className={`p-2 rounded-lg border flex items-center justify-between gap-1 transition ${
+                              className={`p-2 border flex items-center justify-between gap-1 transition ${
                                 appearance.streamAlertSound === url
-                                  ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
-                                  : "bg-slate-900/60 border-slate-800 hover:border-slate-700 text-slate-300"
+                                  ? "bg-amber-950/80 border-[#fce3bc] text-[#fce3bc]"
+                                  : "bg-slate-900 border-[#bd9867]/40 text-slate-200"
                               }`}
                             >
                               <span
-                                className="text-xs truncate max-w-[125px]"
+                                className="text-xs truncate max-w-[125px] font-semibold"
                                 title={cleanName}
                               >
                                 {cleanName}
@@ -484,7 +481,7 @@ export default function StreamTab({
                                     a.volume = 0.5;
                                     a.play().catch(() => {});
                                   }}
-                                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded"
+                                  className="p-1.5 bg-black/60 hover:bg-black text-slate-200 cursor-pointer"
                                   title="Nghe thử"
                                 >
                                   <Play className="w-3 h-3 fill-current" />
@@ -496,7 +493,7 @@ export default function StreamTab({
                                       streamAlertSound: url,
                                     });
                                   }}
-                                  className="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-semibold"
+                                  className="px-2 py-1 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-[10px] font-black cursor-pointer"
                                 >
                                   Chọn
                                 </button>
@@ -507,7 +504,7 @@ export default function StreamTab({
                       </div>
                     </div>
                   ) : (
-                    <div className="text-xs text-slate-400 p-4 border border-dashed border-slate-800 rounded-md text-center">
+                    <div className="text-xs text-slate-400 p-4 border border-dashed border-[#bd9867]/40 text-center">
                       Chưa có âm thanh nào được tải lên. Hãy tải lên âm thanh
                       của riêng bạn phía trên để sử dụng!
                     </div>
@@ -519,7 +516,7 @@ export default function StreamTab({
             {/* Template text */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-black block">
+                <label className="text-sm font-bold text-white block">
                   Chữ thông báo
                 </label>
               </div>
@@ -530,24 +527,24 @@ export default function StreamTab({
                   onUpdateAppearance({ streamAlertTemplate: e.target.value })
                 }
                 placeholder="Nhập nội dung (ví dụ: đã ủng hộ bạn, vừa tặng stream...)"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-900 border border-[#bd9867]/60 text-white px-3 py-2 text-sm outline-none focus:border-[#fce3bc]"
               />
             </div>
 
             {/* TTS Settings section */}
-            <div className="space-y-4 p-4 bg-slate-950/50 border border-slate-800/80 rounded-md">
-              <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Volume2 className="w-3.5 h-3.5" /> Cấu hình giọng đọc Google
-                (TTS)
+            <div className="space-y-4 p-4 bg-black/40 border border-[#bd9867]/40">
+              <h4 className="text-xs font-black text-[#fce3bc] uppercase tracking-wider flex items-center gap-1.5">
+                <Volume2 className="w-3.5 h-3.5 text-[#bd9867]" /> Cấu hình
+                giọng đọc Google (TTS)
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200 block">
+                  <label className="text-sm font-bold text-slate-200 block">
                     Bật đọc giọng nói (TTS)
                   </label>
-                  <div className="flex items-center h-10 bg-slate-950 px-3 rounded-lg border border-slate-800">
-                    <label className="flex items-center gap-2 cursor-pointer w-full select-none text-sm text-slate-300">
+                  <div className="flex items-center h-10 bg-slate-900 px-3 border border-[#bd9867]/60">
+                    <label className="flex items-center gap-2 cursor-pointer w-full select-none text-sm text-slate-200 font-semibold">
                       <input
                         type="checkbox"
                         checked={appearance.streamAlertTts !== false}
@@ -556,7 +553,7 @@ export default function StreamTab({
                             streamAlertTts: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
+                        className="w-4 h-4 border-[#bd9867] text-[#bd9867] bg-slate-900"
                       />
                       <span>Kích hoạt phát âm thanh đọc</span>
                     </label>
@@ -564,7 +561,7 @@ export default function StreamTab({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-200 block">
+                  <label className="text-sm font-bold text-slate-200 block">
                     Giọng đọc mong muốn
                   </label>
                   <select
@@ -578,7 +575,7 @@ export default function StreamTab({
                         streamAlertVoiceGender: e.target.value,
                       })
                     }
-                    className="w-full h-10 bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full h-10 bg-slate-900 border border-[#bd9867]/60 text-white px-3 text-sm outline-none focus:border-[#fce3bc] font-bold"
                   >
                     <option value="female">Giọng Nữ (Giọng Chị Google)</option>
                     <option value="male">Giọng Nam (Tiếng Việt)</option>
@@ -702,12 +699,12 @@ export default function StreamTab({
                       }
                     }
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/50 rounded-lg transition text-xs font-semibold"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white transition text-xs font-black cursor-pointer shadow-sm"
                 >
                   <Volume2 className="w-3.5 h-3.5" />
                   <span>Nghe thử giọng đọc</span>
                 </button>
-                <span className="text-[10px] text-slate-400 italic">
+                <span className="text-[10px] text-slate-300 italic">
                   * Nhấp để phát thử giọng đọc theo thiết lập
                 </span>
               </div>
@@ -718,7 +715,7 @@ export default function StreamTab({
               <button
                 onClick={handleSaveConfig}
                 disabled={isSaving}
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white font-semibold rounded-md shadow-lg transition text-sm"
+                className="w-full py-2.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 disabled:opacity-50 text-white font-black shadow-lg transition text-sm cursor-pointer"
               >
                 {isSaving
                   ? "Đang lưu cấu hình..."
@@ -731,46 +728,46 @@ export default function StreamTab({
         {/* Right column: Test Area & Replay List */}
         <div className="lg:col-span-5 space-y-6">
           {/* Test area */}
-          <div className="bg-slate-900/40 border border-slate-800 rounded-md p-6 shadow-md space-y-4">
-            <h3 className="font-semibold text-white flex items-center gap-2 text-base pb-3 border-b border-slate-800">
+          <div className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 shadow-xl space-y-4">
+            <h3 className="font-extrabold text-[#fce3bc] flex items-center gap-2 text-base pb-3 border-b border-[#bd9867]/40 uppercase tracking-wider">
               <Sparkles className="w-4.5 h-4.5 text-amber-400" />
               <span>Chạy thử thông báo</span>
             </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-slate-300 block mb-1 font-medium">
+                <label className="text-xs text-slate-300 block mb-1 font-bold">
                   Tên người donate test
                 </label>
                 <input
                   type="text"
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 text-white px-3 py-1.5 text-xs outline-none focus:border-[#fce3bc]"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-300 block mb-1 font-medium">
+                <label className="text-xs text-slate-300 block mb-1 font-bold">
                   Số tiền donate test (đ)
                 </label>
                 <input
                   type="number"
                   value={testAmount}
                   onChange={(e) => setTestAmount(Number(e.target.value))}
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 text-white px-3 py-1.5 text-xs outline-none focus:border-[#fce3bc]"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-300 block mb-1 font-medium">
+                <label className="text-xs text-slate-300 block mb-1 font-bold">
                   Lời nhắn test
                 </label>
                 <textarea
                   rows={2}
                   value={testMessage}
                   onChange={(e) => setTestMessage(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900 border border-[#bd9867]/60 text-white px-3 py-1.5 text-xs outline-none focus:border-[#fce3bc]"
                 />
               </div>
 
@@ -779,7 +776,7 @@ export default function StreamTab({
                   handleSendTestAlert(testName, testAmount, testMessage)
                 }
                 disabled={isTesting}
-                className="w-full py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-800 text-slate-950 font-bold rounded-lg transition text-xs flex items-center justify-center gap-1.5"
+                className="w-full py-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 disabled:opacity-50 text-white font-black transition text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md uppercase tracking-wider"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>
@@ -790,15 +787,15 @@ export default function StreamTab({
           </div>
 
           {/* Today's donations list */}
-          <div className="bg-slate-900/40 border border-slate-800 rounded-md p-6 shadow-md space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
-              <h3 className="font-semibold text-white flex items-center gap-2 text-base">
+          <div className="bg-[#1d182b]/90 border border-[#bd9867]/60 p-6 shadow-xl space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-[#bd9867]/40">
+              <h3 className="font-extrabold text-[#fce3bc] flex items-center gap-2 text-base uppercase tracking-wider">
                 <Clock className="w-4.5 h-4.5 text-emerald-400" />
                 <span>Đã chuyển hôm nay</span>
               </h3>
               <button
                 onClick={fetchTodayDonations}
-                className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+                className="text-xs text-[#fce3bc] hover:underline font-bold cursor-pointer"
               >
                 Làm mới
               </button>
@@ -817,17 +814,17 @@ export default function StreamTab({
                 {todayDonations.map((don) => (
                   <div
                     key={don.id}
-                    className="p-3 bg-slate-950/60 rounded-md border border-slate-800 flex items-center justify-between gap-2"
+                    className="p-3 bg-black/40 border border-[#bd9867]/40 flex items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
-                      <div className="font-semibold text-xs text-emerald-400">
+                      <div className="font-bold text-xs text-emerald-400">
                         {don.ten_nguoi_ung_ho || "Ẩn danh"}
                       </div>
-                      <div className="text-xs font-bold text-white mt-0.5">
+                      <div className="text-xs font-black text-[#fce3bc] mt-0.5">
                         {don.so_tien.toLocaleString("vi-VN")}đ
                       </div>
                       {don.noi_dung && (
-                        <div className="text-[10px] text-slate-400 truncate max-w-[180px] mt-0.5">
+                        <div className="text-[10px] text-slate-300 truncate max-w-[180px] mt-0.5">
                           "{don.noi_dung}"
                         </div>
                       )}
@@ -840,7 +837,7 @@ export default function StreamTab({
                           don.noi_dung || "",
                         )
                       }
-                      className="px-2.5 py-1 bg-indigo-600/40 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-lg transition text-[10px] font-semibold shrink-0"
+                      className="px-2.5 py-1 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white hover:brightness-110 transition text-[10px] font-black shrink-0 cursor-pointer shadow-xs"
                     >
                       Phát lại Alert
                     </button>
@@ -855,29 +852,31 @@ export default function StreamTab({
       {/* Reusable Asset History Modal */}
       {showHistoryModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-md overflow-hidden flex flex-col max-h-[85vh]">
+          <div className="bg-[#1d182b] border border-[#bd9867] w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] shadow-2xl">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-[#bd9867]/40 flex items-center justify-between bg-black/40">
               <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-indigo-400" />
-                <h3 className="font-semibold text-white">Thư viện</h3>
+                <History className="w-5 h-5 text-[#fce3bc]" />
+                <h3 className="font-black text-[#fce3bc] uppercase tracking-wider">
+                  Thư viện
+                </h3>
               </div>
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="text-slate-400 hover:text-white text-sm"
+                className="text-slate-400 hover:text-white text-sm font-bold cursor-pointer"
               >
                 Đóng ✕
               </button>
             </div>
 
             {/* Modal Navigation */}
-            <div className="flex border-b border-slate-800 bg-slate-950/40">
+            <div className="flex border-b border-[#bd9867]/40 bg-black/60">
               <button
                 onClick={() => setHistoryTab("gif")}
-                className={`flex-1 py-3 text-sm font-semibold border-b-2 transition flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-3 text-sm font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
                   historyTab === "gif"
-                    ? "border-indigo-500 text-indigo-400"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    ? "bg-[#bd9867]/30 text-[#fce3bc] border-b-2 border-[#fce3bc]"
+                    : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 <ImageIcon className="w-4 h-4" />
@@ -885,10 +884,10 @@ export default function StreamTab({
               </button>
               <button
                 onClick={() => setHistoryTab("sound")}
-                className={`flex-1 py-3 text-sm font-semibold border-b-2 transition flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-3 text-sm font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
                   historyTab === "sound"
-                    ? "border-indigo-500 text-indigo-400"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    ? "bg-[#bd9867]/30 text-[#fce3bc] border-b-2 border-[#fce3bc]"
+                    : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 <Music className="w-4 h-4" />
@@ -920,10 +919,10 @@ export default function StreamTab({
                             "success",
                           );
                         }}
-                        className={`group relative aspect-square bg-slate-950 border border-slate-800 rounded-md overflow-hidden hover:border-indigo-500 transition-all ${
+                        className={`group relative aspect-square bg-slate-900 border overflow-hidden transition-all cursor-pointer ${
                           appearance.streamAlertGif === url
-                            ? "ring-2 ring-indigo-500"
-                            : ""
+                            ? "border-[#fce3bc] scale-[1.02]"
+                            : "border-[#bd9867]/40 hover:border-[#bd9867]"
                         }`}
                       >
                         <img
@@ -932,7 +931,7 @@ export default function StreamTab({
                           className="w-full h-full object-contain p-1"
                         />
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-[10px] text-white font-bold bg-indigo-600 px-2 py-1 rounded">
+                          <span className="text-[10px] text-white font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] px-2 py-1">
                             CHỌN
                           </span>
                         </div>
@@ -951,14 +950,14 @@ export default function StreamTab({
                     return (
                       <div
                         key={i}
-                        className={`p-3 bg-slate-950/80 border rounded-md flex items-center justify-between gap-3 ${
+                        className={`p-3 bg-black/40 border flex items-center justify-between gap-3 ${
                           appearance.streamAlertSound === url
-                            ? "border-indigo-500"
-                            : "border-slate-800"
+                            ? "border-[#fce3bc]"
+                            : "border-[#bd9867]/40"
                         }`}
                       >
                         <div className="min-w-0 flex-1">
-                          <span className="text-xs text-slate-200  truncate block">
+                          <span className="text-xs text-[#fce3bc] font-bold truncate block">
                             {decodeURIComponent(name)}
                           </span>
                         </div>
@@ -969,7 +968,7 @@ export default function StreamTab({
                               a.volume = 0.5;
                               a.play().catch(() => {});
                             }}
-                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs"
+                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer"
                           >
                             Nghe thử
                           </button>
@@ -982,7 +981,7 @@ export default function StreamTab({
                                 "success",
                               );
                             }}
-                            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold"
+                            className="px-2.5 py-1 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-black cursor-pointer"
                           >
                             Chọn dùng
                           </button>
