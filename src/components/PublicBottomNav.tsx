@@ -16,20 +16,36 @@ export default function PublicBottomNav({
   postsCount,
 }: PublicBottomNavProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-slate-100 px-4 py-2 sm:py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-md border-t border-[#bd9867]/60 sm:py-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)] bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `url('image/Decor/bg-header.jpg')`,
+      }}
+    >
       <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
         {/* Button 1: Liên hệ / Liên kết */}
         <button
           onClick={() => setPublicTab("links")}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
             publicTab === "links"
-              ? "font-extrabold"
-              : "text-slate-400 hover:text-slate-600 "
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              : "hover:opacity-80"
           }`}
-          style={publicTab === "links" ? { color: appearance.accentColor } : {}}
         >
-          <LucideIcon name="Link2" size={18} />
-          <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+          <LucideIcon
+            name="Link2"
+            size={18}
+            className={
+              publicTab === "links" ? "text-white" : "stroke-[#bd9867]"
+            }
+          />
+          <span
+            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+              publicTab === "links"
+                ? "text-white"
+                : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
+            }`}
+          >
             Liên hệ
           </span>
         </button>
@@ -37,17 +53,26 @@ export default function PublicBottomNav({
         {/* Button 2: Trang bị */}
         <button
           onClick={() => setPublicTab("guides")}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
             publicTab === "guides"
-              ? "font-extrabold"
-              : "text-slate-400 hover:text-slate-600 "
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              : "hover:opacity-80"
           }`}
-          style={
-            publicTab === "guides" ? { color: appearance.accentColor } : {}
-          }
         >
-          <LucideIcon name="BookOpen" size={18} />
-          <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+          <LucideIcon
+            name="BookOpen"
+            size={18}
+            className={
+              publicTab === "guides" ? "text-white" : "stroke-[#bd9867]"
+            }
+          />
+          <span
+            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+              publicTab === "guides"
+                ? "text-white"
+                : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
+            }`}
+          >
             Trang bị
           </span>
         </button>
@@ -55,15 +80,26 @@ export default function PublicBottomNav({
         {/* Button 3: Bài viết */}
         <button
           onClick={() => setPublicTab("posts")}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer relative ${
+          className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer relative ${
             publicTab === "posts"
-              ? "font-extrabold"
-              : "text-slate-400 hover:text-slate-600 "
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              : "hover:opacity-80"
           }`}
-          style={publicTab === "posts" ? { color: appearance.accentColor } : {}}
         >
-          <LucideIcon name="FileText" size={18} />
-          <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+          <LucideIcon
+            name="FileText"
+            size={18}
+            className={
+              publicTab === "posts" ? "text-white" : "stroke-[#bd9867]"
+            }
+          />
+          <span
+            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+              publicTab === "posts"
+                ? "text-white"
+                : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
+            }`}
+          >
             Bài viết
           </span>
         </button>
@@ -71,17 +107,28 @@ export default function PublicBottomNav({
         {/* Button 4: Ủng hộ */}
         <button
           onClick={() => setPublicTab("donate")}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
             publicTab === "donate"
-              ? "font-extrabold"
-              : "text-slate-400 hover:text-slate-600 "
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              : "hover:opacity-80"
           }`}
-          style={
-            publicTab === "donate" ? { color: appearance.accentColor } : {}
-          }
         >
-          <LucideIcon name="Heart" size={18} />
-          <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
+          <LucideIcon
+            name="Heart"
+            size={18}
+            className={
+              publicTab === "donate"
+                ? "text-white fill-white"
+                : "stroke-[#bd9867]"
+            }
+          />
+          <span
+            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+              publicTab === "donate"
+                ? "text-white"
+                : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
+            }`}
+          >
             Ủng hộ
           </span>
         </button>

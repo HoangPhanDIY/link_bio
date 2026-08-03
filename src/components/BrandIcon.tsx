@@ -42,7 +42,7 @@ export default function BrandIcon({
       <img
         src={iconName}
         alt=""
-        className={`${className} w-full h-full object-cover rounded`}
+        className={`${className} w-full h-full object-cover`}
         style={{ backgroundColor: "transparent" }}
         referrerPolicy="no-referrer"
       />

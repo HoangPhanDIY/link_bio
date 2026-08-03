@@ -22,16 +22,16 @@ export default function PublicLinksTab({
   const isSystem = colorMode === "system";
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-3 animate-in fade-in duration-300">
       {/* Section Title */}
-      <div className="flex items-center gap-2">
-        <h2 className={`text-xl font-bold uppercase tracking-wider text-black`}>
-          Liên kết cá nhân
+      <div className="flex items-center">
+        <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
+          LIÊN KẾT CÁ NHÂN
         </h2>
       </div>
 
       {/* Public Links list */}
-      <div className="w-full grid grid-cols-1 gap-4">
+      <div className="w-full grid grid-cols-1 gap-3">
         {links
           .filter((l) => l.enabled)
           .map((link) => {
@@ -42,23 +42,24 @@ export default function PublicLinksTab({
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => onLinkClick(link.id)}
-                className={`flex items-center p-3.5 px-4.5 border-2 rounded-md hover:shadow-md transition-all hover:-translate-y-0.5 group active:scale-[0.99] ${
-                  isDarkPublic
-                    ? "bg-slate-900/60 hover:bg-slate-850"
-                    : "bg-white shadow-xs hover:bg-slate-50/50"
-                }`}
+                className="flex items-center p-3 border-1 transition-all hover:-translate-y-0.5 group active:scale-[0.99] shadow-xs backdrop-blur-md"
                 style={{
-                  backgroundColor:
-                    (isSystem && appearance.linkBackgroundColor) || undefined,
-                  borderColor:
-                    isSystem && appearance.linkBackgroundColor
-                      ? "transparent"
-                      : `${appearance.accentColor}30`, // semi-transparent primary color border
-                  borderLeft: `5px solid ${appearance.accentColor}`, // solid main primary color thick left accent
+                  borderColor: "rgb(156, 140, 103)",
+                  background: "rgba(29, 24, 43, 0.75)",
                 }}
+                // className={`flex items-center p-3.5 px-4.5 border-2 transition-all hover:-translate-y-0.5 group active:scale-[0.99] bg-white shadow-xs hover:bg-slate-50/50`}
+                // style={{
+                //   backgroundColor:
+                //     (isSystem && appearance.linkBackgroundColor) || undefined,
+                //   borderColor:
+                //     isSystem && appearance.linkBackgroundColor
+                //       ? "transparent"
+                //       : `${appearance.accentColor}30`, // semi-transparent primary color border
+                //   borderLeft: `5px solid ${appearance.accentColor}`, // solid main primary color thick left accent
+                // }}
               >
                 <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center mr-4 shrink-0 transition-all ${
+                  className={`w-11 h-11 flex items-center justify-center mr-4 shrink-0 transition-all ${
                     isCustomIcon(link.icon)
                       ? "p-0 bg-transparent border-0"
                       : "p-1 bg-white  shadow-sm border border-slate-100  text-slate-800 "
@@ -73,20 +74,20 @@ export default function PublicLinksTab({
 
                 <div className="flex-1 min-w-0 pr-3">
                   <p
-                    className="font-extrabold text-sm sm:text-base transition-colors"
-                    style={{
-                      color:
-                        (isSystem && appearance.linkTextColor) ||
-                        (isDarkPublic ? "#ffffff" : "#1e293b"),
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = appearance.accentColor;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color =
-                        (isSystem && appearance.linkTextColor) ||
-                        (isDarkPublic ? "#ffffff" : "#1e293b");
-                    }}
+                    className="font-extrabold text-lg bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
+                    // style={{
+                    //   color:
+                    //     (isSystem && appearance.linkTextColor) ||
+                    //     (isDarkPublic ? "#ffffff" : "#1e293b"),
+                    // }}
+                    // onMouseEnter={(e) => {
+                    //   e.currentTarget.style.color = appearance.accentColor;
+                    // }}
+                    // onMouseLeave={(e) => {
+                    //   e.currentTarget.style.color =
+                    //     (isSystem && appearance.linkTextColor) ||
+                    //     (isDarkPublic ? "#ffffff" : "#1e293b");
+                    // }}
                   >
                     {link.title}
                   </p>
@@ -94,13 +95,13 @@ export default function PublicLinksTab({
 
                 <LucideIcon
                   name="chevron_right"
-                  className="transition-transform group-hover:translate-x-1"
-                  style={{
-                    color:
-                      (isSystem && appearance.linkTextColor) ||
-                      appearance.accentColor,
-                  }}
-                  size={18}
+                  className="text-[#fce3bc] transition-all duration-200 group-hover:translate-x-1"
+                  // style={{
+                  //   color:
+                  //     (isSystem && appearance.linkTextColor) ||
+                  //     appearance.accentColor,
+                  // }}
+                  // size={18}
                 />
               </a>
             );
@@ -108,7 +109,7 @@ export default function PublicLinksTab({
 
         {links.filter((l) => l.enabled).length === 0 && (
           <div
-            className={`text-center p-12 border border-dashed rounded-md font-sans text-sm ${
+            className={`text-center p-12 border border-dashed font-sans text-sm ${
               isDarkPublic
                 ? "border-slate-800 text-slate-500 bg-slate-900/50"
                 : "border-slate-200 text-slate-400 bg-slate-50/50"

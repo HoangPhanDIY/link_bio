@@ -136,10 +136,19 @@ export const dbService = {
   async getProfile(): Promise<DBUser | null> {
     // Execute profile query and configuration table queries concurrently in 1 parallel batch
     const [profileRes, gdRes, dnRes, saRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("vai_tro", 1).limit(1).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("vai_tro", 1)
+        .limit(1)
+        .maybeSingle(),
       supabase.from("cai_dat_giao_dien").select("*").eq("id", 1).maybeSingle(),
       supabase.from("cai_dat_donate").select("*").eq("id", 1).maybeSingle(),
-      supabase.from("cai_dat_stream_alert").select("*").eq("id", 1).maybeSingle(),
+      supabase
+        .from("cai_dat_stream_alert")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle(),
     ]);
 
     let profile = profileRes.data;
@@ -870,9 +879,7 @@ export const dbService = {
         ? handleQuery(supabase.from("tuong").select("*").in("id", tuongIds))
         : Promise.resolve([]),
       phuTroIds.length > 0
-        ? handleQuery(
-            supabase.from("phu_tro").select("*").in("id", phuTroIds),
-          )
+        ? handleQuery(supabase.from("phu_tro").select("*").in("id", phuTroIds))
         : Promise.resolve([]),
       handleQuery(
         supabase
@@ -919,9 +926,7 @@ export const dbService = {
         ? handleQuery(supabase.from("trang_bi").select("*").in("id", itemIds))
         : Promise.resolve([]),
       badgeIds.length > 0
-        ? handleQuery(
-            supabase.from("phu_hieu").select("*").in("id", badgeIds),
-          )
+        ? handleQuery(supabase.from("phu_hieu").select("*").in("id", badgeIds))
         : Promise.resolve([]),
       runeIds.length > 0
         ? handleQuery(supabase.from("ngoc").select("*").in("id", runeIds))
@@ -956,8 +961,7 @@ export const dbService = {
       let ngocXanh = "";
       const runesList = gRunes.map((rd) => {
         const matchedRune = runes.find((r) => r.id === rd.ngoc_id);
-        if (rd.vi_tri_o === 0)
-          ngocDo = rd.mo_ta || matchedRune?.ten_ngoc || "";
+        if (rd.vi_tri_o === 0) ngocDo = rd.mo_ta || matchedRune?.ten_ngoc || "";
         if (rd.vi_tri_o === 1)
           ngocTim = rd.mo_ta || matchedRune?.ten_ngoc || "";
         if (rd.vi_tri_o === 2)
@@ -968,11 +972,7 @@ export const dbService = {
           : {
               id: rd.ngoc_id || "",
               ten_ngoc:
-                rd.vi_tri_o === 0
-                  ? "Đỏ"
-                  : rd.vi_tri_o === 1
-                    ? "Tím"
-                    : "Xanh",
+                rd.vi_tri_o === 0 ? "Đỏ" : rd.vi_tri_o === 1 ? "Tím" : "Xanh",
               mau: rd.vi_tri_o,
               mo_ta: rd.mo_ta || "",
               url_hinh_anh:
@@ -1299,7 +1299,10 @@ export const dbService = {
     })) as DBPost[];
   },
 
-  async togglePinPost(id: string, currentStatus?: number): Promise<DBPost | null> {
+  async togglePinPost(
+    id: string,
+    currentStatus?: number,
+  ): Promise<DBPost | null> {
     if (!isUUID(id)) return null;
     const newStatus = currentStatus === 2 ? 1 : 2; // 2 = Pinned, 1 = Normal
     const data = await handleQuery(

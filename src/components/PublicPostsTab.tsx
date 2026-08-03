@@ -24,15 +24,15 @@ export default function PublicPostsTab({
   showNotification,
 }: PublicPostsTabProps) {
   return (
-    <div className="space-y-6 animate-in fade-in duration-300 pb-8 text-left">
+    <div className="space-y-3 animate-in fade-in duration-300 pb-8 text-left">
       {/* Section Title */}
-      <div className="flex items-center gap-2">
-        <h2 className={`text-xl font-bold uppercase tracking-wider text-black`}>
-          Bài viết
+      <div className="flex items-center">
+        <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
+          BÀI VIẾT
         </h2>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {(() => {
           const sortedPosts = [...posts].sort((a, b) => {
             const aPinned = a.trang_thai === 2 ? 1 : 0;
@@ -59,13 +59,9 @@ export default function PublicPostsTab({
             return (
               <div
                 key={post.id}
-                className={`border rounded-xl p-3.5 shadow-xs flex flex-col gap-2.5 relative ${
+                className={`border-1 p-2 shadow-xs flex flex-col gap-2.5 relative text-slate-100 bg-slate-900/50 backdrop-blur-md [border-image:linear-gradient(to_top,#bd9867,#fce3bc)_1] ${
                   isPinned ? "border-amber-400/60 ring-1 ring-amber-400/20" : ""
-                } ${
-                  isDarkPublic
-                    ? "bg-slate-900 border-slate-800 text-white"
-                    : "bg-white border-slate-100 text-slate-800"
-                }`}
+                } `}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -209,9 +205,9 @@ export default function PublicPostsTab({
 
         {posts.length === 0 && (
           <div
-            className={`text-center p-12 border border-dashed rounded-3xl font-sans text-xs border-slate-200 text-slate-400 bg-slate-50/50`}
+            className={`text-center font-sans text-xs border-slate-200 text-slate-400`}
           >
-            Chưa có nào được đăng gần đây.
+            Chưa có bài viết nào.
           </div>
         )}
       </div>

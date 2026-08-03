@@ -242,8 +242,8 @@ export default function PublicBuildGuides({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className={`text-xl font-bold uppercase tracking-wider text-black`}>
+      <div className="flex items-center">
+        <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
           TRANG BỊ ĐỀ CỬ CÁ NHÂN
         </h2>
       </div>
@@ -297,13 +297,17 @@ export default function PublicBuildGuides({
           return (
             <div
               key={champId}
-              className={`rounded-md p-2 transition-all shadow-sm bg-white text-slate-800`}
+              className="p-2 border transition-all shadow-sm text-[#fce3bc] backdrop-blur-md"
+              style={{
+                borderColor: "#bd9867",
+                background: "rgba(29, 24, 43, 0.7)",
+              }}
             >
               {/* Champion & Title Header */}
-              <div className="flex sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-dashed border-slate-100 dark:border-slate-800/80">
+              <div className="flex sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#bd9867]">
                 <div className="flex items-center gap-3">
                   {/* Champ avatar */}
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-sm relative shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 overflow-hidden border border-[#bd9867] shadow-sm relative shrink-0">
                     {champ?.url_anh_dai_dien ? (
                       <img
                         src={champ.url_anh_dai_dien}
@@ -321,17 +325,16 @@ export default function PublicBuildGuides({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold text-sm sm:text-base">
-                        {champ?.ten_tuong || "Tướng ẩn"}
+                        {champ?.ten_tuong}
                       </span>
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                        {champ?.vai_tro || "Đấu sĩ"}
-                      </span>
+                      {/* <span className="font-extrabold text-sm sm:text-base">
+                        {champ?.vai_tro}
+                      </span> */}
                     </div>
 
                     {championGuides.length > 1 ? (
-                      <span className="text-[10px] text-slate-800 dark:text-slate-500 mt-0.5 block">
-                        Có {championGuides.length} lối lên đồ khuyên dùng khác
-                        nhau
+                      <span className="text-[12px] text-slate-400 block">
+                        Có {championGuides.length} lối lên đồ khác nhau
                       </span>
                     ) : (
                       <p
@@ -370,11 +373,11 @@ export default function PublicBuildGuides({
               {championGuides.length > 1 && (
                 <div className="mt-1">
                   <span
-                    className={`block text-[10px] font-black uppercase tracking-wider mb-2 text-black`}
+                    className={`block text-[12px] font-black uppercase tracking-wider mb-1 mt-1 text-white`}
                   >
-                    Chọn lối lên đồ:
+                    Chọn lối lên đồ
                   </span>
-                  <div className="flex flex-wrap gap-1.5 p-1 rounded border border-slate-300 dark:border-slate-850">
+                  <div className="flex flex-wrap gap-1.5 border border-[#bd9867]">
                     {championGuides.map((g, idx) => (
                       <button
                         key={g.id}
@@ -384,10 +387,10 @@ export default function PublicBuildGuides({
                             [champId]: idx,
                           }))
                         }
-                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                           safeIndex === idx
-                            ? "bg-white text-indigo-600 shadow-sm border-[0.5px] border-slate-150"
-                            : "text-slate-500 hover:bg-slate-100"
+                            ? "bg-[#bd9867] text-white shadow-sm border border-[#bd9867]"
+                            : "text-[#bd9867] hover:bg-[#bd9867]/10 hover:text-[#fce3bc]"
                         }`}
                       >
                         {g.tieu_de_giao_an}
@@ -401,21 +404,20 @@ export default function PublicBuildGuides({
               <div className="mt-1">
                 <div className="flex justify-between items-center mb-1">
                   <span
-                    className={`block text-[10px] font-bold uppercase tracking-wider text-black`}
+                    className={`block text-[12px] font-bold uppercase tracking-wider text-white`}
                   >
                     Trang bị & Phép bổ trợ:
                   </span>
                 </div>
 
                 <div className="grid grid-cols-7 gap-1.5 sm:gap-3.5 max-w-2xl">
-                  {/* Left: 6 Items */}
                   {currentGuide.trang_bi_list?.map((item, index) => (
                     <div
                       key={`${item.id}-${index}`}
                       className="flex flex-col items-center gap-1 group relative cursor-help"
                       title={`${item.ten_trang_bi}: ${item.mo_ta || ""}`}
                     >
-                      <div className="relative aspect-square w-full rounded overflow-hidden border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 transition-all hover:scale-105 hover:shadow-md">
+                      <div className="relative aspect-square w-full overflow-hidden border [border-image:linear-gradient(to_top,#bd9867,#fce3bc)_1] bg-slate-50 transition-all hover:scale-105 hover:shadow-md">
                         <img
                           src={item.url_hinh_anh}
                           className="w-full h-full object-cover"
@@ -456,7 +458,7 @@ export default function PublicBuildGuides({
 
               {/* Expandable Panel */}
               {isExpanded && (
-                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-4 animate-in slide-in-from-top duration-200">
+                <div className="mt-2 pt-2 space-y-4 animate-in slide-in-from-top duration-200">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Badge Column (Phù hiệu) */}
                     {currentGuide.phu_hieu_list &&
@@ -483,7 +485,7 @@ export default function PublicBuildGuides({
                         return (
                           <div className="bg-slate-950 p-2 rounded-md border border-slate-900 shadow-xl flex flex-col gap-3 text-left">
                             <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-                              <h4 className="text-[15px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                              <h4 className="text-[12px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
                                 <LucideIcon name="Award" size={14} />
                                 PHÙ HIỆU THAM KHẢO
                               </h4>
@@ -712,7 +714,7 @@ export default function PublicBuildGuides({
 
                     {/* Arcana Column (Bảng ngọc) */}
                     <div className="bg-slate-950 p-4 rounded-md border border-slate-900 shadow-xl flex flex-col gap-3   text-left">
-                      <h4 className="text-[15px] font-black uppercase tracking-wider text-white flex items-center gap-1.5 text-left">
+                      <h4 className="text-[12px] font-black uppercase tracking-wider text-white flex items-center gap-1.5 text-left">
                         <LucideIcon name="Zap" size={15} />
                         Bảng Ngọc tham khảo
                       </h4>
@@ -810,10 +812,10 @@ export default function PublicBuildGuides({
               )}
 
               {/* View details button footer */}
-              <div className="mt-3 pt-3 border-t border-slate-100/60 dark:border-slate-800/40 flex justify-end">
+              <div className="mt-3 pt-3 border-t border-[#bd9867]/30 flex justify-end">
                 <button
                   onClick={() => toggleExpand(champId)}
-                  className="px-3.5 py-1.5 text-[10px] font-bold rounded flex items-center gap-1.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer text-slate-500 dark:text-slate-400"
+                  className="px-3.5 py-1.5 text-[10px] font-bold flex items-center gap-1.5 border border-[#bd9867] hover:bg-[#bd9867]/10 hover:text-[#fce3bc] transition-all cursor-pointer text-[#bd9867]"
                 >
                   <span>{isExpanded ? "Thu gọn" : "Xem chi tiết"}</span>
                   <LucideIcon

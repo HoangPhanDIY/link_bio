@@ -185,11 +185,15 @@ export default function App() {
   useEffect(() => {
     async function initAndLoadDb() {
       try {
-        // Fetch essential initial data (profile, links, banners) concurrently in 1 parallel batch
-        const [profile, dbLinks, dbBanners] = await Promise.all([
+        // Fetch essential initial data (profile, links, banners, posts) concurrently in 1 parallel batch
+        const [profile, dbLinks, dbBanners, dbPosts] = await Promise.all([
           dbService.getProfile(),
           dbService.getLinks(),
           dbService.getBanners(),
+          dbService.getPosts().catch((e) => {
+            console.warn("Initial posts fetch warning:", e);
+            return [];
+          }),
         ]);
 
         if (profile) {
@@ -257,6 +261,11 @@ export default function App() {
               bannerUrl: prev.bannerUrl || activeBanners[0],
             }));
           }
+        }
+
+        if (dbPosts) {
+          setPosts(dbPosts);
+          setHasLoadedPosts(true);
         }
       } catch (err) {
         console.error("Error during initial DB load:", err);
@@ -1213,7 +1222,7 @@ export default function App() {
     isDark: boolean = false,
   ) => (
     <div
-      className={`flex flex-col items-center justify-center py-12 px-6 border rounded-2xl shadow-xs animate-in fade-in duration-300 ${isDark ? "border-slate-800 bg-slate-900/40" : "border-slate-100 bg-white"}`}
+      className={`flex flex-col items-center justify-center py-12 px-6 animate-in fade-in duration-300`}
     >
       <img
         src={appearance.loadingDataGif || "/giphy.webp"}
@@ -1389,7 +1398,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen font-sans flex flex-col transition-all duration-500 ${
+      className={`min-h-screen font-sans flex flex-col transition-all duration-500 bg-center bg-cover bg-no-repeat bg-fixed ${
         isAdminMode
           ? "bg-[#f7f9fb] text-slate-800 lg:pl-64"
           : isDarkPublic
@@ -1399,12 +1408,15 @@ export default function App() {
       style={
         !isAdminMode
           ? {
+              backgroundImage: "url('/image/Decor/bg-academy.jpg')",
+              backgroundPosition: "center center",
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              backgroundAttachment: "fixed",
               backgroundColor:
                 colorMode === "system" && appearance.backgroundColor
                   ? appearance.backgroundColor
-                  : isDarkPublic
-                    ? "#0c0d1b"
-                    : `${appearance.accentColor}0a`,
+                  : undefined,
             }
           : undefined
       }
@@ -1441,43 +1453,46 @@ export default function App() {
       {/* Public Navigation Header - Visible when NOT in Admin panel */}
       {!isAdminMode && (
         <header
-          className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors duration-300 "bg-white/85 border-slate-100 text-slate-800"}`}
+          className="sticky top-0 z-40 backdrop-blur-md border-b border-[#bd9867]/60 shadow-[0_4px_24px_rgba(0,0,0,0.3)] bg-cover bg-center bg-no-repeat transition-colors duration-300"
+          style={{
+            backgroundImage: `url('image/Decor/bg-header.jpg')`,
+          }}
         >
-          <div className="flex justify-between items-center w-full p-2 max-w-7xl mx-auto">
-            <img src="logo.png" alt="Logo" className="w-10 h-10" />
-            {/* Logo Brand Title */}
-            {/* <div
-              className="flex items-center gap-2 cursor-pointer"
+          <div className="flex justify-between items-center w-full px-3 py-3 max-w-7xl mx-auto">
+            <div
+              className="flex items-center gap-2.5 cursor-pointer select-none group"
               onClick={() => setPublicTab("links")}
             >
-              <span
-                className="font-display text-lg font-black tracking-tight"
-                style={{ color: appearance.accentColor }}
-              >
-                {appearance.name || "Alex Rivera"}
-              </span>
-            </div> */}
+              {/* Logo lấy từ thư mục public */}
+              <img
+                src="/logo-light.png"
+                alt={appearance.name || "Logo"}
+                className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 group-hover:scale-105 transition-transform"
+              />
+            </div>
 
             {/* Right side Profile & Login buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {isAuthenticated && loggedInUser ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   {/* User Avatar & Info */}
                   <div className="flex items-center gap-2">
-                    <img
-                      src={
-                        loggedInUser.avatar_url ||
-                        "/image/tuong/DauSi/Florentino.jpg"
-                      }
-                      alt={loggedInUser.ten_dang_nhap}
-                      className="w-8 h-8 rounded-full border border-slate-200/50 object-cover shadow-sm bg-white"
-                      referrerPolicy="no-referrer"
-                    />
+                    <div className="w-8 h-8 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
+                      <img
+                        src={
+                          loggedInUser.avatar_url ||
+                          "/image/tuong/DauSi/Florentino.jpg"
+                        }
+                        alt={loggedInUser.ten_dang_nhap}
+                        className="w-full h-full object-cover bg-slate-900"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
                     <div className="hidden sm:block text-left">
-                      <p className="text-xs font-black leading-tight">
+                      <p className="text-xs font-black leading-tight bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
                         {loggedInUser.ten_dang_nhap}
                       </p>
-                      <p className="text-[10px] text-slate-400 font-bold">
+                      <p className="text-[10px] text-slate-300 font-bold">
                         {loggedInUser.vai_tro === 1
                           ? "Quản trị viên"
                           : "Thành viên"}
@@ -1488,6 +1503,7 @@ export default function App() {
                   {/* If Admin, show a button to go to Management Dashboard */}
                   {loggedInUser.vai_tro === 1 && (
                     <button
+                      type="button"
                       onClick={() => {
                         setIsAdminMode(true);
                         setActiveTab("links");
@@ -1496,16 +1512,20 @@ export default function App() {
                           "true",
                         );
                       }}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-90 shadow-sm active:scale-95"
-                      style={{ backgroundColor: appearance.accentColor }}
+                      className="px-3.5 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer hover:brightness-110 shadow-md active:scale-95"
                     >
-                      <LucideIcon name="Settings" size={13} />
+                      <LucideIcon
+                        name="Settings"
+                        size={13}
+                        className="text-white"
+                      />
                       <span className="hidden sm:inline">Bảng Quản Trị</span>
                     </button>
                   )}
 
                   {/* Sign Out Button */}
                   <button
+                    type="button"
                     onClick={() => {
                       setIsAuthenticated(false);
                       setLoggedInUser(null);
@@ -1514,7 +1534,7 @@ export default function App() {
                       localStorage.removeItem("vivid_persona_admin_mode");
                       showNotification("Đăng xuất thành công!", "info");
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${isDarkPublic ? "border-slate-800 text-slate-300 hover:bg-slate-900" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                    className="px-3 py-1.5 border border-[#bd9867]/60 bg-white/10 hover:bg-[#bd9867] text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
                     title="Đăng xuất"
                   >
                     <LucideIcon name="LogOut" size={13} />
@@ -1523,23 +1543,23 @@ export default function App() {
                 </div>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setIsLoggingIn(true)}
-                  className="px-4 py-1.5 rounded-md text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-90 shadow-sm active:scale-95"
-                  style={{ backgroundColor: appearance.accentColor }}
+                  className="px-4 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer hover:brightness-110 shadow-md active:scale-95"
                 >
-                  <LucideIcon name="LogIn" size={13} />
-                  <span>Đăng nhập</span>
+                  <LucideIcon name="LogIn" size={13} className="text-white" />
+                  <span className="hidden sm:inline">Đăng nhập</span>
                 </button>
               )}
 
-              {/* Share Website Button with 'Link' icon - Next to login button on the right */}
+              {/* Share Website Button with 'Link' icon */}
               <button
+                type="button"
                 onClick={() => setIsShareModalOpen(true)}
-                className={`px-2 py-1.5 rounded-md text-xs font-bold text-white transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-90 shadow-sm active:scale-95`}
-                style={{ backgroundColor: appearance.accentColor }}
+                className="px-2.5 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:brightness-110 shadow-md active:scale-95"
                 title="Chia sẻ trang web"
               >
-                <LucideIcon name="Link" size={14} />
+                <LucideIcon name="Link" size={14} className="text-white" />
               </button>
             </div>
           </div>
@@ -1743,7 +1763,7 @@ export default function App() {
                 )}
               </div>
               <span className="text-xs font-black text-slate-800 tracking-wider">
-                Admin
+                BẢNG QUẢN TRỊ
               </span>
             </div>
 
@@ -1783,6 +1803,21 @@ export default function App() {
       {/* Desktop Left Sidebar - ONLY visible when in Admin panel on desktop */}
       {isAdminMode && (
         <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 text-slate-200 border-r border-slate-800 z-30 shadow-xl transition-all duration-300">
+          {/* Sidebar Header: Brand / Logo */}
+          <div className="p-6 border-b border-slate-800/80 flex items-center gap-3">
+            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-600/25">
+              <LucideIcon name="Settings" size={18} />
+            </div>
+            <div>
+              <h2 className="text-xs font-black text-white tracking-wider">
+                BẢNG QUẢN TRỊ
+              </h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase">
+                Vivid Link Bio
+              </p>
+            </div>
+          </div>
+
           {/* User Info */}
           {loggedInUser && (
             <div className="px-6 py-4 border-b border-slate-800/60 bg-slate-950/25 flex items-center gap-3">
@@ -2040,8 +2075,8 @@ export default function App() {
       <main
         className={`flex-grow w-full mx-auto transition-all duration-300 ${
           isAdminMode
-            ? "px-4 sm:px-6 py-6 pb-16 sm:pb-24"
-            : "max-w-5xl px-4 sm:px-6 py-6 sm:py-12 pt-0 pb-16 sm:pb-24 flex flex-col"
+            ? "max-w-7xl px-4 sm:px-6 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
+            : "max-w-5xl px-2 sm:px-6 py-6 sm:py-12 pt-0 pb-16 sm:pb-24 flex flex-col" // Khoảng đệm khi là User
         }`}
       >
         {isAdminMode ? (
@@ -2237,6 +2272,7 @@ export default function App() {
                   isDarkPublic={isDarkPublic}
                   onLikePost={handleLikePost}
                   showNotification={showNotification}
+                  isLoading={isPostsLoading}
                 />
               )}
 
@@ -2253,7 +2289,12 @@ export default function App() {
               )}
 
               {/* Footer and branding navigation inline */}
-              <div className="pt-4 pb-0 border-t border-slate-100/50 flex flex-col items-center sm:flex-row sm:justify-between gap-4">
+              <img
+                src="/image/Decor/decor-footer-mo.png"
+                alt=""
+                className="pt-4"
+              />
+              <div className="pt-4 pb-0 flex flex-col items-center sm:flex-row sm:justify-between gap-2">
                 <div className="flex gap-6 text-slate-400 text-xs font-medium">
                   <a
                     href="#privacy"

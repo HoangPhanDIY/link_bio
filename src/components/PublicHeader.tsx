@@ -14,7 +14,7 @@ export default function PublicHeader({
   return (
     <>
       {/* 1. Cover Banner (Ảnh bìa tĩnh) at the very top */}
-      <div className="w-full relative overflow-hidden rounded-md bg-slate-950 shadow-md h-40 sm:h-56 md:h-64 transition-all duration-300">
+      <div className="w-full relative overflow-hidden bg-slate-950 shadow-md h-40 sm:h-56 md:h-64 transition-all duration-300">
         {appearance.bannerUrl ? (
           <img
             src={appearance.bannerUrl}
@@ -31,34 +31,27 @@ export default function PublicHeader({
       </div>
 
       {/* 2. Avatar overlaps the banner slightly and the text aligns to its lower quarter consistently */}
-      <div className="relative px-4 sm:px-8 z-10 md:-mt-12 -mt-6 mb-4">
+      <div className="relative px-4 sm:px-8 z-10 md:-mt-12 -mt-6 mb-2">
         <div className="flex items-end gap-4">
           {/* Overlapping Avatar */}
-          <div className="shrink-0 -mt-2">
-            <div
-              className={`md:w-36 md:h-36 w-24 h-24 sm:w-18 sm:h-18 rounded-full border-2 shadow-xl overflow-hidden transition-all duration-300`}
-              style={{ borderColor: appearance.accentColor }}
-            >
+          <div className="md:w-36 md:h-36 w-24 h-24 sm:w-18 sm:h-18 rounded-full shadow-xl overflow-hidden transition-all duration-300 p-[2px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc]">
+            <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-slate-900">
+              {/* Chèn thẻ <img> hoặc nội dung avatar của bạn ở đây */}
               <img
-                src={
-                  appearance.avatarUrl || "/image/tuong/DauSi/Florentino.jpg"
-                }
-                alt={appearance.name}
+                src={appearance.avatarUrl}
+                alt="Avatar"
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
               />
             </div>
           </div>
 
           {/* Identity details */}
           <div className="flex-1 min-w-0 text-left self-end pb-2">
-            <h1
-              className={`text-xl sm:text-2xl md:text-3xl font-black leading-tight tracking-tight text-slate-800`}
-            >
+            <h1 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
               {appearance.name || "N/A"}
             </h1>
             <p
-              className={`text-xs sm:text-sm font-medium mt-1 leading-relaxed max-w-2xl text-slate-600`}
+              className={`text-xs sm:text-sm font-medium leading-relaxed max-w-2xl text-white`}
             >
               {appearance.bio || "N/A"}
             </p>
@@ -80,10 +73,7 @@ export default function PublicHeader({
       </div> */}
 
       {/* 4. Subtle accent color divider for public layout space */}
-      <div
-        className="h-[1px] w-full mt-2 opacity-20"
-        style={{ backgroundColor: appearance.accentColor }}
-      />
+      <img src="/image/Decor/decor-title.png" alt="" />
     </>
   );
 }
