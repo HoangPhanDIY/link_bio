@@ -18,6 +18,7 @@ interface PostsTabProps {
     lienKetId: string | null,
   ) => Promise<void>;
   onDeletePost: (id: string) => Promise<void>;
+  onTogglePinPost?: (id: string, currentStatus?: number) => Promise<void>;
   accentColor: string;
 }
 
@@ -27,6 +28,7 @@ export default function PostsTab({
   onAddPost,
   onUpdatePost,
   onDeletePost,
+  onTogglePinPost,
   accentColor,
 }: PostsTabProps) {
   const [content, setContent] = useState("");
@@ -312,6 +314,19 @@ export default function PostsTab({
                   className="bg-white border border-slate-100 rounded-md p-5 shadow-xs hover:shadow-md transition-all flex flex-col gap-3 relative group"
                 >
                   <div className="absolute top-4 right-4 flex items-center gap-2 lg:opacity-0 group-hover:opacity-100 transition-all duration-200">
+                    {onTogglePinPost && (
+                      <button
+                        onClick={() => onTogglePinPost(post.id, post.trang_thai)}
+                        className={`p-2 rounded transition-colors cursor-pointer ${
+                          post.trang_thai === 2
+                            ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                        title={post.trang_thai === 2 ? "Bỏ ghim bài viết" : "Ghim bài viết lên đầu"}
+                      >
+                        <LucideIcon name="Pin" size={14} className={post.trang_thai === 2 ? "fill-amber-600" : ""} />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleStartEdit(post)}
                       className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-700 p-2 rounded transition-colors cursor-pointer"
@@ -328,17 +343,32 @@ export default function PostsTab({
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600 border border-slate-200">
-                      AD
+                  <div className="flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-600 border border-slate-200 shrink-0">
+                        AD
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-800">
+                            Quản trị viên
+                          </h4>
+                          {post.trang_thai === 2 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-300 text-[10px] font-extrabold uppercase">
+                              <LucideIcon name="Pin" size={10} className="fill-amber-600" />
+                              Đã ghim
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-400">
+                          {formattedDate}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-800">
-                        Quản trị viên
-                      </h4>
-                      <p className="text-[10px] text-slate-400 ">
-                        {formattedDate}
-                      </p>
+
+                    <div className="flex items-center gap-1 text-xs font-bold text-rose-500 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100 shrink-0">
+                      <LucideIcon name="Heart" size={12} className="fill-rose-500" />
+                      <span>{post.luot_xem || 0} lượt thích</span>
                     </div>
                   </div>
 

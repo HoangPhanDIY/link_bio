@@ -203,12 +203,14 @@ interface PublicBuildGuidesProps {
   guides: DBBuildGuide[];
   isDark: boolean;
   accentColor: string;
+  onLikeGuide?: (guideId: string) => void;
 }
 
 export default function PublicBuildGuides({
   guides,
   isDark,
   accentColor,
+  onLikeGuide,
 }: PublicBuildGuidesProps) {
   const [expandedChampId, setExpandedChampId] = useState<string | null>(null);
 
@@ -298,7 +300,7 @@ export default function PublicBuildGuides({
               className={`rounded-md p-2 transition-all shadow-sm bg-white text-slate-800`}
             >
               {/* Champion & Title Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-dashed border-slate-100 dark:border-slate-800/80">
+              <div className="flex sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-dashed border-slate-100 dark:border-slate-800/80">
                 <div className="flex items-center gap-3">
                   {/* Champ avatar */}
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-sm relative shrink-0">
@@ -340,6 +342,27 @@ export default function PublicBuildGuides({
                       </p>
                     )}
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onLikeGuide) {
+                        onLikeGuide(currentGuide.id);
+                      }
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1 hover:bg-red-100 text-red-600 transition-all text-[15px] font-bold cursor-pointer active:scale-95 "
+                    title="Thích trang bị này"
+                  >
+                    <span>{currentGuide.luot_xem || 0}</span>
+                    <LucideIcon
+                      name="Heart"
+                      size={20}
+                      className="fill-red-500 text-red-500"
+                    />
+                  </button>
                 </div>
               </div>
 

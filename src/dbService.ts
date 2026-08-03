@@ -40,36 +40,6 @@ async function handleQuery<T = any>(promise: any): Promise<T | null> {
   }
 }
 
-// Simple in-memory cache to reduce repeated SELECTs on hot paths
-const _cache: Record<string, { ts: number; data: any }> = {};
-const CACHE_TTL_MS = 30 * 1000; // cache entries live for 30 seconds by default
-
-function readCache(key: string) {
-  const e = _cache[key];
-  if (!e) return null;
-  if (Date.now() - e.ts > CACHE_TTL_MS) {
-    delete _cache[key];
-    return null;
-  }
-  return e.data;
-}
-
-function writeCache(key: string, data: any) {
-  try {
-    _cache[key] = { ts: Date.now(), data };
-  } catch (err) {
-    // ignore cache write errors
-  }
-}
-
-function clearCache(key?: string) {
-  if (!key) {
-    for (const k of Object.keys(_cache)) delete _cache[k];
-    return;
-  }
-  delete _cache[key];
-}
-
 // Helper to generate a slug from string
 function makeSlug(str: string): string {
   return str
@@ -164,15 +134,15 @@ export const dbService = {
   },
 
   async getProfile(): Promise<DBUser | null> {
-    await ensureConfigTables();
+    // Execute profile query and configuration table queries concurrently in 1 parallel batch
+    const [profileRes, gdRes, dnRes, saRes] = await Promise.all([
+      supabase.from("profiles").select("*").eq("vai_tro", 1).limit(1).maybeSingle(),
+      supabase.from("cai_dat_giao_dien").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("cai_dat_donate").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("cai_dat_stream_alert").select("*").eq("id", 1).maybeSingle(),
+    ]);
 
-    // Fetch the admin user profile (vai_tro = 1)
-    let { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("vai_tro", 1)
-      .limit(1)
-      .maybeSingle();
+    let profile = profileRes.data;
 
     // Fallback if no admin is configured in DB yet
     if (!profile) {
@@ -199,27 +169,16 @@ export const dbService = {
       };
     }
 
-    // Fetch related configuration rows in parallel and return cached combined profile when possible
-    const cachedCombined = readCache("profile_combined");
-    if (cachedCombined) {
-      return cachedCombined as DBUser;
-    }
+    const gd = gdRes.data;
+    const dn = dnRes.data;
+    const sa = saRes.data;
 
-    const [gd, dn, sa] = await Promise.all([
-      handleQuery(
-        supabase.from("cai_dat_giao_dien").select("*").eq("id", 1).maybeSingle(),
-      ),
-      handleQuery(
-        supabase.from("cai_dat_donate").select("*").eq("id", 1).maybeSingle(),
-      ),
-      handleQuery(
-        supabase
-          .from("cai_dat_stream_alert")
-          .select("*")
-          .eq("id", 1)
-          .maybeSingle(),
-      ),
-    ]);
+    // Non-blocking check for missing config rows in background
+    if (!gd || !dn || !sa) {
+      ensureConfigTables().catch((err) =>
+        console.warn("ensureConfigTables warning:", err),
+      );
+    }
 
     // Merge into compatible big structure for UI backward compatibility
     const combined: any = {
@@ -236,6 +195,8 @@ export const dbService = {
       loading_web_gif: gd?.loading_web_gif || "/giphy.webp",
       loading_data_gif: gd?.loading_data_gif || "/giphy.webp",
       bao_tri: gd?.bao_tri || false,
+      nhan_tin_nhan: gd?.nhan_tin_nhan !== false,
+      newsletter_enabled: gd?.nhan_tin_nhan !== false,
 
       // Donate configuration
       bank_name: dn?.bank_name || "MB Bank",
@@ -257,13 +218,6 @@ export const dbService = {
       stream_alert_tts: sa?.alert_tts ?? true,
       stream_alert_duration: sa?.alert_duration || 8,
     };
-
-    // Cache combined profile for a short TTL to speed up repeated page loads
-    try {
-      writeCache("profile_combined", combined);
-    } catch (err) {
-      /* noop */
-    }
 
     return combined as DBUser;
   },
@@ -449,6 +403,10 @@ export const dbService = {
       interfaceUpdates.loading_data_gif = updates.loading_data_gif;
     if (updates.bao_tri !== undefined)
       interfaceUpdates.bao_tri = updates.bao_tri;
+    if ((updates as any).nhan_tin_nhan !== undefined)
+      interfaceUpdates.nhan_tin_nhan = (updates as any).nhan_tin_nhan;
+    if ((updates as any).newsletter_enabled !== undefined)
+      interfaceUpdates.nhan_tin_nhan = (updates as any).newsletter_enabled;
 
     if (Object.keys(interfaceUpdates).length > 0) {
       await supabase
@@ -505,21 +463,14 @@ export const dbService = {
   // 2. CATEGORIES & LINKS
   // ==========================================
   async getCategories(): Promise<DBCategory[]> {
-    const cached = readCache("categories");
-    if (cached) return cached as DBCategory[];
-
     const data = await handleQuery(
       supabase
         .from("danh_muc")
         .select("*")
         .order("thu_tu_uu_tien", { ascending: true }),
     );
-
-    const res = (data || []) as DBCategory[];
-    writeCache("categories", res);
-    return res;
+    return (data || []) as DBCategory[];
   },
-
 
   async saveCategory(
     category: Partial<DBCategory>,
@@ -557,9 +508,6 @@ export const dbService = {
   },
 
   async getLinks(): Promise<DBLink[]> {
-    const cached = readCache("links");
-    if (cached) return cached as DBLink[];
-
     const data = await handleQuery(
       supabase
         .from("duong_dan")
@@ -567,13 +515,10 @@ export const dbService = {
         .order("thu_tu_uu_tien", { ascending: true }),
     );
     // Map url_lien_ket to url_lienketing for compatibility
-    const res = ((data || []) as any[]).map((item) => ({
+    return ((data || []) as any[]).map((item) => ({
       ...item,
       url_lienketing: item.url_lien_ket,
     })) as DBLink[];
-
-    writeCache("links", res);
-    return res;
   },
 
   async saveLink(link: Partial<DBLink>): Promise<DBLink | null> {
@@ -618,22 +563,16 @@ export const dbService = {
   // 3. BANNERS
   // ==========================================
   async getBanners(): Promise<DBBanner[]> {
-    const cached = readCache("banners");
-    if (cached) return cached as DBBanner[];
-
     const data = await handleQuery(
       supabase
         .from("banner")
         .select("*")
         .order("thu_tu_uu_tien", { ascending: true }),
     );
-    const res = ((data || []) as any[]).map((item) => ({
+    return ((data || []) as any[]).map((item) => ({
       ...item,
       url_dieu_huong: item.url_lien_ket,
     })) as DBBanner[];
-
-    writeCache("banners", res);
-    return res;
   },
 
   async saveBanner(banner: Partial<DBBanner>): Promise<DBBanner | null> {
@@ -677,74 +616,38 @@ export const dbService = {
   // 4. GAME LIBRARY
   // ==========================================
   async getChampions(): Promise<DBChampion[]> {
-    const cached = readCache("champions");
-    if (cached) return cached as DBChampion[];
-
     const data = await handleQuery(
       supabase.from("tuong").select("*").order("ten_tuong"),
     );
-    const res = (data || []) as DBChampion[];
-    writeCache("champions", res);
-    return res;
+    return (data || []) as DBChampion[];
   },
 
   async getItems(): Promise<DBItem[]> {
-    const cached = readCache("items");
-    if (cached) return cached as DBItem[];
-
     const data = await handleQuery(
       supabase.from("trang_bi").select("*").order("cap", { ascending: false }),
     );
-    const res = (data || []) as DBItem[];
-    writeCache("items", res);
-    return res;
+    return (data || []) as DBItem[];
   },
 
   async getSpells(): Promise<DBSpell[]> {
-    const cached = readCache("spells");
-    if (cached) return cached as DBSpell[];
-
     const data = await handleQuery(
       supabase.from("phu_tro").select("*").order("ten_phu_tro"),
     );
-    const res = (data || []) as DBSpell[];
-    writeCache("spells", res);
-    return res;
+    return (data || []) as DBSpell[];
   },
 
   async getBadges(): Promise<DBBadge[]> {
-    const cached = readCache("badges");
-    if (cached) return cached as DBBadge[];
-
     const data = await handleQuery(
       supabase.from("phu_hieu").select("*").order("ten_phu_hieu"),
     );
-    const res = (data || []) as DBBadge[];
-    writeCache("badges", res);
-    return res;
+    return (data || []) as DBBadge[];
   },
 
   async getRunes(): Promise<DBRune[]> {
-    const cached = readCache("runes");
-    if (cached) return cached as DBRune[];
-
     const data = await handleQuery(
       supabase.from("ngoc").select("*").order("mau", { ascending: true }),
     );
-    const res = (data || []) as DBRune[];
-    writeCache("runes", res);
-    return res;
-  },
-
-  async getInitialData(): Promise<{ profile: DBUser | null; categories: DBCategory[]; links: DBLink[]; banners: DBBanner[] }> {
-    // Parallelize the common initial page queries so the frontend can call one endpoint
-    const [profile, categories, links, banners] = await Promise.all([
-      this.getProfile(),
-      this.getCategories(),
-      this.getLinks(),
-      this.getBanners(),
-    ]);
-    return { profile, categories, links, banners };
+    return (data || []) as DBRune[];
   },
 
   async seedGameLibraryIfNeeded(): Promise<void> {
@@ -943,125 +846,133 @@ export const dbService = {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error || !guides) {
+    if (error || !guides || guides.length === 0) {
       return [];
     }
 
-    const populatedGuides: DBBuildGuide[] = [];
+    const guideIds = guides.map((g: any) => g.id).filter(Boolean);
+    const tuongIds = Array.from(
+      new Set(guides.map((g: any) => g.tuong_id).filter(Boolean)),
+    );
+    const phuTroIds = Array.from(
+      new Set(guides.map((g: any) => g.phu_tro_id).filter(Boolean)),
+    );
 
-    for (const guide of guides as any[]) {
-      // 1. Fetch champion
-      const champ = await handleQuery(
-        supabase
-          .from("tuong")
-          .select("*")
-          .eq("id", guide.tuong_id)
-          .maybeSingle(),
-      );
-
-      // 2. Fetch spell (phu_tro)
-      let spell = null;
-      if (guide.phu_tro_id) {
-        spell = await handleQuery(
-          supabase
-            .from("phu_tro")
-            .select("*")
-            .eq("id", guide.phu_tro_id)
-            .maybeSingle(),
-        );
-      }
-
-      // 3. Fetch items list in order
-      const gearDetails = await handleQuery(
+    // Batch query 1: Fetch champions, spells, gear mappings, badge mappings, and rune mappings concurrently
+    const [
+      champsData,
+      spellsData,
+      gearDetailsData,
+      badgeDetailsData,
+      runeDetailsData,
+    ] = await Promise.all([
+      tuongIds.length > 0
+        ? handleQuery(supabase.from("tuong").select("*").in("id", tuongIds))
+        : Promise.resolve([]),
+      phuTroIds.length > 0
+        ? handleQuery(
+            supabase.from("phu_tro").select("*").in("id", phuTroIds),
+          )
+        : Promise.resolve([]),
+      handleQuery(
         supabase
           .from("chi_tiet_trang_bi_giao_an")
           .select("*")
-          .eq("giao_an_id", guide.id)
+          .in("giao_an_id", guideIds)
           .order("o_so", { ascending: true }),
-      );
-
-      const itemsList: DBItem[] = [];
-      if (gearDetails && gearDetails.length > 0) {
-        const itemIds = gearDetails.map((g: any) => g.trang_bi_id);
-        const fetchedItems = await handleQuery(
-          supabase.from("trang_bi").select("*").in("id", itemIds),
-        );
-        for (const gd of gearDetails) {
-          const matchedItem = (fetchedItems || []).find(
-            (item: any) => item.id === gd.trang_bi_id,
-          );
-          if (matchedItem) itemsList.push(matchedItem);
-        }
-      }
-
-      // 4. Fetch badges details
-      const badgeDetails = await handleQuery(
+      ),
+      handleQuery(
         supabase
           .from("chi_tiet_phu_hieu_giao_an")
           .select("*")
-          .eq("giao_an_id", guide.id),
-      );
-
-      const badgesList: DBBadge[] = [];
-      if (badgeDetails && badgeDetails.length > 0) {
-        const badgeIds = badgeDetails.map((b: any) => b.phu_hieu_id);
-        const fetchedBadges = await handleQuery(
-          supabase.from("phu_hieu").select("*").in("id", badgeIds),
-        );
-        for (const bd of badgeDetails) {
-          const matchedBadge = (fetchedBadges || []).find(
-            (badge: any) => badge.id === bd.phu_hieu_id,
-          );
-          if (matchedBadge) {
-            badgesList.push({
-              ...matchedBadge,
-              vi_tri_o: bd.vi_tri_o,
-            });
-          }
-        }
-      }
-
-      // 5. Fetch runes details
-      const runeDetails = await handleQuery(
+          .in("giao_an_id", guideIds),
+      ),
+      handleQuery(
         supabase
           .from("chi_tiet_ngoc_giao_an")
           .select("*")
-          .eq("giao_an_id", guide.id)
+          .in("giao_an_id", guideIds)
           .order("vi_tri_o", { ascending: true }),
-      );
+      ),
+    ]);
 
+    const champs = (champsData || []) as any[];
+    const spells = (spellsData || []) as any[];
+    const gearDetails = (gearDetailsData || []) as any[];
+    const badgeDetails = (badgeDetailsData || []) as any[];
+    const runeDetails = (runeDetailsData || []) as any[];
+
+    // Collect IDs for target items, badges, and runes
+    const itemIds = Array.from(
+      new Set(gearDetails.map((g: any) => g.trang_bi_id).filter(Boolean)),
+    );
+    const badgeIds = Array.from(
+      new Set(badgeDetails.map((b: any) => b.phu_hieu_id).filter(Boolean)),
+    );
+    const runeIds = Array.from(
+      new Set(runeDetails.map((r: any) => r.ngoc_id).filter(Boolean)),
+    );
+
+    // Batch query 2: Fetch target items, badges, runes concurrently
+    const [itemsData, badgesData, runesData] = await Promise.all([
+      itemIds.length > 0
+        ? handleQuery(supabase.from("trang_bi").select("*").in("id", itemIds))
+        : Promise.resolve([]),
+      badgeIds.length > 0
+        ? handleQuery(
+            supabase.from("phu_hieu").select("*").in("id", badgeIds),
+          )
+        : Promise.resolve([]),
+      runeIds.length > 0
+        ? handleQuery(supabase.from("ngoc").select("*").in("id", runeIds))
+        : Promise.resolve([]),
+    ]);
+
+    const items = (itemsData || []) as any[];
+    const badges = (badgesData || []) as any[];
+    const runes = (runesData || []) as any[];
+
+    // Map everything synchronously in memory
+    return (guides as any[]).map((guide) => {
+      const champ = champs.find((c) => c.id === guide.tuong_id);
+      const spell = spells.find((s) => s.id === guide.phu_tro_id);
+
+      const gGear = gearDetails.filter((gd) => gd.giao_an_id === guide.id);
+      const itemsList = gGear
+        .map((gd) => items.find((item) => item.id === gd.trang_bi_id))
+        .filter(Boolean);
+
+      const gBadges = badgeDetails.filter((bd) => bd.giao_an_id === guide.id);
+      const badgesList = gBadges
+        .map((bd) => {
+          const matched = badges.find((badge) => badge.id === bd.phu_hieu_id);
+          return matched ? { ...matched, vi_tri_o: bd.vi_tri_o } : null;
+        })
+        .filter(Boolean);
+
+      const gRunes = runeDetails.filter((rd) => rd.giao_an_id === guide.id);
       let ngocDo = "";
       let ngocTim = "";
       let ngocXanh = "";
-      const runesList: DBRune[] = [];
+      const runesList = gRunes.map((rd) => {
+        const matchedRune = runes.find((r) => r.id === rd.ngoc_id);
+        if (rd.vi_tri_o === 0)
+          ngocDo = rd.mo_ta || matchedRune?.ten_ngoc || "";
+        if (rd.vi_tri_o === 1)
+          ngocTim = rd.mo_ta || matchedRune?.ten_ngoc || "";
+        if (rd.vi_tri_o === 2)
+          ngocXanh = rd.mo_ta || matchedRune?.ten_ngoc || "";
 
-      if (runeDetails && runeDetails.length > 0) {
-        const runeIds = runeDetails.map((r: any) => r.ngoc_id);
-        const fetchedRunes = await handleQuery(
-          supabase.from("ngoc").select("*").in("id", runeIds),
-        );
-        for (const rd of runeDetails) {
-          const matchedRune = (fetchedRunes || []).find(
-            (rune: any) => rune.id === rd.ngoc_id,
-          );
-
-          if (rd.vi_tri_o === 0)
-            ngocDo = rd.mo_ta || (matchedRune ? matchedRune.ten_ngoc : "");
-          if (rd.vi_tri_o === 1)
-            ngocTim = rd.mo_ta || (matchedRune ? matchedRune.ten_ngoc : "");
-          if (rd.vi_tri_o === 2)
-            ngocXanh = rd.mo_ta || (matchedRune ? matchedRune.ten_ngoc : "");
-
-          if (matchedRune) {
-            runesList.push({
-              ...matchedRune,
-              vi_tri_o: rd.vi_tri_o,
-            });
-          } else {
-            runesList.push({
+        return matchedRune
+          ? { ...matchedRune, vi_tri_o: rd.vi_tri_o }
+          : {
               id: rd.ngoc_id || "",
               ten_ngoc:
-                rd.vi_tri_o === 0 ? "Đỏ" : rd.vi_tri_o === 1 ? "Tím" : "Xanh",
+                rd.vi_tri_o === 0
+                  ? "Đỏ"
+                  : rd.vi_tri_o === 1
+                    ? "Tím"
+                    : "Xanh",
               mau: rd.vi_tri_o,
               mo_ta: rd.mo_ta || "",
               url_hinh_anh:
@@ -1071,12 +982,10 @@ export const dbService = {
                     ? "/image/ngoc/tim.png"
                     : "/image/ngoc/xanh.png",
               vi_tri_o: rd.vi_tri_o,
-            });
-          }
-        }
-      }
+            };
+      });
 
-      populatedGuides.push({
+      return {
         ...guide,
         tuong: champ || undefined,
         phu_tro: spell || undefined,
@@ -1088,10 +997,8 @@ export const dbService = {
         ngoc_xanh: ngocXanh,
         kich_hoat: guide.trang_thai === 1,
         ngay_tao: guide.created_at,
-      });
-    }
-
-    return populatedGuides;
+      };
+    });
   },
 
   async saveBuildGuide(
@@ -1383,12 +1290,65 @@ export const dbService = {
       supabase
         .from("bai_viet")
         .select("*")
+        .order("trang_thai", { ascending: false })
         .order("created_at", { ascending: false }),
     );
     return ((data || []) as any[]).map((item) => ({
       ...item,
       ngay_tao: item.created_at,
     })) as DBPost[];
+  },
+
+  async togglePinPost(id: string, currentStatus?: number): Promise<DBPost | null> {
+    if (!isUUID(id)) return null;
+    const newStatus = currentStatus === 2 ? 1 : 2; // 2 = Pinned, 1 = Normal
+    const data = await handleQuery(
+      supabase
+        .from("bai_viet")
+        .update({ trang_thai: newStatus })
+        .eq("id", id)
+        .select()
+        .maybeSingle(),
+    );
+    if (data) {
+      return {
+        ...data,
+        ngay_tao: data.created_at,
+      } as DBPost;
+    }
+    return null;
+  },
+
+  async likePost(id: string): Promise<number | null> {
+    if (!isUUID(id)) return null;
+    const { data: post } = await supabase
+      .from("bai_viet")
+      .select("luot_xem")
+      .eq("id", id)
+      .maybeSingle();
+    const currentLikes = post?.luot_xem || 0;
+    const newLikes = currentLikes + 1;
+    const { error } = await supabase
+      .from("bai_viet")
+      .update({ luot_xem: newLikes })
+      .eq("id", id);
+    return error ? null : newLikes;
+  },
+
+  async likeBuildGuide(id: string): Promise<number | null> {
+    if (!isUUID(id)) return null;
+    const { data: guide } = await supabase
+      .from("giao_an_de_cu")
+      .select("luot_xem")
+      .eq("id", id)
+      .maybeSingle();
+    const currentLikes = guide?.luot_xem || 0;
+    const newLikes = currentLikes + 1;
+    const { error } = await supabase
+      .from("giao_an_de_cu")
+      .update({ luot_xem: newLikes })
+      .eq("id", id);
+    return error ? null : newLikes;
   },
 
   async savePost(post: Partial<DBPost>): Promise<DBPost | null> {

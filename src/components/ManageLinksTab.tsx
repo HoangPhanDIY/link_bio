@@ -3,6 +3,7 @@ import { BioLink } from "../types";
 import LucideIcon from "./LucideIcon";
 import BrandIcon from "./BrandIcon";
 import { supabase } from "../supabase";
+import { dbService } from "../dbService";
 import ImageCropperModal from "./ImageCropperModal";
 
 interface ManageLinksTabProps {
@@ -60,6 +61,28 @@ export default function ManageLinksTab({
   // Cropper Modal States
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropperFile, setCropperFile] = useState<File | null>(null);
+
+  // Click details modal state
+  const [selectedLinkForLogs, setSelectedLinkForLogs] =
+    useState<BioLink | null>(null);
+  const [linkClickLogs, setLinkClickLogs] = useState<any[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+
+  const handleOpenClickLogs = async (link: BioLink) => {
+    setSelectedLinkForLogs(link);
+    setIsLoadingLogs(true);
+    try {
+      const logs = await dbService.getClickLogs();
+      const filtered = (logs || []).filter(
+        (item: any) => item.duong_dan_id === link.id,
+      );
+      setLinkClickLogs(filtered);
+    } catch (err) {
+      console.error("Error fetching link click logs:", err);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -550,6 +573,109 @@ export default function ManageLinksTab({
         }}
         onConfirm={handleCropperConfirm}
       />
+
+      {/* Detailed Click Logs Modal */}
+      {selectedLinkForLogs && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 text-slate-100 w-full max-w-xl p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="font-bold text-base text-white flex items-center gap-2">
+                  <LucideIcon
+                    name="BarChart2"
+                    size={18}
+                    className="text-indigo-400"
+                  />
+                  <span>Chi tiết lượt click liên kết</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {selectedLinkForLogs.title} ({selectedLinkForLogs.url})
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedLinkForLogs(null)}
+                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <LucideIcon name="X" size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+              {isLoadingLogs ? (
+                <div className="text-center py-12 text-xs text-slate-400 flex flex-col items-center gap-2">
+                  <span className="w-6 h-6 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+                  <span>Đang tải nhật ký click...</span>
+                </div>
+              ) : linkClickLogs.length === 0 ? (
+                <div className="text-center py-12 text-xs text-slate-400 border border-dashed border-slate-800 bg-slate-950/50 p-6">
+                  Chưa ghi nhận lượt click trực tiếp nào cho liên kết này.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-300 pb-2 border-b border-slate-800">
+                    <span>
+                      Tổng lượt click:{" "}
+                      <strong className="text-indigo-400">
+                        {linkClickLogs.length}
+                      </strong>
+                    </span>
+                    <span>Sắp xếp: Mới nhất</span>
+                  </div>
+
+                  <div className="divide-y divide-slate-800/60 border border-slate-800">
+                    {linkClickLogs.map((log, index) => {
+                      const logDate = log.thoi_gian
+                        ? new Date(log.thoi_gian).toLocaleString("vi-VN")
+                        : "Gần đây";
+                      return (
+                        <div
+                          key={log.id || index}
+                          className="p-3 flex items-center justify-between text-xs bg-slate-950/40 hover:bg-slate-850"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <LucideIcon
+                              name={
+                                log.thiet_bi?.toLowerCase().includes("mobile")
+                                  ? "Smartphone"
+                                  : "Monitor"
+                              }
+                              size={15}
+                              className="text-indigo-400"
+                            />
+                            <div>
+                              <span className="font-semibold text-slate-200 block">
+                                {log.thiet_bi || "Thiết bị ẩn danh"}
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                {logDate}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-mono px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700">
+                            ID:{" "}
+                            {log.id
+                              ? String(log.id).slice(0, 8)
+                              : `#${index + 1}`}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex justify-end">
+              <button
+                onClick={() => setSelectedLinkForLogs(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

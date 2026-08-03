@@ -66,11 +66,6 @@ export default function PublicBottomNav({
           <span className="text-[10px] font-bold mt-1 tracking-wider uppercase">
             Bài viết
           </span>
-          {postsCount > 0 && (
-            <span className="absolute top-1 right-5 bg-red-500 text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold animate-pulse">
-              {postsCount}
-            </span>
-          )}
         </button>
 
         {/* Button 4: Ủng hộ */}

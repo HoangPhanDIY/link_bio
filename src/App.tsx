@@ -33,7 +33,7 @@ import {
   DBDonation,
   DBPost,
 } from "./supabase";
-import { isCustomIcon, getVisitorInfo } from "./utils";
+import { isCustomIcon, getVisitorInfo, BANNER_OPTIONS } from "./utils";
 import PublicHeader from "./components/PublicHeader";
 import PublicLinksTab from "./components/PublicLinksTab";
 import PublicDonateTab from "./components/PublicDonateTab";
@@ -185,236 +185,118 @@ export default function App() {
   useEffect(() => {
     async function initAndLoadDb() {
       try {
-        // 1. Fetch admin user profile immediately so custom loading GIFs and theme apply first
-        const profile = await dbService.getProfile();
-        const streamSettings = await dbService.getStreamAlertSettings();
+        // Fetch essential initial data (profile, links, banners) concurrently in 1 parallel batch
+        const [profile, dbLinks, dbBanners] = await Promise.all([
+          dbService.getProfile(),
+          dbService.getLinks(),
+          dbService.getBanners(),
+        ]);
+
         if (profile) {
           setDbUser(profile);
           setAppearance((prev) => ({
             ...prev,
-            loadingWebGif: profile.loading_web_gif || prev.loadingWebGif,
-            loadingDataGif: profile.loading_data_gif || prev.loadingDataGif,
-            streamAlertGif:
-              (streamSettings && streamSettings.stream_alert_gif) ||
-              profile.stream_alert_gif ||
-              prev.streamAlertGif,
-            streamAlertSound:
-              (streamSettings && streamSettings.stream_alert_sound) ||
-              profile.stream_alert_sound ||
-              prev.streamAlertSound,
-            streamAlertTemplate:
-              (streamSettings && streamSettings.stream_alert_template) ||
-              profile.stream_alert_template ||
-              prev.streamAlertTemplate,
-            streamAlertTts: streamSettings
-              ? streamSettings.stream_alert_tts !== false
-              : profile.stream_alert_tts !== false,
-            streamAlertDuration:
-              (streamSettings && streamSettings.stream_alert_duration) ||
-              profile.stream_alert_duration ||
-              prev.streamAlertDuration,
-            streamAlertVoiceGender:
-              (streamSettings && streamSettings.stream_alert_voice_gender) ||
-              "default",
-            streamAlertVoiceName:
-              (streamSettings && streamSettings.stream_alert_voice_name) || "",
+            name: profile.ten_hien_thi || profile.ten_dang_nhap || prev.name,
+            bio: profile.tieu_su || prev.bio,
+            avatarUrl: profile.avatar_url || prev.avatarUrl,
+            bannerUrl: profile.anh_bia_url || prev.bannerUrl,
             mode: (profile.giao_dien_mode as any) || prev.mode,
             fontFamily: (profile.phong_chu as any) || prev.fontFamily,
             accentColor: profile.mau_chu_dao || prev.accentColor,
             backgroundColor: profile.background_color || prev.backgroundColor,
+            linkBackgroundColor:
+              profile.link_background_color || prev.linkBackgroundColor,
+            linkTextColor: profile.link_text_color || prev.linkTextColor,
+            loadingWebGif: profile.loading_web_gif || prev.loadingWebGif,
+            loadingDataGif: profile.loading_data_gif || prev.loadingDataGif,
+            streamAlertGif: profile.stream_alert_gif || prev.streamAlertGif,
+            streamAlertSound:
+              profile.stream_alert_sound || prev.streamAlertSound,
+            streamAlertTemplate:
+              profile.stream_alert_template || prev.streamAlertTemplate,
+            streamAlertTts: profile.stream_alert_tts !== false,
+            streamAlertDuration:
+              profile.stream_alert_duration || prev.streamAlertDuration,
+            streamAlertVoiceGender: "default",
+            streamAlertVoiceName: "",
+            bankName: profile.bank_name || prev.bankName,
+            bankAccount: profile.bank_account || prev.bankAccount,
+            bankOwner: profile.bank_owner || prev.bankOwner,
+            momoNumber: profile.momo_number || prev.momoNumber,
+            momoName: profile.momo_name || prev.momoName,
+            donateNote: profile.donate_note || prev.donateNote,
+            bankEnabled: profile.bank_enabled !== false,
+            momoEnabled: profile.momo_enabled !== false,
             bao_tri: profile.bao_tri ?? prev.bao_tri,
           }));
         }
 
-        // 2. Seed default data if tables are empty
-        await dbService.seedGameLibraryIfNeeded();
-
-        // Restore login session if present
-        const savedSessionStr = localStorage.getItem("vivid_persona_session");
-        if (savedSessionStr) {
-          try {
-            const savedUser = JSON.parse(savedSessionStr) as DBUser;
-            // Fetch fresh profile from database to get the latest role (e.g., if vai_tro was updated to 1)
-            const { data: freshProfile } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", savedUser.id)
-              .maybeSingle();
-
-            if (freshProfile) {
-              const updatedUser = freshProfile as DBUser;
-              setLoggedInUser(updatedUser);
-              setIsAuthenticated(true);
-              localStorage.setItem(
-                "vivid_persona_session",
-                JSON.stringify(updatedUser),
-              );
-              if (updatedUser.vai_tro === 1) {
-                setIsAdminMode(true);
-                localStorage.setItem("vivid_persona_admin_mode", "true");
-              } else {
-                setIsAdminMode(false);
-                localStorage.setItem("vivid_persona_admin_mode", "false");
-              }
-            } else {
-              // Fallback to saved session
-              setLoggedInUser(savedUser);
-              setIsAuthenticated(true);
-              const savedAdminMode = localStorage.getItem(
-                "vivid_persona_admin_mode",
-              );
-              if (savedAdminMode === "true" && savedUser.vai_tro === 1) {
-                setIsAdminMode(true);
-              }
-            }
-          } catch (e) {
-            console.error("Failed to restore session:", e);
-          }
-        }
-
-        // 3. Fetch links and sync
-        const dbLinks = await dbService.getLinks();
-        if (dbLinks.length > 0) {
-          const mappedLinks: BioLink[] = dbLinks.map((dbl) => {
-            const matchedSaved = links.find(
-              (l) => l.id === dbl.id || l.title === dbl.tieu_de,
-            );
-            return {
-              id: dbl.id,
-              title: dbl.tieu_de,
-              url: dbl.url_lienketing,
-              icon: dbl.url_icon || "Link2",
-              enabled: dbl.hien_thi,
-              clicks: matchedSaved?.clicks || 0,
-              conversions: matchedSaved?.conversions || 0,
-              status: dbl.hien_thi ? "Active" : "Paused",
-            };
-          });
+        if (dbLinks && dbLinks.length > 0) {
+          const mappedLinks: BioLink[] = dbLinks.map((dbl) => ({
+            id: dbl.id,
+            title: dbl.tieu_de,
+            url: dbl.url_lienketing,
+            icon: dbl.url_icon || "Link2",
+            enabled: dbl.hien_thi,
+            clicks: 0,
+            conversions: 0,
+            status: dbl.hien_thi ? "Active" : "Paused",
+          }));
           setLinks(mappedLinks);
-        } else {
-          // DB links are empty but we have initial links -> seed into DB
-          for (const l of links) {
-            await dbService.saveLink({
-              tieu_de: l.title,
-              url_lienketing: l.url,
-              url_icon: l.icon,
-              hien_thi: l.enabled,
-              thu_tu_uu_tien: 0,
-            });
-          }
         }
 
-        // 4. Fetch slideshow banners
-        let dbBanners = await dbService.getBanners();
-        if (dbBanners.length === 0) {
-          // Seed initial banners to Supabase
-          for (let i = 0; i < BANNER_OPTIONS.length; i++) {
-            const b = BANNER_OPTIONS[i];
-            await dbService.saveBanner({
-              tieu_de: b.name,
-              url_hinh_anh: b.url,
-              thu_tu_uu_tien: i,
-              kich_hoat: true,
-            });
+        if (dbBanners && dbBanners.length > 0) {
+          setBanners(dbBanners);
+          const activeBanners = dbBanners
+            .filter((b) => b.kich_hoat)
+            .map((b) => b.url_hinh_anh);
+          if (activeBanners.length > 0) {
+            setAppearance((prev) => ({
+              ...prev,
+              selectedBanners: activeBanners,
+              bannerUrl: prev.bannerUrl || activeBanners[0],
+            }));
           }
-          dbBanners = await dbService.getBanners();
         }
-        setBanners(dbBanners);
-        const activeBanners = dbBanners
-          .filter((b) => b.kich_hoat)
-          .map((b) => b.url_hinh_anh);
-
-        // Now set appearance only ONCE using both fetched profile and active slideshow banners
-        setAppearance((prev) => {
-          const finalBannerUrl =
-            (profile && profile.anh_bia_url) ||
-            prev.bannerUrl ||
-            (activeBanners.length > 0
-              ? activeBanners[0]
-              : BANNER_OPTIONS[0].url);
-
-          return {
-            ...prev,
-            name: profile
-              ? profile.ten_hien_thi || profile.ten_dang_nhap || prev.name
-              : prev.name,
-            bio: profile ? profile.tieu_su || prev.bio : prev.bio,
-            avatarUrl: profile
-              ? profile.avatar_url || prev.avatarUrl
-              : prev.avatarUrl,
-            bannerUrl: finalBannerUrl,
-            mode: profile
-              ? (profile.giao_dien_mode as any) || prev.mode
-              : prev.mode,
-            fontFamily: profile
-              ? (profile.phong_chu as any) || prev.fontFamily
-              : prev.fontFamily,
-            accentColor: profile
-              ? profile.mau_chu_dao || prev.accentColor
-              : prev.accentColor,
-            selectedBanners:
-              activeBanners.length > 0 ? activeBanners : prev.selectedBanners,
-            bankName: profile
-              ? profile.bank_name || prev.bankName
-              : prev.bankName,
-            bankAccount: profile
-              ? profile.bank_account || prev.bankAccount
-              : prev.bankAccount,
-            bankOwner: profile
-              ? profile.bank_owner || prev.bankOwner
-              : prev.bankOwner,
-            momoNumber: profile
-              ? profile.momo_number || prev.momoNumber
-              : prev.momoNumber,
-            momoName: profile
-              ? profile.momo_name || prev.momoName
-              : prev.momoName,
-            donateNote: profile
-              ? profile.donate_note || prev.donateNote
-              : prev.donateNote,
-            bankEnabled: profile
-              ? profile.bank_enabled !== false
-              : prev.bankEnabled,
-            momoEnabled: profile
-              ? profile.momo_enabled !== false
-              : prev.momoEnabled,
-            backgroundColor: profile
-              ? profile.background_color || prev.backgroundColor
-              : prev.backgroundColor,
-            linkBackgroundColor: profile
-              ? profile.link_background_color || prev.linkBackgroundColor
-              : prev.linkBackgroundColor,
-            linkTextColor: profile
-              ? profile.link_text_color || prev.linkTextColor
-              : prev.linkTextColor,
-            loadingWebGif: profile
-              ? profile.loading_web_gif || prev.loadingWebGif
-              : prev.loadingWebGif,
-            loadingDataGif: profile
-              ? profile.loading_data_gif || prev.loadingDataGif
-              : prev.loadingDataGif,
-            streamAlertGif: profile
-              ? profile.stream_alert_gif || prev.streamAlertGif
-              : prev.streamAlertGif,
-            streamAlertSound: profile
-              ? profile.stream_alert_sound || prev.streamAlertSound
-              : prev.streamAlertSound,
-            streamAlertTemplate: profile
-              ? profile.stream_alert_template || prev.streamAlertTemplate
-              : prev.streamAlertTemplate,
-            streamAlertTts: profile
-              ? profile.stream_alert_tts !== false
-              : prev.streamAlertTts,
-            streamAlertDuration: profile
-              ? profile.stream_alert_duration || prev.streamAlertDuration
-              : prev.streamAlertDuration,
-            bao_tri: profile ? (profile.bao_tri ?? prev.bao_tri) : prev.bao_tri,
-          };
-        });
       } catch (err) {
         console.error("Error during initial DB load:", err);
       } finally {
         setIsAppLoading(false);
+      }
+
+      // Non-blocking background session restore
+      const savedSessionStr = localStorage.getItem("vivid_persona_session");
+      if (savedSessionStr) {
+        try {
+          const savedUser = JSON.parse(savedSessionStr) as DBUser;
+          setLoggedInUser(savedUser);
+          setIsAuthenticated(true);
+          if (savedUser.vai_tro === 1) setIsAdminMode(true);
+
+          (async () => {
+            try {
+              const { data: freshProfile } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", savedUser.id)
+                .maybeSingle();
+              if (freshProfile) {
+                const updatedUser = freshProfile as DBUser;
+                setLoggedInUser(updatedUser);
+                setIsAuthenticated(true);
+                setIsAdminMode(updatedUser.vai_tro === 1);
+                localStorage.setItem(
+                  "vivid_persona_session",
+                  JSON.stringify(updatedUser),
+                );
+              }
+            } catch (e) {
+              console.warn("Background session verify warning:", e);
+            }
+          })();
+        } catch (e) {
+          console.error("Failed to restore session:", e);
+        }
       }
     }
 
@@ -599,6 +481,23 @@ export default function App() {
           if (spellsData) setSpells(spellsData);
           if (badgesData) setBadges(badgesData);
           if (guidesData) setGuides(guidesData);
+
+          // Seed game library if champions/items are empty in DB
+          if (!champsData || champsData.length === 0) {
+            dbService
+              .seedGameLibraryIfNeeded()
+              .then(async () => {
+                const freshChamps = await dbService.getChampions();
+                const freshItems = await dbService.getItems();
+                const freshSpells = await dbService.getSpells();
+                const freshBadges = await dbService.getBadges();
+                if (freshChamps) setChampions(freshChamps);
+                if (freshItems) setItems(freshItems);
+                if (freshSpells) setSpells(freshSpells);
+                if (freshBadges) setBadges(freshBadges);
+              })
+              .catch((e) => console.warn(e));
+          }
         } catch (err) {
           console.warn("Could not fetch guides & library from DB:", err);
         } finally {
@@ -743,6 +642,59 @@ export default function App() {
     } catch (err) {
       console.error("Failed to delete post:", err);
       showNotification("Xóa status thất bại!", "error");
+    }
+  };
+
+  const handleTogglePinPost = async (id: string, currentStatus?: number) => {
+    try {
+      const updated = await dbService.togglePinPost(id, currentStatus);
+      if (updated) {
+        setPosts((prev) => {
+          const next = prev.map((p) => (p.id === id ? updated : p));
+          return next.sort(
+            (a, b) =>
+              (b.trang_thai === 2 ? 1 : 0) - (a.trang_thai === 2 ? 1 : 0),
+          );
+        });
+        showNotification(
+          updated.trang_thai === 2
+            ? "Đã ghim bài viết lên đầu!"
+            : "Đã bỏ ghim bài viết!",
+          "success",
+        );
+      } else {
+        showNotification("Cập nhật trạng thái ghim thất bại!", "error");
+      }
+    } catch (err) {
+      console.error("Failed to toggle pin post:", err);
+      showNotification("Cập nhật trạng thái ghim thất bại!", "error");
+    }
+  };
+
+  const handleLikePost = async (id: string) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, luot_xem: (p.luot_xem || 0) + 1 } : p,
+      ),
+    );
+    try {
+      await dbService.likePost(id);
+    } catch (err) {
+      console.error("Failed to like post:", err);
+    }
+  };
+
+  const handleLikeGuide = async (id: string) => {
+    setGuides((prev) =>
+      prev.map((g) =>
+        g.id === id ? { ...g, luot_xem: (g.luot_xem || 0) + 1 } : g,
+      ),
+    );
+    try {
+      await dbService.likeBuildGuide(id);
+      showNotification("Cảm ơn bạn đã thích lối lên đồ này!", "success");
+    } catch (err) {
+      console.error("Failed to like build guide:", err);
     }
   };
   const handleAddLink = async (title: string, url: string, icon: string) => {
@@ -1491,9 +1443,10 @@ export default function App() {
         <header
           className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors duration-300 "bg-white/85 border-slate-100 text-slate-800"}`}
         >
-          <div className="flex justify-between items-center w-full px-3 py-3 max-w-7xl mx-auto">
+          <div className="flex justify-between items-center w-full p-2 max-w-7xl mx-auto">
+            <img src="logo.png" alt="Logo" className="w-10 h-10" />
             {/* Logo Brand Title */}
-            <div
+            {/* <div
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => setPublicTab("links")}
             >
@@ -1503,7 +1456,7 @@ export default function App() {
               >
                 {appearance.name || "Alex Rivera"}
               </span>
-            </div>
+            </div> */}
 
             {/* Right side Profile & Login buttons */}
             <div className="flex items-center gap-3">
@@ -1790,7 +1743,7 @@ export default function App() {
                 )}
               </div>
               <span className="text-xs font-black text-slate-800 tracking-wider">
-                BẢNG QUẢN TRỊ
+                Admin
               </span>
             </div>
 
@@ -1830,21 +1783,6 @@ export default function App() {
       {/* Desktop Left Sidebar - ONLY visible when in Admin panel on desktop */}
       {isAdminMode && (
         <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 text-slate-200 border-r border-slate-800 z-30 shadow-xl transition-all duration-300">
-          {/* Sidebar Header: Brand / Logo */}
-          <div className="p-6 border-b border-slate-800/80 flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-600/25">
-              <LucideIcon name="Settings" size={18} />
-            </div>
-            <div>
-              <h2 className="text-xs font-black text-white tracking-wider">
-                BẢNG QUẢN TRỊ
-              </h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">
-                Vivid Link Bio
-              </p>
-            </div>
-          </div>
-
           {/* User Info */}
           {loggedInUser && (
             <div className="px-6 py-4 border-b border-slate-800/60 bg-slate-950/25 flex items-center gap-3">
@@ -2102,8 +2040,8 @@ export default function App() {
       <main
         className={`flex-grow w-full mx-auto transition-all duration-300 ${
           isAdminMode
-            ? "max-w-7xl px-4 sm:px-6 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
-            : "max-w-5xl px-4 sm:px-6 py-6 sm:py-12 pt-0 pb-16 sm:pb-24 flex flex-col" // Khoảng đệm khi là User
+            ? "px-4 sm:px-6 py-6 pb-16 sm:pb-24"
+            : "max-w-5xl px-4 sm:px-6 py-6 sm:py-12 pt-0 pb-16 sm:pb-24 flex flex-col"
         }`}
       >
         {isAdminMode ? (
@@ -2136,6 +2074,7 @@ export default function App() {
                   onAddPost={handleAddPost}
                   onUpdatePost={handleUpdatePost}
                   onDeletePost={handleDeletePost}
+                  onTogglePinPost={handleTogglePinPost}
                   accentColor={appearance.accentColor}
                 />
               )}
@@ -2272,6 +2211,7 @@ export default function App() {
                       guides={guides}
                       isDark={isDarkPublic}
                       accentColor={appearance.accentColor}
+                      onLikeGuide={handleLikeGuide}
                     />
                   )}
                 </div>
@@ -2295,6 +2235,7 @@ export default function App() {
                   links={links}
                   appearance={appearance}
                   isDarkPublic={isDarkPublic}
+                  onLikePost={handleLikePost}
                   showNotification={showNotification}
                 />
               )}

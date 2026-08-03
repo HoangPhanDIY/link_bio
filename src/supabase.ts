@@ -1,8 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 
 // User's Supabase credentials
-const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL;
-const SUPABASE_KEY = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL =
+  (import.meta as any).env?.VITE_SUPABASE_URL ||
+  "https://placeholder.supabase.co";
+const SUPABASE_KEY =
+  (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "placeholder-key";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 

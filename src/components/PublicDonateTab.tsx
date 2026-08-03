@@ -19,6 +19,7 @@ export default function PublicDonateTab({
   hasLoadedDonations,
   onSuccessRedirect,
 }: PublicDonateTabProps) {
+  const [mainTab, setMainTab] = useState<"donate" | "bank">("donate");
   const [donateStep, setDonateStep] = useState<"form" | "qr" | "success">(
     "form",
   );
@@ -29,8 +30,10 @@ export default function PublicDonateTab({
   const [selectedDonateMethod, setSelectedDonateMethod] = useState<
     "bank" | "momo"
   >("bank");
+  const [bankMethod, setBankMethod] = useState<"bank" | "momo">("bank");
   const [isDonating, setIsDonating] = useState(false);
   const [copiedMemo, setCopiedMemo] = useState(false);
+  const [copiedBankAcc, setCopiedBankAcc] = useState(false);
   const [selectedMobileBank, setSelectedMobileBank] = useState("vcb");
 
   // Hook 1: Listen to Supabase Realtime for status changes on the specific donation (trang_thai === 1)
@@ -192,15 +195,186 @@ export default function PublicDonateTab({
     }
   };
 
+  const handleDownloadStaticQR = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `Bank_QR_${bankMethod === "momo" ? "MoMo" : appearance.bankName || "VietQR"}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.warn("Could not download via fetch, opening in new tab:", err);
+      window.open(url, "_blank");
+    }
+  };
+
+  const staticBankQrUrl =
+    bankMethod === "momo" && appearance.momoNumber
+      ? `https://img.vietqr.io/image/MOMO-${appearance.momoNumber}-compact2.png?accountName=${encodeURIComponent(appearance.momoName || "")}`
+      : `https://img.vietqr.io/image/${(appearance.bankName || "MB").replace(/\s+/g, "")}-${appearance.bankAccount}-compact2.png?accountName=${encodeURIComponent(appearance.bankOwner || "")}`;
+
   return (
-    <div className="space-y-1 animate-in fade-in duration-300">
-      <div className="flex items-center gap-2">
-        <h2 className={`text-xl font-bold uppercase tracking-wider text-black`}>
-          DONATE
+    <div className="space-y-4 animate-in fade-in duration-300">
+      {/* Header & Sub-tab navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-0 sm:pb-3 border-b-0 sm:border-b sm:border-slate-200/80">
+        <h2
+          className={`text-xl font-black uppercase tracking-wider ${
+            isDarkPublic ? "text-white" : "text-slate-900"
+          }`}
+        >
+          ỦNG HỘ
         </h2>
+
+        {/* 2 Sub-tab Options: Donate vs Bank */}
+        <div
+          className={`flex w-full sm:w-auto p-1 rounded-xl border-0 sm:border ${
+            isDarkPublic
+              ? "bg-slate-900 sm:border-slate-800"
+              : "bg-slate-100 sm:border-slate-200"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => setMainTab("donate")}
+            className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              mainTab === "donate"
+                ? isDarkPublic
+                  ? "bg-slate-800 text-amber-400 sm:bg-white sm:text-indigo-600 shadow-xs"
+                  : "bg-white text-indigo-600 shadow-xs"
+                : isDarkPublic
+                  ? "text-slate-400 hover:text-white"
+                  : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <LucideIcon
+              name="Heart"
+              size={14}
+              className={mainTab === "donate" ? "fill-current" : ""}
+            />
+            <span>Donate</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMainTab("bank")}
+            className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              mainTab === "bank"
+                ? isDarkPublic
+                  ? "bg-slate-800 text-amber-400 sm:bg-white sm:text-indigo-600 shadow-xs"
+                  : "bg-white text-indigo-600 shadow-xs"
+                : isDarkPublic
+                  ? "text-slate-400 hover:text-white"
+                  : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <LucideIcon name="Building2" size={14} />
+            <span>QR BANK</span>
+          </button>
+        </div>
       </div>
 
-      {donateStep === "form" ? (
+      {mainTab === "bank" ? (
+        /* BANK VIEW: Hiển thị thông tin & QR ngân hàng của admin */
+        <div className="space-y-5 animate-in fade-in zoom-in-95 duration-200 w-full max-w-4xl mx-auto">
+          {!(appearance.bankAccount || appearance.momoNumber) ? (
+            <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <LucideIcon
+                name="Building2"
+                size={32}
+                className="mx-auto text-slate-400"
+              />
+              <p className="font-bold">Chưa cấu hình tài khoản nhận ủng hộ.</p>
+              <p className="text-[11px] text-slate-400">
+                Admin chưa cài đặt tài khoản ngân hàng hoặc ví điện tử trong cài
+                đặt Giao diện.
+              </p>
+            </div>
+          ) : (
+            <div
+              className={`p-4 rounded-xl border w-full space-y-4 ${
+                isDarkPublic
+                  ? "bg-slate-900 border-slate-800"
+                  : "bg-slate-50 border-slate-200"
+              }`}
+            >
+              {/* Header Box Bank */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pb-2.5 border-b border-dashed border-slate-200">
+                <div className="text-center sm:text-left">
+                  <h3
+                    className={`font-display font-extrabold text-sm sm:text-base ${
+                      isDarkPublic ? "text-white" : "text-slate-800"
+                    }`}
+                  >
+                    TẶNG QUÀ CHO {appearance.name?.toUpperCase()}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Quét mã QR hoặc chuyển khoản theo số tài khoản bên dưới
+                  </p>
+                </div>
+
+                {/* Switch Bank vs MoMo if both enabled */}
+                {appearance.bankEnabled !== false &&
+                  appearance.bankAccount &&
+                  appearance.momoEnabled !== false &&
+                  appearance.momoNumber && (
+                    <div className="flex items-center gap-1.5 bg-slate-200/70 dark:bg-slate-800 p-1 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => setBankMethod("bank")}
+                        className={`px-3 py-1 rounded-md text-[11px] font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
+                          bankMethod === "bank"
+                            ? "bg-white text-indigo-600 shadow-xs"
+                            : "text-slate-600 dark:text-slate-300 hover:text-slate-900"
+                        }`}
+                      >
+                        <LucideIcon name="CreditCard" size={12} />
+                        <span>Ngân Hàng</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBankMethod("momo")}
+                        className={`px-3 py-1 rounded-md text-[11px] font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
+                          bankMethod === "momo"
+                            ? "bg-pink-600 text-white shadow-xs"
+                            : "text-slate-600 dark:text-slate-300 hover:text-slate-900"
+                        }`}
+                      >
+                        <LucideIcon name="Wallet" size={12} />
+                        <span>MoMo</span>
+                      </button>
+                    </div>
+                  )}
+              </div>
+
+              {/* CENTER LAYOUT: QR Code nằm ở chính giữa */}
+              <div className="flex flex-col items-center justify-center w-full max-w-xs mx-auto space-y-3 pt-1">
+                <div className="w-full aspect-square overflow-hidden border border-slate-200 rounded-xl bg-white flex items-center justify-center p-2 shadow-xs">
+                  <img
+                    src={staticBankQrUrl}
+                    alt="Bank QR Code"
+                    className="w-full h-full object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadStaticQR(staticBankQrUrl)}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold border rounded-lg transition-all hover:opacity-95 cursor-pointer w-full text-center bg-white border-slate-200 text-slate-700 hover:bg-slate-100 shadow-xs"
+                >
+                  <LucideIcon name="Download" size={14} />
+                  <span>Lưu ảnh QR</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : donateStep === "form" ? (
         <div className="space-y-5">
           <p
             className={`text-xs sm:text-sm leading-relaxed ${isDarkPublic ? "text-slate-400" : "text-slate-600"}`}
@@ -403,11 +577,44 @@ export default function PublicDonateTab({
         /* Step 2: Show QR Code and Instructions */
         <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300 w-full max-w-4xl mx-auto">
           {/* BOX CHUNG: Chứa QR bên trái và Thông tin chuyển khoản bên phải */}
-          <div className="p-4 rounded-md border w-full space-y-2 bg-slate-50 border-slate-150">
-            <div className="text-center pb-2 border-b border-dashed border-slate-200">
+          <div className="p-4 rounded-md border w-full space-y-3 bg-slate-50 border-slate-150">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pb-2 border-b border-dashed border-slate-200">
               <h3 className="font-display font-extrabold text-sm sm:text-base text-slate-800">
                 QUÉT QR ỦNG HỘ TÔI
               </h3>
+
+              {/* Payment Method Selector in QR step if both available */}
+              {appearance.bankEnabled !== false &&
+                appearance.bankAccount &&
+                appearance.momoEnabled !== false &&
+                appearance.momoNumber && (
+                  <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDonateMethod("bank")}
+                      className={`px-3 py-1 rounded-md text-[11px] font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
+                        selectedDonateMethod === "bank"
+                          ? "bg-white text-indigo-600 shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <LucideIcon name="CreditCard" size={12} />
+                      <span>VietQR</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDonateMethod("momo")}
+                      className={`px-3 py-1 rounded-md text-[11px] font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
+                        selectedDonateMethod === "momo"
+                          ? "bg-pink-600 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <LucideIcon name="Wallet" size={12} />
+                      <span>MoMo</span>
+                    </button>
+                  </div>
+                )}
             </div>
 
             {/* PHẦN NỘI DUNG CHIA 2 CỘT (50/50) */}
@@ -596,15 +803,25 @@ export default function PublicDonateTab({
           </div>
 
           {/* Banner Đang chờ thanh toán */}
-          <div
-            className={`p-3 rounded-md border flex items-center justify-center gap-2 text-xs font-bold ${
-              isDarkPublic
-                ? "bg-slate-900 border-slate-800 text-slate-300"
-                : "bg-emerald-50/50 border-emerald-150 text-emerald-800"
-            }`}
-          >
-            <span className="w-3.5 h-3.5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin shrink-0" />
-            <span>Đang ủng hộ...</span>
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex-1 p-3 rounded-md border flex items-center justify-center gap-2 text-xs font-bold ${
+                isDarkPublic
+                  ? "bg-slate-900 border-slate-800 text-slate-300"
+                  : "bg-emerald-50/50 border-emerald-150 text-emerald-800"
+              }`}
+            >
+              <span className="w-3.5 h-3.5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin shrink-0" />
+              <span>Đang chờ chuyển khoản...</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleResetDonateForm}
+              className="px-3.5 py-3 rounded-md border text-xs font-bold bg-white border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer shrink-0 flex items-center gap-1"
+            >
+              <LucideIcon name="RotateCcw" size={13} />
+              <span>Đổi số tiền</span>
+            </button>
           </div>
         </div>
       )}

@@ -68,6 +68,9 @@ export default function DashboardTab({
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotification, setShowNotification] = useState<string | null>(null);
+  const [selectedLinkDetail, setSelectedLinkDetail] = useState<any | null>(
+    null,
+  );
 
   // 1. Dynamic Activities calculated from real DB events (clicks, messages, donations, posts)
   const dynamicActivities = useMemo(() => {
@@ -569,7 +572,7 @@ export default function DashboardTab({
       <div className="bg-white border border-slate-100 rounded-md overflow-hidden shadow-xs">
         <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="font-display font-bold text-slate-850 text-sm sm:text-base">
-            Hiệu quả liên kết
+            Hiệu quả liên kết & Chi tiết lượt click
           </h2>
 
           {/* Table filters */}
@@ -598,7 +601,7 @@ export default function DashboardTab({
 
         {/* Scrollable table content */}
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse min-w-[500px]">
+          <table className="w-full text-left border-collapse min-w-[550px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest ">
@@ -611,10 +614,10 @@ export default function DashboardTab({
                   Lượt click
                 </th>
                 <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest ">
-                  Chuyển đổi
-                </th>
-                <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest ">
                   Trạng thái
+                </th>
+                <th className="px-4 sm:px-6 py-4.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                  Thao tác
                 </th>
               </tr>
             </thead>
@@ -622,7 +625,8 @@ export default function DashboardTab({
               {filteredTableData.map((row) => (
                 <tr
                   key={row.id}
-                  className="hover:bg-slate-50/50 transition-colors group"
+                  className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                  onClick={() => setSelectedLinkDetail(row)}
                 >
                   <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -638,31 +642,15 @@ export default function DashboardTab({
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 sm:px-6 py-4  text-xs text-indigo-600 font-semibold break-all max-w-[200px]">
+                  <td className="px-4 sm:px-6 py-4 text-xs text-indigo-600 font-semibold break-all max-w-[200px]">
                     {row.destUrl}
                   </td>
-                  <td className="px-4 sm:px-6 py-4  text-xs text-slate-600">
+                  <td className="px-4 sm:px-6 py-4 text-xs font-bold text-slate-700">
                     {row.clicks.toLocaleString()}
                   </td>
                   <td className="px-4 sm:px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 sm:w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: parseFloat(row.conversion) * 20 + "%",
-                            backgroundColor: accentColor,
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs  text-slate-600">
-                        {row.conversion}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-4">
                     <span
-                      className={`text-[10px] font-bold  px-2.5 py-1 rounded-full border ${
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
                         row.status === "Hoạt động" || row.status === "Active"
                           ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                           : "bg-slate-100 text-slate-500 border-slate-200"
@@ -674,6 +662,18 @@ export default function DashboardTab({
                           ? "Tạm dừng"
                           : row.status}
                     </span>
+                  </td>
+                  <td className="px-4 sm:px-6 py-4 text-right">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedLinkDetail(row);
+                      }}
+                      className="px-3 py-1.5 rounded-md text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 transition-colors cursor-pointer inline-flex items-center gap-1"
+                    >
+                      <LucideIcon name="BarChart2" size={13} />
+                      <span>Xem chi tiết</span>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -692,6 +692,131 @@ export default function DashboardTab({
           </table>
         </div>
       </div>
+
+      {/* Click Details Modal */}
+      {selectedLinkDetail && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 space-y-5 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-bold">
+                  <BrandIcon
+                    title={selectedLinkDetail.source}
+                    iconName={selectedLinkDetail.icon}
+                    size={22}
+                  />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-800 text-base sm:text-lg">
+                    Lịch sử click: {selectedLinkDetail.source}
+                  </h3>
+                  <p className="text-xs text-indigo-600 font-medium truncate max-w-md">
+                    {selectedLinkDetail.destUrl}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedLinkDetail(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <LucideIcon name="X" size={18} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">
+                  Tổng lượt click
+                </span>
+                <span className="text-xl font-black text-slate-800">
+                  {selectedLinkDetail.clicks}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-extrabold block">
+                  Trạng thái
+                </span>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                  {selectedLinkDetail.status}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+              <h4 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                Nhật ký truy cập gần đây
+              </h4>
+
+              {(() => {
+                const linkLogs = clickLogs.filter(
+                  (c) => c.duong_dan_id === selectedLinkDetail.id,
+                );
+
+                if (linkLogs.length === 0) {
+                  return (
+                    <div className="text-center py-10 text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                      Chưa ghi nhận nhật ký lượt click chi tiết nào cho liên kết
+                      này.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden bg-white">
+                    {linkLogs.map((log, idx) => (
+                      <div
+                        key={log.id || idx}
+                        className="p-3 flex items-center justify-between text-xs hover:bg-slate-50/80 transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                            <LucideIcon
+                              name={
+                                (log.thiet_bi || "")
+                                  .toLowerCase()
+                                  .includes("mobile")
+                                  ? "Smartphone"
+                                  : "Monitor"
+                              }
+                              size={14}
+                            />
+                          </div>
+                          <div>
+                            <span className="font-bold text-slate-700 block">
+                              {log.thiet_bi || "Thiết bị không xác định"}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {log.thoi_gian
+                                ? new Date(log.thoi_gian).toLocaleString(
+                                    "vi-VN",
+                                  )
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                          {log.ip_address || "Client"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setSelectedLinkDetail(null)}
+                className="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-colors cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

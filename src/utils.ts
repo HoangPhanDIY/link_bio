@@ -41,6 +41,13 @@ export const isCustomIcon = (icon: string): boolean => {
   );
 };
 
+export const BANNER_OPTIONS = [
+  {
+    name: "Banner Liên Quân Mobile",
+    url: "/image/pick/ban-pick.png",
+  },
+];
+
 let cachedVisitorInfo: string | null = null;
 
 export async function getVisitorInfo(): Promise<string> {

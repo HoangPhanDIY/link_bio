@@ -1634,6 +1634,10 @@ export default function BuildGuidesTab({
                     >
                       {g.kich_hoat ? "Công khai" : "Ẩn"}
                     </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100 flex items-center gap-1">
+                      <LucideIcon name="Heart" size={11} className="fill-rose-500 text-rose-500" />
+                      <span>{g.luot_xem || 0} lượt thích</span>
+                    </span>
                   </div>
                   <h3 className="font-extrabold text-slate-700 text-xs mt-1.5 flex items-center gap-1">
                     <LucideIcon
