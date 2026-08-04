@@ -2658,20 +2658,22 @@ export default function BuildGuidesTab({
                     1. Chọn Đường / Vị Trí:
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {["Rừng", "Mid", "Tà Thần", "AD", "SP"].map((lane) => (
-                      <button
-                        key={lane}
-                        type="button"
-                        onClick={() => setTtLane(lane)}
-                        className={`px-3.5 py-1.5 text-xs font-bold border transition-all cursor-pointer ${
-                          ttLane === lane
-                            ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-400 font-black shadow-md scale-105"
-                            : "bg-slate-950 text-slate-300 border-slate-700 hover:border-amber-500/50"
-                        }`}
-                      >
-                        Đường {lane}
-                      </button>
-                    ))}
+                    {["Rừng", "Mid", "Tà Thần", "AD", "Đỡ Đòn", "Trợ Thủ"].map(
+                      (lane) => (
+                        <button
+                          key={lane}
+                          type="button"
+                          onClick={() => setTtLane(lane)}
+                          className={`px-3.5 py-1.5 text-xs font-bold border transition-all cursor-pointer ${
+                            ttLane === lane
+                              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-400 font-black shadow-md scale-105"
+                              : "bg-slate-950 text-slate-300 border-slate-700 hover:border-amber-500/50"
+                          }`}
+                        >
+                          Đường {lane}
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
 
@@ -2940,7 +2942,15 @@ export default function BuildGuidesTab({
 
             {/* Lane Filter Buttons for Admin View */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {["Tất cả", "Rừng", "Mid", "Tà Thần", "AD", "SP"].map((lane) => (
+              {[
+                "Tất cả",
+                "Rừng",
+                "Mid",
+                "Tà Thần",
+                "AD",
+                "Đỡ Đòn",
+                "Trợ Thủ",
+              ].map((lane) => (
                 <button
                   key={lane}
                   type="button"

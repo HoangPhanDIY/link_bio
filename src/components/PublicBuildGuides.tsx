@@ -255,6 +255,7 @@ export default function PublicBuildGuides({
     { value: "Tà Thần", label: "Tà Thần", icon: "DauSi.png" },
     { value: "Pháp Sư", label: "Pháp Sư", icon: "PhapSu.png" },
     { value: "Xạ Thủ", label: "Xạ Thủ", icon: "XaThu.png" },
+    { value: "Đỡ Đòn", label: "Đỡ Đòn", icon: "DoDon.png" },
     { value: "Trợ Thủ", label: "Trợ Thủ", icon: "TroThu.png" },
   ];
 
