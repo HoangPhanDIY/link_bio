@@ -215,6 +215,11 @@ export default function BuildGuidesTab({
   const [kcSaving, setKcSaving] = useState<boolean>(false);
   const [kcMsg, setKcMsg] = useState<string>("");
   const [kcSearchFilter, setKcSearchFilter] = useState<string>("");
+  const [kcTargetSearch, setKcTargetSearch] = useState<string>("");
+  const [kcTargetRoleFilter, setKcTargetRoleFilter] = useState<string>("ALL");
+  const [kcCounterSearch, setKcCounterSearch] = useState<string>("");
+  const [kcItemSearch, setKcItemSearch] = useState<string>("");
+  const [kcSynergySearch, setKcSynergySearch] = useState<string>("");
   const [showKcForm, setShowKcForm] = useState<boolean>(false);
 
   // State for Top Tier Admin
@@ -243,6 +248,25 @@ export default function BuildGuidesTab({
     loadKhacCheData();
     loadTopTierData();
   }, []);
+
+  // Sync Khac Che form state whenever target champion changes
+  useEffect(() => {
+    if (!kcTargetChampId) return;
+    const existing = khacCheList.find((kc) => kc.tuong_id === kcTargetChampId);
+    if (existing) {
+      setKcCounterChampIds(existing.tuong_khac_che_ids || []);
+      setKcCounterItemIds(existing.trang_bi_khac_che_ids || []);
+      setKcSynergyChampIds(existing.tuong_phoi_hop_ids || []);
+      setKcGhiChuKhacChe(existing.ghi_chu_khac_che || "");
+      setKcGhiChuPhoiHop(existing.ghi_chu_phoi_hop || "");
+    } else {
+      setKcCounterChampIds([]);
+      setKcCounterItemIds([]);
+      setKcSynergyChampIds([]);
+      setKcGhiChuKhacChe("");
+      setKcGhiChuPhoiHop("");
+    }
+  }, [kcTargetChampId, khacCheList]);
 
   const loadKhacCheData = async () => {
     const list = await dbService.getKhacCheList();
@@ -2193,28 +2217,166 @@ export default function BuildGuidesTab({
               </div>
 
               {/* Target Champion Selection */}
-              <div className="bg-slate-900 p-3 border border-[#fce3bc]/40 space-y-2">
-                <label className="text-xs font-black text-[#fce3bc] uppercase block">
-                  1. Chọn tướng mục tiêu cần cài đặt:
-                </label>
-                <select
-                  value={kcTargetChampId}
-                  onChange={(e) => setKcTargetChampId(e.target.value)}
-                  className="w-full sm:w-80 bg-slate-950 border border-[#fce3bc]/60 p-2 text-xs text-[#fce3bc] font-bold focus:outline-none focus:border-amber-400 cursor-pointer"
-                >
-                  {champions.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.ten_tuong} ({c.vai_tro || "Chưa rõ"})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {(() => {
+                const filteredTargetChamps = champions.filter((c) => {
+                  const matchSearch =
+                    !kcTargetSearch ||
+                    c.ten_tuong
+                      .toLowerCase()
+                      .includes(kcTargetSearch.toLowerCase());
+                  const matchRole =
+                    kcTargetRoleFilter === "ALL" ||
+                    (c.vai_tro &&
+                      c.vai_tro
+                        .toLowerCase()
+                        .includes(kcTargetRoleFilter.toLowerCase()));
+                  return matchSearch && matchRole;
+                });
+                const selectedTargetChamp = champions.find(
+                  (c) => c.id === kcTargetChampId,
+                );
+
+                return (
+                  <div className="bg-slate-900 p-3 sm:p-4 border border-[#fce3bc]/40 space-y-3">
+                    {/* Header & Selected Target Display & Search/Filter */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#fce3bc]/30 pb-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="text-xs font-black text-[#fce3bc] uppercase block shrink-0">
+                          1. Chọn tướng mục tiêu cần cài đặt:
+                        </label>
+                        {selectedTargetChamp && (
+                          <div className="flex items-center gap-2 bg-slate-950 border border-amber-400 px-3 py-1 rounded shadow">
+                            <img
+                              src={
+                                selectedTargetChamp.url_anh_dai_dien ||
+                                "/placeholder.jpg"
+                              }
+                              alt={selectedTargetChamp.ten_tuong}
+                              className="w-7 h-7 object-cover border border-amber-400 rounded-sm"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div>
+                              <div className="text-xs font-black text-amber-300">
+                                {selectedTargetChamp.ten_tuong}
+                              </div>
+                              <div className="text-[10px] text-slate-400">
+                                {selectedTargetChamp.vai_tro ||
+                                  "Chưa phân vai trò"}
+                              </div>
+                            </div>
+                            <span className="ml-1 text-[9px] font-black uppercase bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-xs">
+                              Đang chọn
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Search & Role Filter controls */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={kcTargetSearch}
+                            onChange={(e) => setKcTargetSearch(e.target.value)}
+                            placeholder="Tìm tướng mục tiêu..."
+                            className="bg-slate-950 border border-[#fce3bc]/50 pl-7 pr-6 py-1 text-xs text-[#fce3bc] placeholder-slate-500 focus:outline-none focus:border-amber-400 w-40 sm:w-52"
+                          />
+                          <LucideIcon
+                            name="Search"
+                            size={13}
+                            className="absolute left-2 top-2 text-slate-400 pointer-events-none"
+                          />
+                          {kcTargetSearch && (
+                            <button
+                              type="button"
+                              onClick={() => setKcTargetSearch("")}
+                              className="absolute right-1.5 top-1.5 text-slate-400 hover:text-white text-[10px] font-bold"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+
+                        <select
+                          value={kcTargetRoleFilter}
+                          onChange={(e) =>
+                            setKcTargetRoleFilter(e.target.value)
+                          }
+                          className="bg-slate-950 border border-[#fce3bc]/50 px-2 py-1 text-xs text-[#fce3bc] font-bold focus:outline-none focus:border-amber-400 cursor-pointer"
+                        >
+                          <option value="ALL">-- Tất cả vị trí --</option>
+                          <option value="Sát Thủ">Sát Thủ</option>
+                          <option value="Đấu Sĩ">Đấu Sĩ</option>
+                          <option value="Pháp Sư">Pháp Sư</option>
+                          <option value="Xạ Thủ">Xạ Thủ</option>
+                          <option value="Trợ Thủ">Trợ Thủ</option>
+                          <option value="Đỡ Đòn">Đỡ Đòn</option>
+                          <option value="Rừng">Rừng</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Champion Avatars Grid */}
+                    <div className="max-h-48 overflow-y-auto pr-1 grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 scrollbar-thin">
+                      {filteredTargetChamps.map((c) => {
+                        const isSelected = kcTargetChampId === c.id;
+                        const hasConfigured = khacCheList.some(
+                          (kc) => kc.tuong_id === c.id,
+                        );
+
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            title={`${c.ten_tuong} (${c.vai_tro || "Chưa rõ"})${hasConfigured ? " - Đã có cài đặt" : ""}`}
+                            onClick={() => setKcTargetChampId(c.id)}
+                            className={`relative aspect-square transition-all cursor-pointer overflow-hidden rounded-sm group ${
+                              isSelected
+                                ? "ring-2 ring-amber-400 scale-105 z-10 shadow-lg shadow-amber-500/50"
+                                : "hover:scale-105 hover:ring-1 hover:ring-amber-400/60 opacity-85 hover:opacity-100"
+                            }`}
+                          >
+                            {isSelected && (
+                              <span className="absolute top-0.5 right-0.5 bg-amber-400 text-slate-950 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center z-20 shadow">
+                                ✓
+                              </span>
+                            )}
+                            {!isSelected && hasConfigured && (
+                              <span className="absolute top-0.5 right-0.5 bg-emerald-600/90 text-white text-[7px] font-extrabold px-1 rounded z-20 shadow">
+                                Đã set
+                              </span>
+                            )}
+                            <img
+                              src={c.url_anh_dai_dien || "/placeholder.jpg"}
+                              alt={c.ten_tuong}
+                              className={`w-full h-full object-cover transition-all ${
+                                isSelected
+                                  ? "brightness-105"
+                                  : "brightness-90 grayscale-[10%] group-hover:grayscale-0 group-hover:brightness-100"
+                              }`}
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="absolute inset-x-0 bottom-0 bg-slate-950/85 text-[9px] font-extrabold text-[#fce3bc] text-center truncate px-0.5 py-0.5 group-hover:bg-slate-900">
+                              {c.ten_tuong}
+                            </div>
+                          </button>
+                        );
+                      })}
+                      {filteredTargetChamps.length === 0 && (
+                        <div className="col-span-full text-center py-4 text-xs text-slate-400 italic">
+                          Không tìm thấy tướng phù hợp.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* 3 Pickers Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Picker 1: Tướng Khắc Chế */}
                 <div className="bg-slate-900 p-3 border border-red-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-red-800/40 pb-1.5">
+                  <div className="flex flex-wrap items-center justify-between gap-1 border-b border-red-800/40 pb-1.5">
                     <span className="text-xs font-black text-red-300 uppercase flex items-center gap-1.5">
                       <LucideIcon name="ShieldAlert" size={14} />
                       Tướng Khắc Chế ({kcCounterChampIds.length})
@@ -2228,58 +2390,75 @@ export default function BuildGuidesTab({
                     </button>
                   </div>
 
+                  {/* Search box counter champ */}
+                  <input
+                    type="text"
+                    value={kcCounterSearch}
+                    onChange={(e) => setKcCounterSearch(e.target.value)}
+                    placeholder="Lọc tướng khắc chế..."
+                    className="w-full bg-slate-950 border border-red-900/40 px-2 py-0.5 text-xs text-red-200 placeholder-slate-500 focus:outline-none"
+                  />
+
                   {/* Lưới chỉ hiển thị ảnh tướng */}
                   <div className="max-h-56 overflow-y-auto pr-1 grid grid-cols-5 sm:grid-cols-6 gap-2 scrollbar-thin">
-                    {champions.map((c) => {
-                      const isChecked = kcCounterChampIds.includes(c.id);
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          title={c.ten_tuong}
-                          onClick={() => {
-                            if (isChecked) {
-                              setKcCounterChampIds(
-                                kcCounterChampIds.filter((id) => id !== c.id),
-                              );
-                            } else {
-                              setKcCounterChampIds([
-                                ...kcCounterChampIds,
-                                c.id,
-                              ]);
-                            }
-                          }}
-                          className={`relative aspect-square transition-all cursor-pointer overflow-hidden rounded-sm ${
-                            isChecked
-                              ? "ring-2 ring-red-500 scale-105 z-10 shadow-lg shadow-red-950/50"
-                              : "hover:scale-105 hover:ring-1 hover:ring-red-400/60"
-                          }`}
-                        >
-                          {/* Badge tích chọn góc trên */}
-                          {isChecked && (
-                            <span className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center z-20 shadow">
-                              ✓
-                            </span>
-                          )}
-                          <img
-                            src={c.url_anh_dai_dien || "/placeholder.jpg"}
-                            alt={c.ten_tuong}
-                            className={`w-full h-full object-cover transition-all ${
+                    {champions
+                      .filter(
+                        (c) =>
+                          !kcCounterSearch ||
+                          c.ten_tuong
+                            .toLowerCase()
+                            .includes(kcCounterSearch.toLowerCase()),
+                      )
+                      .map((c) => {
+                        const isChecked = kcCounterChampIds.includes(c.id);
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            title={c.ten_tuong}
+                            onClick={() => {
+                              if (isChecked) {
+                                setKcCounterChampIds(
+                                  kcCounterChampIds.filter((id) => id !== c.id),
+                                );
+                              } else {
+                                setKcCounterChampIds([
+                                  ...kcCounterChampIds,
+                                  c.id,
+                                ]);
+                              }
+                            }}
+                            className={`relative aspect-square transition-all cursor-pointer overflow-hidden rounded-sm ${
                               isChecked
-                                ? "brightness-100"
-                                : "brightness-90 grayscale-[20%] hover:grayscale-0 hover:brightness-100"
+                                ? "ring-2 ring-red-500 scale-105 z-10 shadow-lg shadow-red-950/50"
+                                : "hover:scale-105 hover:ring-1 hover:ring-red-400/60"
                             }`}
-                            referrerPolicy="no-referrer"
-                          />
-                        </button>
-                      );
-                    })}
+                          >
+                            {/* Badge tích chọn góc trên */}
+                            {isChecked && (
+                              <span className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center z-20 shadow">
+                                ✓
+                              </span>
+                            )}
+                            <img
+                              src={c.url_anh_dai_dien || "/placeholder.jpg"}
+                              alt={c.ten_tuong}
+                              className={`w-full h-full object-cover transition-all ${
+                                isChecked
+                                  ? "brightness-100"
+                                  : "brightness-90 grayscale-[20%] hover:grayscale-0 hover:brightness-100"
+                              }`}
+                              referrerPolicy="no-referrer"
+                            />
+                          </button>
+                        );
+                      })}
                   </div>
                 </div>
 
                 {/* Picker 2: Trang Bị Khắc Chế */}
                 <div className="bg-slate-900 p-3 border border-amber-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-amber-800/40 pb-1.5">
+                  <div className="flex flex-wrap items-center justify-between gap-1 border-b border-amber-800/40 pb-1.5">
                     <span className="text-xs font-black text-amber-300 uppercase flex items-center gap-1.5">
                       <LucideIcon name="Shield" size={14} />
                       Trang Bị Khắc Chế ({kcCounterItemIds.length})
@@ -2293,58 +2472,77 @@ export default function BuildGuidesTab({
                     </button>
                   </div>
 
+                  {/* Search box item */}
+                  <input
+                    type="text"
+                    value={kcItemSearch}
+                    onChange={(e) => setKcItemSearch(e.target.value)}
+                    placeholder="Lọc trang bị..."
+                    className="w-full bg-slate-950 border border-amber-900/40 px-2 py-0.5 text-xs text-amber-200 placeholder-slate-500 focus:outline-none"
+                  />
+
                   {/* Lưới chỉ hiển thị ảnh trang bị */}
                   <div className="max-h-56 overflow-y-auto pr-1 grid grid-cols-5 sm:grid-cols-6 gap-2 scrollbar-thin">
-                    {items.map((item) => {
-                      const isChecked = kcCounterItemIds.includes(item.id);
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          title={item.ten_trang_bi}
-                          onClick={() => {
-                            if (isChecked) {
-                              setKcCounterItemIds(
-                                kcCounterItemIds.filter((id) => id !== item.id),
-                              );
-                            } else {
-                              setKcCounterItemIds([
-                                ...kcCounterItemIds,
-                                item.id,
-                              ]);
-                            }
-                          }}
-                          className={`relative aspect-square transition-all cursor-pointer overflow-hidden rounded-sm ${
-                            isChecked
-                              ? "ring-2 ring-amber-500 scale-105 z-10 shadow-lg shadow-amber-950/50"
-                              : "hover:scale-105 hover:ring-1 hover:ring-amber-400/60"
-                          }`}
-                        >
-                          {/* Badge tích chọn góc trên */}
-                          {isChecked && (
-                            <span className="absolute top-0.5 right-0.5 bg-amber-500 text-slate-950 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center z-20 shadow">
-                              ✓
-                            </span>
-                          )}
-                          <img
-                            src={item.url_hinh_anh || "/placeholder.jpg"}
-                            alt={item.ten_trang_bi}
-                            className={`w-full h-full object-cover transition-all ${
+                    {items
+                      .filter(
+                        (item) =>
+                          !kcItemSearch ||
+                          item.ten_trang_bi
+                            .toLowerCase()
+                            .includes(kcItemSearch.toLowerCase()),
+                      )
+                      .map((item) => {
+                        const isChecked = kcCounterItemIds.includes(item.id);
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            title={item.ten_trang_bi}
+                            onClick={() => {
+                              if (isChecked) {
+                                setKcCounterItemIds(
+                                  kcCounterItemIds.filter(
+                                    (id) => id !== item.id,
+                                  ),
+                                );
+                              } else {
+                                setKcCounterItemIds([
+                                  ...kcCounterItemIds,
+                                  item.id,
+                                ]);
+                              }
+                            }}
+                            className={`relative aspect-square transition-all cursor-pointer overflow-hidden rounded-sm ${
                               isChecked
-                                ? "brightness-100"
-                                : "brightness-90 grayscale-[20%] hover:grayscale-0 hover:brightness-100"
+                                ? "ring-2 ring-amber-500 scale-105 z-10 shadow-lg shadow-amber-950/50"
+                                : "hover:scale-105 hover:ring-1 hover:ring-amber-400/60"
                             }`}
-                            referrerPolicy="no-referrer"
-                          />
-                        </button>
-                      );
-                    })}
+                          >
+                            {/* Badge tích chọn góc trên */}
+                            {isChecked && (
+                              <span className="absolute top-0.5 right-0.5 bg-amber-500 text-slate-950 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center z-20 shadow">
+                                ✓
+                              </span>
+                            )}
+                            <img
+                              src={item.url_hinh_anh || "/placeholder.jpg"}
+                              alt={item.ten_trang_bi}
+                              className={`w-full h-full object-cover transition-all ${
+                                isChecked
+                                  ? "brightness-100"
+                                  : "brightness-90 grayscale-[20%] hover:grayscale-0 hover:brightness-100"
+                              }`}
+                              referrerPolicy="no-referrer"
+                            />
+                          </button>
+                        );
+                      })}
                   </div>
                 </div>
 
                 {/* Picker 3: Tướng Phối Hợp */}
                 <div className="bg-slate-900 p-3 border border-emerald-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-emerald-800/40 pb-1.5">
+                  <div className="flex flex-wrap items-center justify-between gap-1 border-b border-emerald-800/40 pb-1.5">
                     <span className="text-xs font-black text-emerald-300 uppercase flex items-center gap-1.5">
                       <LucideIcon name="Users" size={14} />
                       Tướng Phối Hợp ({kcSynergyChampIds.length})
@@ -2358,52 +2556,69 @@ export default function BuildGuidesTab({
                     </button>
                   </div>
 
+                  {/* Search box synergy champ */}
+                  <input
+                    type="text"
+                    value={kcSynergySearch}
+                    onChange={(e) => setKcSynergySearch(e.target.value)}
+                    placeholder="Lọc tướng phối hợp..."
+                    className="w-full bg-slate-950 border border-emerald-900/40 px-2 py-0.5 text-xs text-emerald-200 placeholder-slate-500 focus:outline-none"
+                  />
+
                   {/* Lưới chỉ hiển thị ảnh tướng */}
                   <div className="max-h-56 overflow-y-auto pr-1 grid grid-cols-5 sm:grid-cols-6 gap-2 scrollbar-thin">
-                    {champions.map((c) => {
-                      const isChecked = kcSynergyChampIds.includes(c.id);
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          title={c.ten_tuong}
-                          onClick={() => {
-                            if (isChecked) {
-                              setKcSynergyChampIds(
-                                kcSynergyChampIds.filter((id) => id !== c.id),
-                              );
-                            } else {
-                              setKcSynergyChampIds([
-                                ...kcSynergyChampIds,
-                                c.id,
-                              ]);
-                            }
-                          }}
-                          className={`relative aspect-square transition-all cursor-pointer overflow-hidden rounded-sm ${
-                            isChecked
-                              ? "ring-2 ring-emerald-500 scale-105 z-10 shadow-lg shadow-emerald-950/50"
-                              : "hover:scale-105 hover:ring-1 hover:ring-emerald-400/60"
-                          }`}
-                        >
-                          {/* Badge tích chọn góc trên */}
-                          {isChecked && (
-                            <span className="absolute top-0.5 right-0.5 bg-emerald-500 text-slate-950 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center z-20 shadow">
-                              ✓
-                            </span>
-                          )}
-                          <img
-                            src={c.url_anh_dai_dien || "/placeholder.jpg"}
-                            alt={c.ten_tuong}
-                            className={`w-full h-full object-cover transition-all ${
+                    {champions
+                      .filter(
+                        (c) =>
+                          !kcSynergySearch ||
+                          c.ten_tuong
+                            .toLowerCase()
+                            .includes(kcSynergySearch.toLowerCase()),
+                      )
+                      .map((c) => {
+                        const isChecked = kcSynergyChampIds.includes(c.id);
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            title={c.ten_tuong}
+                            onClick={() => {
+                              if (isChecked) {
+                                setKcSynergyChampIds(
+                                  kcSynergyChampIds.filter((id) => id !== c.id),
+                                );
+                              } else {
+                                setKcSynergyChampIds([
+                                  ...kcSynergyChampIds,
+                                  c.id,
+                                ]);
+                              }
+                            }}
+                            className={`relative aspect-square transition-all cursor-pointer overflow-hidden rounded-sm ${
                               isChecked
-                                ? "brightness-100"
-                                : "brightness-90 grayscale-[20%] hover:grayscale-0 hover:brightness-100"
+                                ? "ring-2 ring-emerald-500 scale-105 z-10 shadow-lg shadow-emerald-950/50"
+                                : "hover:scale-105 hover:ring-1 hover:ring-emerald-400/60"
                             }`}
-                            referrerPolicy="no-referrer"
-                          />
-                        </button>
-                      );
-                    })}
+                          >
+                            {/* Badge tích chọn góc trên */}
+                            {isChecked && (
+                              <span className="absolute top-0.5 right-0.5 bg-emerald-500 text-slate-950 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center z-20 shadow">
+                                ✓
+                              </span>
+                            )}
+                            <img
+                              src={c.url_anh_dai_dien || "/placeholder.jpg"}
+                              alt={c.ten_tuong}
+                              className={`w-full h-full object-cover transition-all ${
+                                isChecked
+                                  ? "brightness-100"
+                                  : "brightness-90 grayscale-[20%] hover:grayscale-0 hover:brightness-100"
+                              }`}
+                              referrerPolicy="no-referrer"
+                            />
+                          </button>
+                        );
+                      })}
                   </div>
                 </div>
               </div>
