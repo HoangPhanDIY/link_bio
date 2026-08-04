@@ -1699,20 +1699,7 @@ export default function App() {
       {/* Desktop Left Sidebar - ONLY visible when in Admin panel on desktop */}
       {isAdminMode && (
         <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 text-slate-200 border-r border-[#bd9867]/60 z-30 shadow-2xl transition-all duration-300 bg-slate-950/90 backdrop-blur-md">
-          {/* Sidebar Header: Brand / Logo */}
-          <div className="p-6 border-b border-[#bd9867]/40 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white shadow-md">
-              <LucideIcon name="Settings" size={18} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-xs font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent tracking-wider uppercase">
-                BẢNG QUẢN TRỊ
-              </h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">
-                Vivid Link Bio
-              </p>
-            </div>
-          </div>
+
 
           {/* User Info */}
           {loggedInUser && (
@@ -1821,7 +1808,7 @@ export default function App() {
       <main
         className={`flex-grow w-full mx-auto transition-all duration-300 ${
           isAdminMode
-            ? "px-4 sm:px-6 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
+            ? "px-1 sm:px-4 py-6 pb-16 sm:pb-24" // Khoảng đệm khi là Admin
             : "max-w-5xl px-2 sm:px-6 py-6 sm:py-12 pt-0 pb-16 sm:pb-24 flex flex-col" // Khoảng đệm khi là User
         }`}
       >
@@ -1984,12 +1971,14 @@ export default function App() {
                 <div className="animate-in fade-in duration-300">
                   {isGuidesLoading ? (
                     renderDataLoading(
-                      "Đang tải danh sách giáo án...",
+                      "Đang tải dữ liệu Học Viện...",
                       isDarkPublic,
                     )
                   ) : (
                     <PublicBuildGuides
                       guides={guides}
+                      champions={champions}
+                      items={items}
                       isDark={isDarkPublic}
                       accentColor={appearance.accentColor}
                       onLikeGuide={handleLikeGuide}

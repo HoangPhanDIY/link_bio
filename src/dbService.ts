@@ -13,9 +13,11 @@ import {
   DBDonation,
   DBPost,
   DBRune,
+  DBKhacChe,
+  DBTopTier,
 } from "./supabase";
 
-export type { DBMessage, DBDonation, DBPost };
+export type { DBMessage, DBDonation, DBPost, DBKhacChe, DBTopTier };
 
 export const DEFAULT_POSTS: DBPost[] = [
   {
@@ -1668,5 +1670,195 @@ export const dbService = {
       console.warn("Lỗi tải danh sách tài nguyên cũ từ bucket:", err);
       return { gifs: [], sounds: [] };
     }
+  },
+
+  // ==========================================
+  // 12. KHẮC CHẾ & TOP TIER ACADEMY
+  // ==========================================
+  async getKhacCheList(): Promise<DBKhacChe[]> {
+    try {
+      const data = await handleQuery(supabase.from("khac_che").select("*"));
+      if (data && Array.isArray(data) && data.length > 0) {
+        return data as DBKhacChe[];
+      }
+    } catch (e) {
+      console.warn("Lỗi lấy dữ liệu khac_che từ Supabase:", e);
+    }
+    try {
+      const local = localStorage.getItem("aov_khac_che");
+      if (local) return JSON.parse(local);
+    } catch (e) {}
+    return [];
+  },
+
+  async saveKhacChe(item: Partial<DBKhacChe>): Promise<DBKhacChe | null> {
+    if (!item.tuong_id) return null;
+    const record: DBKhacChe = {
+      id: item.id || `kc-${item.tuong_id}`,
+      tuong_id: item.tuong_id,
+      tuong_khac_che_ids: item.tuong_khac_che_ids || [],
+      trang_bi_khac_che_ids: item.trang_bi_khac_che_ids || [],
+      tuong_phoi_hop_ids: item.tuong_phoi_hop_ids || [],
+      ghi_chu_khac_che: item.ghi_chu_khac_che || "",
+      ghi_chu_phoi_hop: item.ghi_chu_phoi_hop || "",
+      updated_at: new Date().toISOString(),
+    };
+
+    // Backup to localStorage
+    try {
+      const existingList = await this.getKhacCheList();
+      const filtered = existingList.filter((x) => x.tuong_id !== item.tuong_id);
+      filtered.push(record);
+      localStorage.setItem("aov_khac_che", JSON.stringify(filtered));
+    } catch (e) {}
+
+    // Upsert to Supabase
+    try {
+      const { data, error } = await supabase
+        .from("khac_che")
+        .upsert(
+          {
+            tuong_id: record.tuong_id,
+            tuong_khac_che_ids: record.tuong_khac_che_ids,
+            trang_bi_khac_che_ids: record.trang_bi_khac_che_ids,
+            tuong_phoi_hop_ids: record.tuong_phoi_hop_ids,
+            ghi_chu_khac_che: record.ghi_chu_khac_che,
+            ghi_chu_phoi_hop: record.ghi_chu_phoi_hop,
+            updated_at: record.updated_at,
+          },
+          { onConflict: "tuong_id" },
+        )
+        .select()
+        .maybeSingle();
+
+      if (data && !error) return data as DBKhacChe;
+    } catch (e) {
+      console.warn("Lưu Supabase table khac_che chưa thành công:", e);
+    }
+
+    return record;
+  },
+
+  async getTopTierList(): Promise<DBTopTier[]> {
+    try {
+      const data = await handleQuery(supabase.from("top_tier").select("*"));
+      if (data && Array.isArray(data) && data.length > 0) {
+        return data as DBTopTier[];
+      }
+    } catch (e) {
+      console.warn("Lỗi lấy dữ liệu top_tier từ Supabase:", e);
+    }
+    try {
+      const local = localStorage.getItem("aov_top_tier");
+      if (local) return JSON.parse(local);
+    } catch (e) {}
+    return [];
+  },
+
+  async saveTopTierItem(item: Partial<DBTopTier>): Promise<DBTopTier | null> {
+    if (!item.tuong_id || !item.phandanh_lane || !item.tier) return null;
+    const record: DBTopTier = {
+      id: item.id || `tt-${item.tuong_id}-${item.phandanh_lane}`,
+      tuong_id: item.tuong_id,
+      phien_ban: item.phien_ban || "Phiên bản hiện tại",
+      phandanh_lane: item.phandanh_lane,
+      tier: item.tier,
+      ghi_chu: item.ghi_chu || "",
+      updated_at: new Date().toISOString(),
+    };
+
+    // Backup to localStorage
+    try {
+      const existingList = await this.getTopTierList();
+      const filtered = existingList.filter(
+        (x) =>
+          !(
+            x.tuong_id === item.tuong_id &&
+            x.phandanh_lane === item.phandanh_lane
+          ),
+      );
+      filtered.push(record);
+      localStorage.setItem("aov_top_tier", JSON.stringify(filtered));
+    } catch (e) {}
+
+    // Upsert to Supabase
+    try {
+      const { data, error } = await supabase
+        .from("top_tier")
+        .upsert(
+          {
+            tuong_id: record.tuong_id,
+            phien_ban: record.phien_ban,
+            phandanh_lane: record.phandanh_lane,
+            tier: record.tier,
+            ghi_chu: record.ghi_chu,
+            updated_at: record.updated_at,
+          },
+          { onConflict: "tuong_id,phandanh_lane" },
+        )
+        .select()
+        .maybeSingle();
+
+      if (data && !error) return data as DBTopTier;
+    } catch (e) {
+      console.warn("Lưu Supabase table top_tier chưa thành công:", e);
+    }
+
+    return record;
+  },
+
+  async deleteTopTierItem(
+    id: string,
+    tuongId?: string,
+    lane?: string,
+  ): Promise<boolean> {
+    try {
+      const existingList = await this.getTopTierList();
+      const filtered = existingList.filter(
+        (x) =>
+          x.id !== id &&
+          !(
+            tuongId &&
+            lane &&
+            x.tuong_id === tuongId &&
+            x.phandanh_lane === lane
+          ),
+      );
+      localStorage.setItem("aov_top_tier", JSON.stringify(filtered));
+    } catch (e) {}
+
+    try {
+      if (isUUID(id)) {
+        await supabase.from("top_tier").delete().eq("id", id);
+      } else if (tuongId && lane) {
+        await supabase
+          .from("top_tier")
+          .delete()
+          .eq("tuong_id", tuongId)
+          .eq("phandanh_lane", lane);
+      }
+    } catch (e) {}
+
+    return true;
+  },
+
+  async deleteKhacChe(id: string, tuongId?: string): Promise<boolean> {
+    try {
+      const existingList = await this.getKhacCheList();
+      const filtered = existingList.filter(
+        (x) => x.id !== id && !(tuongId && x.tuong_id === tuongId),
+      );
+      localStorage.setItem("aov_khac_che", JSON.stringify(filtered));
+    } catch (e) {}
+
+    try {
+      if (isUUID(id)) {
+        await supabase.from("khac_che").delete().eq("id", id);
+      } else if (tuongId) {
+        await supabase.from("khac_che").delete().eq("tuong_id", tuongId);
+      }
+    } catch (e) {}
+
+    return true;
   },
 };

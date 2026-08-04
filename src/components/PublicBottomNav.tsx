@@ -50,7 +50,7 @@ export default function PublicBottomNav({
           </span>
         </button>
 
-        {/* Button 2: Trang bị */}
+        {/* Button 2: Học Viện */}
         <button
           onClick={() => setPublicTab("guides")}
           className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
@@ -60,7 +60,7 @@ export default function PublicBottomNav({
           }`}
         >
           <LucideIcon
-            name="BookOpen"
+            name="GraduationCap"
             size={18}
             className={
               publicTab === "guides" ? "text-white" : "stroke-[#bd9867]"
@@ -73,7 +73,7 @@ export default function PublicBottomNav({
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
             }`}
           >
-            Trang bị
+            Học Viện
           </span>
         </button>
 

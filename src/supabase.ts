@@ -6,7 +6,7 @@ const SUPABASE_URL =
   "https://placeholder.supabase.co";
 const SUPABASE_KEY =
   (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  (import.meta as any).env?.VITE_SUPABASE_ANON_KEY ||
   "placeholder-key";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -249,6 +249,29 @@ export interface DBMessage {
   ho_ten: string;
   email: string | null;
   noi_dung: string;
-  trang_thai: number; // 0=mới, 1=đã đọc, 2=đã trả lời
+  trang_thai: number; // 0=mới, 1=đã đọc, 2=đã trả lời;
   created_at?: string;
+}
+
+export interface DBKhacChe {
+  id: string;
+  tuong_id: string;
+  tuong_khac_che_ids: string[];
+  trang_bi_khac_che_ids: string[];
+  tuong_phoi_hop_ids: string[];
+  ghi_chu_khac_che?: string;
+  ghi_chu_phoi_hop?: string;
+  updated_at?: string;
+}
+
+export interface DBTopTier {
+  id: string;
+  tuong_id: string;
+  phien_ban: string;
+  phandanh_lane: string; // 'Rừng' | 'Mid' | 'Tà Thần' | 'AD' | 'SP'
+  tier: string; // 'S' | 'A' | 'B' | 'C' | 'D'
+  ghi_chu?: string;
+  updated_at?: string;
+
+  tuong?: DBChampion;
 }
