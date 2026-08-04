@@ -2,6 +2,7 @@ import React from "react";
 import { BioLink, AppearanceSettings } from "../types";
 import { DBPost } from "../dbService";
 import LucideIcon from "./LucideIcon";
+import { formatExternalUrl } from "../utils";
 
 interface PublicPostsTabProps {
   posts: DBPost[];
@@ -13,6 +14,7 @@ interface PublicPostsTabProps {
     message: string,
     type?: "success" | "error" | "info",
   ) => void;
+  isLoading?: boolean;
 }
 
 export default function PublicPostsTab({
@@ -143,7 +145,10 @@ export default function PublicPostsTab({
                         : null;
 
                       if (associatedLink) {
-                        window.open(`https://${associatedLink.url}`, "_blank");
+                        window.open(
+                          formatExternalUrl(associatedLink.url),
+                          "_blank",
+                        );
                         showNotification(
                           `Đang chuyển hướng đến ${associatedLink.title}...`,
                           "info",
@@ -152,7 +157,10 @@ export default function PublicPostsTab({
                         // Fallback to first active link
                         const firstActive = links.find((l) => l.enabled);
                         if (firstActive) {
-                          window.open(`https://${firstActive.url}`, "_blank");
+                          window.open(
+                            formatExternalUrl(firstActive.url),
+                            "_blank",
+                          );
                           showNotification(
                             `Đang chuyển hướng đến ${firstActive.title}...`,
                             "info",

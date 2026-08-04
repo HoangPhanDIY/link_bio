@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BioLink } from "../types";
 import LucideIcon from "./LucideIcon";
 import BrandIcon from "./BrandIcon";
@@ -8,8 +8,19 @@ import ImageCropperModal from "./ImageCropperModal";
 
 interface ManageLinksTabProps {
   links: BioLink[];
-  onAddLink: (title: string, url: string, icon: string) => void;
-  onUpdateLink?: (id: string, title: string, url: string, icon: string) => void;
+  onAddLink: (
+    title: string,
+    url: string,
+    icon: string,
+    thuTuUuTien?: number,
+  ) => void;
+  onUpdateLink?: (
+    id: string,
+    title: string,
+    url: string,
+    icon: string,
+    thuTuUuTien?: number,
+  ) => void;
   onDeleteLink: (id: string) => void;
   onToggleLink: (id: string, enabled: boolean) => void;
   onReorderLinks: (newLinks: BioLink[]) => void;
@@ -52,6 +63,34 @@ export default function ManageLinksTab({
   const [url, setUrl] = useState("");
   const [icon, setIcon] = useState("Globe");
   const [customIcon, setCustomIcon] = useState("");
+  const [orderNumber, setOrderNumber] = useState<number>(0);
+
+  // Uploaded icons list from links/ folder in Supabase Storage
+  const [uploadedIcons, setUploadedIcons] = useState<string[]>([]);
+
+  const loadUploadedIcons = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("images")
+        .list("links");
+      if (data && !error) {
+        const urls = data
+          .filter((item) => item.name && !item.name.startsWith("."))
+          .map((item) => {
+            return supabase.storage
+              .from("images")
+              .getPublicUrl(`links/${item.name}`).data.publicUrl;
+          });
+        setUploadedIcons(urls);
+      }
+    } catch (err) {
+      console.warn("Error loading icons from links folder:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUploadedIcons();
+  }, [loadUploadedIcons]);
 
   // Drag interaction states
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -101,9 +140,9 @@ export default function ManageLinksTab({
     try {
       const fileExt = croppedFile.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `uploads/${fileName}`;
+      const filePath = `links/${fileName}`;
 
-      // Upload to bucket 'images'
+      // Upload to bucket 'images' inside folder 'links/'
       const { data, error } = await supabase.storage
         .from("images")
         .upload(filePath, croppedFile, {
@@ -124,8 +163,9 @@ export default function ManageLinksTab({
       if (publicUrlData.publicUrl) {
         setCustomIcon(publicUrlData.publicUrl);
         setIcon(""); // clear preset
+        await loadUploadedIcons();
         window.showNotification?.(
-          "Tải lên logo tùy chỉnh thành công!",
+          "Tải lên logo tùy chỉnh vào folder links thành công!",
           "success",
         );
       } else {
@@ -153,10 +193,10 @@ export default function ManageLinksTab({
 
     if (editingLink) {
       if (onUpdateLink) {
-        onUpdateLink(editingLink.id, title, url, finalIcon);
+        onUpdateLink(editingLink.id, title, url, finalIcon, orderNumber);
       }
     } else {
-      onAddLink(title, url, finalIcon);
+      onAddLink(title, url, finalIcon, orderNumber);
     }
 
     // Reset Form
@@ -183,6 +223,14 @@ export default function ManageLinksTab({
     <div className="space-y-6">
       {/* Header and Add Action */}
       <div className="flex flex-col justify-between gap-4">
+        <div>
+          <h2 className="font-display text-xl font-bold text-slate-800">
+            Quản lý liên kết
+          </h2>
+          <p className="text-slate-500 text-xs font-sans">
+            Sắp xếp và tùy chỉnh các liên kết của bạn.
+          </p>
+        </div>
         <button
           onClick={() => {
             setEditingLink(null);
@@ -190,6 +238,7 @@ export default function ManageLinksTab({
             setUrl("");
             setIcon("Globe");
             setCustomIcon("");
+            setOrderNumber(links.length);
             setIsModalOpen(true);
           }}
           className="text-white px-5 py-3 rounded font-bold flex items-center justify-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all text-sm cursor-pointer"
@@ -208,14 +257,14 @@ export default function ManageLinksTab({
           return (
             <div
               key={link.id}
-              className={`flex items-center gap-4 p-2 sm:p-4 bg-[rgba(29, 24, 43, 0.75)] border border-slate-100 transition-all duration-300${
+              className={`flex items-center gap-4 p-2 sm:p-4 bg-white border border-slate-100 rounded transition-all duration-300 shadow-sm hover:shadow-md ${
                 isDragged
                   ? "opacity-40 border-dashed border-indigo-400 bg-indigo-50/20"
                   : ""
               }`}
             >
               {/* Grab Handles & Order Actions */}
-              <div className="flex flex-col items-center gap-1">
+              <div className="flex flex-col items-center gap-1 min-w-[36px]">
                 <button
                   onClick={() => moveLink(idx, "up")}
                   disabled={idx === 0}
@@ -225,11 +274,18 @@ export default function ManageLinksTab({
                   <LucideIcon name="ChevronUp" size={14} />
                 </button>
                 <div
-                  className="cursor-grab active:cursor-grabbing text-slate-300 p-1 hover:bg-slate-50 rounded"
+                  className="cursor-grab active:cursor-grabbing text-slate-400 p-1 hover:bg-slate-50 rounded flex flex-col items-center gap-0.5"
                   onMouseDown={() => setDraggedId(link.id)}
                   onMouseUp={() => setDraggedId(null)}
+                  title="Kéo thả hoặc thay đổi thứ tự ưu tiên (thu_tu_uu_tien)"
                 >
                   <LucideIcon name="drag_indicator" size={16} />
+                  <span
+                    className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1 py-0.2 rounded"
+                    title="Vị trí cột thu_tu_uu_tien"
+                  >
+                    #{link.thu_tu_uu_tien ?? idx}
+                  </span>
                 </div>
                 <button
                   onClick={() => moveLink(idx, "down")}
@@ -258,9 +314,17 @@ export default function ManageLinksTab({
 
               {/* Meta details */}
               <div className="flex-1 min-w-0">
-                <h4 className="font-display font-bold text-slate-800 text-sm sm:text-base truncate">
-                  {link.title}
-                </h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-display font-bold text-slate-800 text-sm sm:text-base truncate">
+                    {link.title}
+                  </h4>
+                  {/* <span
+                    className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono"
+                    title="Cột thu_tu_uu_tien trong DB"
+                  >
+                    Ưu tiên: {link.thu_tu_uu_tien ?? idx}
+                  </span> */}
+                </div>
                 <p className="text-slate-400 text-xs sm:text-sm  truncate">
                   {link.url}
                 </p>
@@ -291,6 +355,7 @@ export default function ManageLinksTab({
                     setEditingLink(link);
                     setTitle(link.title);
                     setUrl(link.url);
+                    setOrderNumber(link.thu_tu_uu_tien ?? idx);
                     const isPreset = PRESET_ICONS.some(
                       (p) => p.value === link.icon,
                     );
@@ -399,11 +464,38 @@ export default function ManageLinksTab({
                 />
               </div>
 
+              {/* Order / Position Input (thu_tu_uu_tien) */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                  Thứ tự vị trí ưu tiên (Cột thu_tu_uu_tien)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={orderNumber}
+                  onChange={(e) =>
+                    setOrderNumber(parseInt(e.target.value) || 0)
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded px-4 py-2.5 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm text-slate-800 font-mono"
+                  placeholder="0, 1, 2..."
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Số nhỏ hơn sẽ xếp ở vị trí cao hơn.
+                </p>
+              </div>
+
               {/* Preset Icon Selector */}
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ">
-                  Biểu tượng liên kết (Có sẵn)
-                </label>
+                {/* <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Biểu tượng liên kết (Có sẵn)
+                  </label>
+                  {uploadedIcons.length > 0 && (
+                    <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                      {uploadedIcons.length} ảnh trong folder links
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-4 gap-2.5">
                   {PRESET_ICONS.map((preset) => (
                     <button
@@ -432,7 +524,43 @@ export default function ManageLinksTab({
                       </span>
                     </button>
                   ))}
-                </div>
+                </div> */}
+
+                {/* Gallery of Uploaded Logos from folder 'links/' */}
+                {uploadedIcons.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-100">
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1.5">
+                      Logo có sẵn
+                    </label>
+                    <div className="grid grid-cols-5 gap-2 max-h-36 overflow-y-auto p-1.5 border border-slate-200 rounded-md bg-slate-50">
+                      {uploadedIcons.map((urlItem, i) => {
+                        const isSelected = customIcon === urlItem;
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              setCustomIcon(urlItem);
+                              setIcon("");
+                            }}
+                            className={`flex flex-col items-center justify-center p-1 rounded border transition-all aspect-square relative bg-white ${
+                              isSelected
+                                ? "border-indigo-500 ring-2 ring-indigo-500/30 bg-indigo-50/20"
+                                : "border-slate-200 hover:border-indigo-300"
+                            }`}
+                            title="Tái sử dụng logo này"
+                          >
+                            <img
+                              src={urlItem}
+                              alt={`Logo ${i}`}
+                              className="w-7 h-7 object-contain rounded"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Upload Custom Logo Option */}
@@ -506,7 +634,7 @@ export default function ManageLinksTab({
               </div>
 
               {/* Custom Lucide Icon Search */}
-              <div>
+              {/* <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ">
                   Hoặc tên biểu tượng Lucide tùy chọn
                 </label>
@@ -526,7 +654,7 @@ export default function ManageLinksTab({
                   Hỗ trợ bất kỳ tên biểu tượng tiêu chuẩn nào từ thư viện
                   Lucide.
                 </p>
-              </div>
+              </div> */}
 
               {/* Actions */}
               <div className="pt-2 flex gap-3">

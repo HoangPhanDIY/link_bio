@@ -2,7 +2,7 @@ import React from "react";
 import { BioLink, AppearanceSettings } from "../types";
 import LucideIcon from "./LucideIcon";
 import BrandIcon from "./BrandIcon";
-import { isCustomIcon } from "../utils";
+import { isCustomIcon, formatExternalUrl } from "../utils";
 
 interface PublicLinksTabProps {
   links: BioLink[];
@@ -38,7 +38,7 @@ export default function PublicLinksTab({
             return (
               <a
                 key={link.id}
-                href={`https://${link.url}`}
+                href={formatExternalUrl(link.url)}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => onLinkClick(link.id)}

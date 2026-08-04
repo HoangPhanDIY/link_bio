@@ -17,6 +17,41 @@ import {
 
 export type { DBMessage, DBDonation, DBPost };
 
+export const DEFAULT_POSTS: DBPost[] = [
+  {
+    id: "00000000-0000-0000-0000-000000000001",
+    tieu_de: "Chào mừng đến với Giáo Án Liên Quân Mobile!",
+    slug: "chao-mung-giao-an-lien-quan",
+    tom_tat: "Trang tổng hợp giáo án, lối lên đồ và bảng ngọc chuẩn nhất.",
+    noi_dung:
+      "Chào mừng tất cả các kiện tướng đến với trang cá nhân và tổng hợp Giáo Án Liên Quân Mobile! Tại đây mình sẽ cập nhật liên tục các trang bị, phù hiệu, bảng ngọc chuẩn cho các tướng trong mùa giải mới. Chúc các bạn leo rank thành công!",
+    url_hinh_anh: "/image/Decor/bg-academy.jpg",
+    danh_muc_id: null,
+    tac_gia_id: null,
+    lien_ket_id: null,
+    trang_thai: 2, // 2 = Đã ghim
+    luot_xem: 156,
+    ngay_dang: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000002",
+    tieu_de: "Bí quyết leo rank đỉnh cao với Florentino",
+    slug: "bi-quyet-leo-rank-florentino",
+    tom_tat: "Mẹo múa hoa và nhặt hoa liên tục trong combat.",
+    noi_dung:
+      "Florentino là đấu sĩ hàng đầu đường Tà Thần. Điểm mấu chốt để múa hoa mượt là di chuyển nhặt hoa đúng hướng và tận dụng miễn khống từ chiêu cuối. Hãy truy cập mục GIÁO ÁN để xem chi tiết trang bị và bảng ngọc múa mượt nhất nhé!",
+    url_hinh_anh: "/image/tuong/DauSi/Florentino.jpg",
+    danh_muc_id: null,
+    tac_gia_id: null,
+    lien_ket_id: null,
+    trang_thai: 1,
+    luot_xem: 92,
+    ngay_dang: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+  },
+];
+
 // Helper to check if a string is a valid UUID
 function isUUID(str: any): boolean {
   if (typeof str !== "string") return false;
@@ -531,25 +566,44 @@ export const dbService = {
   },
 
   async saveLink(link: Partial<DBLink>): Promise<DBLink | null> {
-    const rawLink: any = {
-      tieu_de: link.tieu_de || "Liên kết",
-      url_lien_ket: link.url_lien_ket || link.url_lienketing || "",
-      url_icon: link.url_icon || "Link2",
-      danh_muc_id: link.danh_muc_id || null,
-      hien_thi: link.hien_thi !== undefined ? link.hien_thi : true,
-      thu_tu_uu_tien: link.thu_tu_uu_tien ?? 0,
-    };
-
     let query;
     if (link.id && isUUID(link.id)) {
+      const updateData: any = {};
+      if (link.tieu_de !== undefined) updateData.tieu_de = link.tieu_de;
+      if (
+        link.url_lien_ket !== undefined ||
+        link.url_lienketing !== undefined
+      ) {
+        updateData.url_lien_ket =
+          link.url_lien_ket || link.url_lienketing || "";
+      }
+      if (link.url_icon !== undefined) updateData.url_icon = link.url_icon;
+      if (link.danh_muc_id !== undefined)
+        updateData.danh_muc_id = link.danh_muc_id;
+      if (link.hien_thi !== undefined) updateData.hien_thi = link.hien_thi;
+      if (link.thu_tu_uu_tien !== undefined)
+        updateData.thu_tu_uu_tien = link.thu_tu_uu_tien;
+
       query = supabase
         .from("duong_dan")
-        .update(rawLink)
+        .update(updateData)
         .eq("id", link.id)
         .select()
         .maybeSingle();
     } else {
-      query = supabase.from("duong_dan").insert(rawLink).select().maybeSingle();
+      const insertData: any = {
+        tieu_de: link.tieu_de || "Liên kết",
+        url_lien_ket: link.url_lien_ket || link.url_lienketing || "",
+        url_icon: link.url_icon || "Link2",
+        danh_muc_id: link.danh_muc_id || null,
+        hien_thi: link.hien_thi !== undefined ? link.hien_thi : true,
+        thu_tu_uu_tien: link.thu_tu_uu_tien ?? 0,
+      };
+      query = supabase
+        .from("duong_dan")
+        .insert(insertData)
+        .select()
+        .maybeSingle();
     }
 
     const data = await handleQuery(query);
@@ -1293,10 +1347,42 @@ export const dbService = {
         .order("trang_thai", { ascending: false })
         .order("created_at", { ascending: false }),
     );
-    return ((data || []) as any[]).map((item) => ({
+    const posts = ((data || []) as any[]).map((item) => ({
       ...item,
       ngay_tao: item.created_at,
     })) as DBPost[];
+
+    if (posts.length === 0) {
+      this.seedDefaultPostsIfNeeded().catch((e) =>
+        console.warn("Seed default posts warning:", e),
+      );
+      return DEFAULT_POSTS;
+    }
+
+    return posts;
+  },
+
+  async seedDefaultPostsIfNeeded(): Promise<void> {
+    try {
+      const { data } = await supabase.from("bai_viet").select("id").limit(1);
+      if (!data || data.length === 0) {
+        for (const post of DEFAULT_POSTS) {
+          await supabase.from("bai_viet").insert({
+            id: post.id,
+            tieu_de: post.tieu_de,
+            slug: post.slug,
+            tom_tat: post.tom_tat,
+            noi_dung: post.noi_dung,
+            url_hinh_anh: post.url_hinh_anh,
+            trang_thai: post.trang_thai,
+            luot_xem: post.luot_xem,
+            ngay_dang: post.ngay_dang,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("seedDefaultPostsIfNeeded error:", err);
+    }
   },
 
   async togglePinPost(

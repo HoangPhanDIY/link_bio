@@ -280,6 +280,57 @@ export default function BuildGuidesTab({
     activateSelector("champion");
   };
 
+  const handleDuplicate = (g: DBBuildGuide) => {
+    setEditingGuide(null); // Set to null so saving creates a new record
+    setSelectedChampId(g.tuong_id);
+    setTitle(`${g.tieu_de_giao_an} (Bản sao)`);
+    setSelectedSpellId(g.phu_tro_id || "");
+    setNgocDo(g.ngoc_do || "");
+    setNgocTim(g.ngoc_tim || "");
+    setNgocXanh(g.ngoc_xanh || "");
+    setIsActive(g.kich_hoat ?? true);
+
+    // Reconstruct item slots
+    const remappedItems = Array(6).fill("");
+    if (g.trang_bi_list) {
+      g.trang_bi_list.forEach((item, index) => {
+        if (index < 6) remappedItems[index] = item.id;
+      });
+    }
+    setSelectedItems(remappedItems);
+
+    // Reconstruct badges
+    const remappedBadges: Record<string, string> = {
+      NHANH_CHINH_1: "",
+      NHANH_CHINH_2: "",
+      NHANH_CHINH_3: "",
+      NHANH_CHINH_4: "",
+      NHANH_PHU_1_1: "",
+      NHANH_PHU_1_2: "",
+      NHANH_PHU_2_1: "",
+      NHANH_PHU_2_2: "",
+    };
+    if (g.phu_hieu_list) {
+      g.phu_hieu_list.forEach((badge) => {
+        const pos = (badge as any).vi_tri_o;
+        if (pos) {
+          if (pos === "NHANH_PHU_1") {
+            remappedBadges["NHANH_PHU_1_1"] = badge.id;
+          } else if (pos === "NHANH_PHU_2") {
+            remappedBadges["NHANH_PHU_2_1"] = badge.id;
+          } else if (pos in remappedBadges) {
+            remappedBadges[pos] = badge.id;
+          }
+        }
+      });
+    }
+    setSelectedBadges(remappedBadges);
+
+    setIsEditing(true);
+    setErrorMsg("");
+    activateSelector("champion");
+  };
+
   const handleSelectFromRightList = (id: string, name: string) => {
     if (activeSelector.type === "champion") {
       setSelectedChampId(id);
@@ -440,29 +491,84 @@ export default function BuildGuidesTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Tab Header */}
-      <div className="flex justify-between items-center bg-slate-900/50 p-5  border border-[#fce3bc] shadow-sm">
+      <div className="flex flex-wrap justify-between items-center gap-2 bg-slate-900/50 p-3 border border-[#fce3bc]/50 shadow-sm">
         <div>
           <h2 className="text-lg font-black text-[#fce3bc] tracking-tight flex items-center gap-2">
             <LucideIcon name="Shield" className="text-indigo-500" size={20} />
-            Trang bị
+            {isEditing
+              ? editingGuide
+                ? `Sửa: ${editingGuide.tieu_de_giao_an || ""}`
+                : "Tạo Giáo Án Mới"
+              : "Trang bị"}
           </h2>
-          <p className="text-[#fce3bc] text-xs mt-1">
-            Quản lý các bộ khuyến nghị trang bị (1 tướng có thể có nhiều lối lên
-            đồ khác nhau), bảng ngọc và phù hiệu.
-          </p>
         </div>
-        {!isEditing && (
+
+        <div className="flex items-center gap-2.5">
+          {/* Sao chép từ: Select directly in main header when editing */}
+          {isEditing && guides.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <label className="text-[11px] font-bold text-[#fce3bc] hidden sm:inline-block">
+                Sao chép từ:
+              </label>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  if (selectedId) {
+                    const targetG = guides.find((g) => g.id === selectedId);
+                    if (targetG) {
+                      handleDuplicate(targetG);
+                    }
+                    e.target.value = "";
+                  }
+                }}
+                className="bg-slate-900 border border-[#fce3bc]/60 rounded px-2.5 py-1 text-xs text-[#fce3bc] font-semibold focus:outline-none focus:border-indigo-400 cursor-pointer"
+              >
+                <option value="" disabled>
+                  -- Chọn lối lên đồ mẫu --
+                </option>
+                {guides.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.tuong?.ten_tuong ? `[${g.tuong.ten_tuong}] ` : ""}
+                    {g.tieu_de_giao_an}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Toggle Button: 'Tạo Giáo Án Mới' or 'Hủy' */}
           <button
-            onClick={handleStartNew}
-            className="px-4 py-2 text-xs font-bold text-white rounded flex items-center gap-1.5 cursor-pointer shadow-md transition-all hover:brightness-115 active:scale-95"
-            style={{ backgroundColor: accentColor }}
+            type="button"
+            onClick={() => {
+              if (isEditing) {
+                setIsEditing(false);
+              } else {
+                handleStartNew();
+              }
+            }}
+            className={`px-3.5 py-1.5 text-xs font-bold rounded flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95 ${
+              isEditing
+                ? "bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-500/50"
+                : "text-white hover:brightness-115"
+            }`}
+            style={!isEditing ? { backgroundColor: accentColor } : undefined}
           >
-            <LucideIcon name="Plus" size={14} />
-            Tạo Giáo Án Mới
+            {isEditing ? (
+              <>
+                <LucideIcon name="X" size={14} />
+                Hủy
+              </>
+            ) : (
+              <>
+                <LucideIcon name="Plus" size={14} />
+                Tạo Giáo Án Mới
+              </>
+            )}
           </button>
-        )}
+        </div>
       </div>
 
       {errorMsg && (
@@ -479,121 +585,174 @@ export default function BuildGuidesTab({
       {isEditing ? (
         <form
           onSubmit={handleSave}
-          className="space-y-6 animate-in fade-in duration-200"
+          className="space-y-3 animate-in fade-in duration-200"
         >
-          <div className="flex justify-between items-center bg-slate-900/50 p-4  border border-[#fce3bc] shadow-sm">
-            <span className="font-bold text-sm text-[#fce3bc] flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              {editingGuide
-                ? `Chỉnh sửa: ${editingGuide.tieu_de_giao_an || ""}`
-                : "Thiết lập Giáo án mới"}
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsEditing(false)}
-              className="p-2 hover:bg-slate-100 rounded-full text-[#fce3bc] transition-colors"
-            >
-              <LucideIcon name="X" size={16} />
-            </button>
-          </div>
-
-          {/* Core Grid Layout (2/3 Left Selection Info, 1/3 Right Resource Panel) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Selection Information Column (2/3 width) */}
-            <div className="lg:col-span-8 bg-slate-900/50 p-6  border border-[#fce3bc] shadow-sm space-y-6">
+          {/* Core Grid Layout (Mobile: Thư Viện Liên Quân top (order-1), Left Selection Info bottom (order-2)) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+            {/* Left Selection Information Column (2/3 width on desktop: order-2 on mobile, order-1 on desktop) */}
+            <div className="lg:col-span-8 order-2 lg:order-1 bg-slate-900/50 p-2 border border-[#fce3bc]/50 shadow-sm space-y-6">
               {/* Build Title */}
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
+                <label className="block text-[15px] font-black text-white uppercase  tracking-wider">
                   Tiêu đề lối lên đồ *
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ví dụ: Đấu Sĩ Solo Đường, Sát Thủ Rừng Siêu Chí Mạng, Full Chống Chịu..."
-                  className="w-full bg-slate-900/50 border border-slate-250/70 rounded px-4 py-2.5 text-xs focus:outline-none focus:border-indigo-500 text-[#fce3bc] font-bold placeholder:font-normal placeholder:text-[#fce3bc]"
+                  placeholder="Ví dụ: Full Chống Chịu..."
+                  className="w-full bg-slate-900/50 border border-slate-250/70 rounded px-4 py-2.5 text-xs focus:outline-none focus:border-indigo-500 text-[#fce3bc]/50 font-bold placeholder:font-normal placeholder:text-[#fce3bc]"
                   required
                 />
               </div>
 
               {/* Champion Indicator */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
-                  Tướng đề xuất
-                </label>
-                <div
-                  onClick={() => activateSelector("champion")}
-                  className={`relative border-1  p-4 flex items-center gap-4 cursor-pointer transition-all ${
-                    activeSelector.type === "champion"
-                      ? "border-indigo-500 bg-indigo-50/20 shadow-md ring-2 ring-indigo-50"
-                      : "border-[#fce3bc] hover:border-slate-200 bg-slate-900/50"
-                  }`}
-                >
-                  {selectedChampId ? (
-                    (() => {
-                      const champ = champions.find(
-                        (c) => c.id === selectedChampId,
-                      );
-                      return (
-                        <div className="flex items-center gap-4 w-full">
-                          <div className="w-16 h-16 rounded-full overflow-hidden border-1 border-slate-200 shadow-md shrink-0 relative">
-                            <img
-                              src={champ?.url_anh_dai_dien || ""}
-                              alt="Champ"
-                              className="w-full h-full object-cover"
-                              referrerPolicy="no-referrer"
-                            />
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                {/* ===== BÊN TRÁI: TƯỚNG ĐỀ XUẤT ===== */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="block text-xs sm:text-[15px] font-black text-white uppercase tracking-wider truncate">
+                    Tướng đề xuất
+                  </label>
+                  <div
+                    onClick={() => activateSelector("champion")}
+                    className={`relative p-2 sm:p-4 border transition-all cursor-pointer min-h-[70px] sm:min-h-[100px] flex items-center ${
+                      activeSelector.type === "champion"
+                        ? "border-indigo-500 bg-indigo-950/40 shadow-lg shadow-indigo-500/10 ring-2 ring-indigo-500/50"
+                        : "border-[#fce3bc]/50 bg-slate-900/60"
+                    }`}
+                  >
+                    {selectedChampId ? (
+                      (() => {
+                        const champ = champions.find(
+                          (c) => c.id === selectedChampId,
+                        );
+                        return (
+                          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 w-full">
+                            <div className="w-10 h-10 sm:w-14 sm:h-14 overflow-hidden border-2 border-[#fce3bc]/50/40 shadow-md shrink-0 relative bg-slate-800">
+                              <img
+                                src={champ?.url_anh_dai_dien || ""}
+                                alt={champ?.ten_tuong || "Champion"}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+
+                            {/* Text: Ẩn hoàn toàn trên Mobile (hidden), chỉ hiện từ Màn hình Small trở lên (sm:block) */}
+                            <div className="hidden sm:block flex-1 min-w-0 text-left">
+                              <h4 className="font-extrabold text-sm text-[#fce3bc] truncate">
+                                {champ?.ten_tuong || "Chưa chọn"}
+                              </h4>
+                              <p className="text-[10px] text-[#fce3bc]/70 mt-1 line-clamp-1">
+                                Nhấn để đổi ở bảng danh mục bên phải
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => handleClearSlot(e, "champion")}
+                              className="p-1 sm:p-1.5 hover:bg-red-500/20 text-[#fce3bc]/70 hover:text-red-400 transition-colors shrink-0"
+                              title="Xóa tướng"
+                            >
+                              <LucideIcon name="X" size={16} />
+                            </button>
                           </div>
-                          <div className="flex-1 text-left">
-                            <h4 className="font-extrabold text-base text-[#fce3bc]">
-                              {champ?.ten_tuong}
-                            </h4>
-                            <span className="inline-block mt-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
-                              {champ?.vai_tro || "Chưa rõ"}
-                            </span>
-                            <p className="text-[10px] text-[#fce3bc] mt-1">
-                              Đang chọn tướng này. Nhấn vào để đổi ở bảng bên
-                              phải.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => handleClearSlot(e, "champion")}
-                            className="p-1.5 hover:bg-slate-900/50 rounded-full text-[#fce3bc] hover:text-[#fce3bc] transition-colors"
-                            title="Xóa tướng"
-                          >
-                            <LucideIcon name="X" size={16} />
-                          </button>
+                        );
+                      })()
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-1 sm:py-2 w-full text-center">
+                        <div className="w-7 h-7 sm:w-10 sm:h-10 bg-slate-800/80 flex items-center justify-center text-[#fce3bc] mb-1 border border-[#fce3bc]/50/20">
+                          <LucideIcon
+                            name="UserPlus"
+                            size={16}
+                            className="sm:w-[18px] sm:h-[18px]"
+                          />
                         </div>
-                      );
-                    })()
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-5 w-full text-center">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-[#fce3bc] mb-2 border border-slate-150">
-                        <LucideIcon name="UserPlus" size={20} />
+                        <p className="text-[10px] sm:text-xs font-bold text-[#fce3bc] leading-tight">
+                          Chưa chọn
+                        </p>
                       </div>
-                      <p className="text-xs font-bold text-[#fce3bc]">
-                        Chưa chọn Tướng đề xuất
-                      </p>
-                      <p className="text-[10px] text-[#fce3bc] mt-1">
-                        Chọn tướng từ danh mục bên phải để tiếp tục
-                      </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                </div>
+
+                {/* ===== BÊN PHẢI: PHÉP PHỤ TRỢ ===== */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="block text-xs sm:text-[15px] font-black text-white uppercase tracking-wider truncate">
+                    Phép phụ trợ
+                  </label>
+                  <div
+                    onClick={() => activateSelector("spell")}
+                    className={`relative p-2 sm:p-4 border transition-all cursor-pointer min-h-[70px] sm:min-h-[100px] flex items-center ${
+                      activeSelector.type === "spell"
+                        ? "border-indigo-500 bg-indigo-950/40 shadow-lg shadow-indigo-500/10 ring-2 ring-indigo-500/50"
+                        : "border-[#fce3bc]/50 bg-slate-900/60"
+                    }`}
+                  >
+                    {selectedSpellId ? (
+                      (() => {
+                        const spell = spells.find(
+                          (s) => s.id === selectedSpellId,
+                        );
+                        return (
+                          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3.5 w-full">
+                            <div className="w-10 h-10 sm:w-14 sm:h-14 overflow-hidden border-2 border-[#fce3bc]/50/40 shadow-md shrink-0 relative bg-slate-800 p-0.5 sm:p-1 flex items-center justify-center">
+                              <img
+                                src={spell?.url_hinh_anh ?? undefined}
+                                className="w-full h-full object-cover"
+                                alt={spell?.ten_phu_tro || "Spell"}
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+
+                            {/* Text: Ẩn hoàn toàn trên Mobile (hidden), chỉ hiện từ Màn hình Small trở lên (sm:block) */}
+                            <div className="hidden sm:block flex-1 min-w-0 text-left">
+                              <h4 className="font-extrabold text-sm text-[#fce3bc] truncate">
+                                {spell?.ten_phu_tro}
+                              </h4>
+                              <p className="text-[10px] text-[#fce3bc]/70 mt-1 line-clamp-2">
+                                Phép phụ trợ khuyên dùng cho trận đấu.
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => handleClearSlot(e, "spell")}
+                              className="p-1 sm:p-1.5 hover:bg-red-500/20 text-[#fce3bc]/70 hover:text-red-400 transition-colors shrink-0"
+                              title="Xóa phép"
+                            >
+                              <LucideIcon name="X" size={16} />
+                            </button>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-1 sm:py-2 w-full text-center">
+                        <div className="w-7 h-7 sm:w-10 sm:h-10 bg-slate-800/80 flex items-center justify-center text-[#fce3bc] mb-1 border border-[#fce3bc]/50/20">
+                          <LucideIcon
+                            name="Plus"
+                            size={16}
+                            className="sm:w-[18px] sm:h-[18px]"
+                          />
+                        </div>
+                        <p className="text-[10px] sm:text-xs font-bold text-[#fce3bc] leading-tight">
+                          Chưa chọn
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* 6 Equipment Slots */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
-                    Lối lên đồ (6 ô trang bị) *
+                  <label className="block text-xs sm:text-[15px] font-black text-white uppercase tracking-wider">
+                    Lối lên đồ
                   </label>
-                  <span className="text-[9.5px] text-[#fce3bc] font-medium">
-                    Nhấp chọn ô để kích hoạt chọn nhanh
-                  </span>
                 </div>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3.5">
+
+                {/* Grid 6 ô luôn thẳng hàng kể cả Mobile */}
+                <div className="grid grid-cols-6 gap-1 sm:gap-2.5">
                   {Array.from({ length: 6 }).map((_, idx) => {
                     const itemId = selectedItems[idx];
                     const item = items.find((i) => i.id === itemId);
@@ -605,44 +764,44 @@ export default function BuildGuidesTab({
                       <div
                         key={idx}
                         onClick={() => activateSelector("item", idx)}
-                        className={`relative aspect-square  border-1 flex flex-col items-center justify-center cursor-pointer transition-all p-2 ${
+                        className={`relative aspect-square border transition-all cursor-pointer flex items-center justify-center overflow-hidden p-0 ${
                           isActive
-                            ? "border-indigo-500 bg-indigo-50/20 ring-4 ring-indigo-100 shadow-md scale-102"
-                            : "border-[#fce3bc] hover:border-slate-200 bg-slate-900/50/30"
+                            ? "border-indigo-500 bg-indigo-950/40 ring-2 ring-indigo-500/50 shadow-lg"
+                            : "border-[#fce3bc]/30 hover:border-[#fce3bc] bg-slate-900/60"
                         }`}
                       >
-                        <span className="absolute top-1.5 left-2 text-[8px] font-black text-[#fce3bc] ">
-                          Ô {idx + 1}
-                        </span>
-
                         {item ? (
-                          <div className="flex flex-col items-center justify-center w-full h-full mt-2">
+                          <div className="relative w-full h-full">
+                            {/* Ảnh trang bị tràn viền slot */}
                             <img
                               src={item.url_hinh_anh ?? undefined}
                               alt={item.ten_trang_bi}
-                              className="w-11 h-11 object-cover rounded border border-slate-200 shadow-md"
+                              className="w-full h-full object-cover block"
                               referrerPolicy="no-referrer"
                             />
-                            <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full text-center">
-                              {item.ten_trang_bi}
-                            </span>
+
+                            {/* Dấu X đè góc trên bên phải ảnh */}
                             <button
                               type="button"
                               onClick={(e) => handleClearSlot(e, "item", idx)}
-                              className="absolute -top-1.5 -right-1.5 p-1 bg-rose-500 text-white rounded-full hover:scale-110 active:scale-95 shadow-md hover:bg-rose-600 transition-all cursor-pointer z-10"
+                              className="absolute top-0.5 right-0.5 p-0.5 bg-rose-600/90 text-white hover:bg-rose-700 transition-colors z-10 cursor-pointer"
                               title="Xóa trang bị"
                             >
-                              <LucideIcon name="X" size={10} />
+                              <LucideIcon
+                                name="X"
+                                size={10}
+                                className="sm:w-3 sm:h-3"
+                              />
                             </button>
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-[#fce3bc] mt-2">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[#fce3bc] border border-slate-150">
-                              <LucideIcon name="Shield" size={14} />
-                            </div>
-                            <span className="text-[8.5px] font-bold text-[#fce3bc] mt-1">
-                              Nhấp chọn
-                            </span>
+                          /* Chưa có: Icon vuông nằm giữa kèm border bao quanh */
+                          <div className="w-5 h-5 sm:w-9 sm:h-9 bg-slate-800 flex items-center justify-center text-[#fce3bc]/80 border border-[#fce3bc]/40">
+                            <LucideIcon
+                              name="Shield"
+                              size={12}
+                              className="sm:w-5 sm:h-5"
+                            />
                           </div>
                         )}
                       </div>
@@ -651,82 +810,22 @@ export default function BuildGuidesTab({
                 </div>
               </div>
 
-              {/* Spell Section */}
-              <div className="space-y-2">
-                <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
-                  Phép phụ trợ
-                </label>
-                <div
-                  onClick={() => activateSelector("spell")}
-                  className={`relative border-1  p-3 flex items-center justify-between cursor-pointer transition-all max-w-sm ${
-                    activeSelector.type === "spell"
-                      ? "border-indigo-500 bg-indigo-50/20 shadow-md ring-2 ring-indigo-50"
-                      : "border-[#fce3bc] hover:border-slate-200 bg-slate-900/50/30"
-                  }`}
-                >
-                  {selectedSpellId ? (
-                    (() => {
-                      const spell = spells.find(
-                        (s) => s.id === selectedSpellId,
-                      );
-                      return (
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={spell?.url_hinh_anh ?? undefined}
-                              className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow"
-                              alt="Spell"
-                              referrerPolicy="no-referrer"
-                            />
-                            <div className="text-left">
-                              <span className="font-extrabold text-xs text-[#fce3bc]">
-                                {spell?.ten_phu_tro}
-                              </span>
-                              <p className="text-[9px] text-[#fce3bc] mt-0.5">
-                                Chọn phép phụ trợ khuyên dùng.
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => handleClearSlot(e, "spell")}
-                            className="p-1 hover:bg-slate-900/50 rounded-full text-[#fce3bc] hover:text-[#fce3bc] transition-colors cursor-pointer"
-                            title="Xóa phép"
-                          >
-                            <LucideIcon name="X" size={14} />
-                          </button>
-                        </div>
-                      );
-                    })()
-                  ) : (
-                    <div className="flex items-center gap-2.5 text-[#fce3bc] w-full justify-center py-1.5">
-                      <LucideIcon name="Plus" size={14} />
-                      <span className="text-xs font-bold text-[#fce3bc]">
-                        Chưa chọn phép phụ trợ
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Badges Layout Selection (4 Main, 2 Sub, 2 Sub) */}
-              <div className="space-y-4 pt-2">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black text-[#fce3bc] uppercase  tracking-wider">
+                  <label className="block text-xs sm:text-[15px] font-black text-white uppercase tracking-wider">
                     Thiết lập hệ thống Phù hiệu
                   </label>
-                  <span className="text-[9.5px] text-[#fce3bc] font-medium">
-                    Chọn lần lượt từng vị trí phù hiệu
-                  </span>
                 </div>
 
-                {/* Main Branch - 4 Slots */}
-                <div className="bg-slate-900/50 p-4  border border-[#fce3bc] space-y-3">
-                  <span className="text-[10px] font-black uppercase text-indigo-600  tracking-wider flex items-center gap-1.5">
-                    <span className="w-1.5 h-3 rounded-full bg-indigo-600"></span>
-                    Nhánh Chính (1 ô chọn nhánh + 3 ô phù hiệu)
+                {/* ===== NHÁNH CHÍNH (4 Slots thẳng hàng cả trên Mobile) ===== */}
+                <div className="bg-slate-900/60 p-2 sm:p-3 border border-[#fce3bc]/30 space-y-2">
+                  <span className="text-[10px] sm:text-xs font-black uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-3 bg-indigo-500"></span>
+                    Nhánh Chính
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
                     {[
                       "NHANH_CHINH_1",
                       "NHANH_CHINH_2",
@@ -740,11 +839,6 @@ export default function BuildGuidesTab({
                         activeSelector.key === key;
 
                       const isBranch = idx === 0;
-                      const displayName =
-                        badge && isBranch
-                          ? branchNameMap[getBadgeBranch(badge)] ||
-                            badge.ten_phu_hieu
-                          : badge?.ten_phu_hieu || "";
                       const displayImg =
                         badge && isBranch
                           ? branchImageMap[getBadgeBranch(badge)] ||
@@ -757,41 +851,42 @@ export default function BuildGuidesTab({
                           onClick={() =>
                             activateSelector("badge", undefined, key)
                           }
-                          className={`relative p-3.5 rounded border flex flex-col items-center justify-center text-center gap-1 cursor-pointer transition-all ${
+                          className={`relative aspect-square border transition-all cursor-pointer flex items-center justify-center overflow-hidden p-0 ${
                             isActive
-                              ? "border-indigo-500 bg-indigo-50/20 ring-4 ring-indigo-100 shadow-md scale-102"
-                              : "border-slate-200 bg-slate-900/50 hover:border-slate-300"
+                              ? "border-indigo-500 bg-indigo-950/40 ring-2 ring-indigo-500/50 shadow-lg"
+                              : "border-[#fce3bc]/30 hover:border-[#fce3bc] bg-slate-900/60"
                           }`}
                         >
-                          <span className="text-[8px] font-black text-[#fce3bc]  uppercase tracking-wider">
-                            {idx === 0
-                              ? "Chọn Nhánh"
-                              : `Phù hiệu ${idx === 1 ? "I" : idx === 2 ? "II" : "III"}`}
-                          </span>
                           {badge ? (
-                            <div className="flex flex-col items-center justify-center w-full mt-1.5">
+                            <div className="relative w-full h-full">
                               <img
                                 src={displayImg ?? undefined}
-                                className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow-sm"
+                                className="w-full h-full object-cover block"
                                 alt="Badge"
                                 referrerPolicy="no-referrer"
                               />
-                              <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full">
-                                {displayName}
-                              </span>
                               <button
                                 type="button"
                                 onClick={(e) =>
                                   handleClearSlot(e, "badge", undefined, key)
                                 }
-                                className="absolute -top-1.5 -right-1.5 p-1 bg-rose-500 text-white rounded-full hover:scale-110 shadow hover:bg-rose-600 transition-all"
+                                className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 p-0.5 sm:p-1 bg-rose-600/90 text-white hover:bg-rose-700 transition-colors z-10 cursor-pointer"
+                                title="Xóa phù hiệu"
                               >
-                                <LucideIcon name="X" size={8} />
+                                <LucideIcon
+                                  name="X"
+                                  size={10}
+                                  className="sm:w-3.5 sm:h-3.5"
+                                />
                               </button>
                             </div>
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-slate-900/50 border border-dashed border-slate-250 flex items-center justify-center text-[#fce3bc] mt-1.5">
-                              <LucideIcon name="Plus" size={14} />
+                            <div className="w-6 h-6 sm:w-10 sm:h-10 bg-slate-800 flex items-center justify-center text-[#fce3bc]/80 border border-[#fce3bc]/40">
+                              <LucideIcon
+                                name="Plus"
+                                size={12}
+                                className="sm:w-5 sm:h-5"
+                              />
                             </div>
                           )}
                         </div>
@@ -800,15 +895,15 @@ export default function BuildGuidesTab({
                   </div>
                 </div>
 
-                {/* Sub-branches (2 slots each) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Nhánh Phụ 1 - 2 slots */}
-                  <div className="bg-slate-900/50 p-4  border border-[#fce3bc] space-y-3">
-                    <span className="text-[10px] font-black uppercase text-amber-600  tracking-wider flex items-center gap-1.5">
-                      <span className="w-1.5 h-3 rounded-full bg-amber-500"></span>
-                      Nhánh Phụ 1 (1 ô chọn nhánh + 1 ô phù hiệu)
+                {/* ===== NHÁNH PHỤ 1 & 2 (Đã sửa grid-cols-2 cho Mobile) ===== */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  {/* NHÁNH PHỤ 1 */}
+                  <div className="bg-slate-900/60 p-1.5 sm:p-3 border border-[#fce3bc]/30 space-y-2">
+                    <span className="text-[9px] sm:text-xs font-black uppercase text-amber-400 tracking-wider flex items-center gap-1 sm:gap-1.5 truncate">
+                      <span className="w-1.5 h-3 bg-amber-500 shrink-0"></span>
+                      <span className="truncate">Nhánh Phụ 1</span>
                     </span>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-3">
                       {["NHANH_PHU_1_1", "NHANH_PHU_1_2"].map((key, idx) => {
                         const badgeId = selectedBadges[key];
                         const badge = badges.find((b) => b.id === badgeId);
@@ -817,11 +912,6 @@ export default function BuildGuidesTab({
                           activeSelector.key === key;
 
                         const isBranch = idx === 0;
-                        const displayName =
-                          badge && isBranch
-                            ? branchNameMap[getBadgeBranch(badge)] ||
-                              badge.ten_phu_hieu
-                            : badge?.ten_phu_hieu || "";
                         const displayImg =
                           badge && isBranch
                             ? branchImageMap[getBadgeBranch(badge)] ||
@@ -834,39 +924,42 @@ export default function BuildGuidesTab({
                             onClick={() =>
                               activateSelector("badge", undefined, key)
                             }
-                            className={`relative p-3.5 rounded border flex flex-col items-center justify-center text-center gap-1 cursor-pointer transition-all ${
+                            className={`relative aspect-square border transition-all cursor-pointer flex items-center justify-center overflow-hidden p-0 ${
                               isActive
-                                ? "border-amber-500 bg-amber-50/20 ring-4 ring-amber-100 shadow-md scale-102"
-                                : "border-slate-200 bg-slate-900/50 hover:border-slate-300"
+                                ? "border-amber-500 bg-amber-950/40 ring-2 ring-amber-500/50 shadow-lg"
+                                : "border-[#fce3bc]/30 hover:border-[#fce3bc] bg-slate-900/60"
                             }`}
                           >
-                            <span className="text-[8px] font-black text-[#fce3bc]  uppercase tracking-wider">
-                              {idx === 0 ? "Chọn Nhánh" : "Phù hiệu"}
-                            </span>
                             {badge ? (
-                              <div className="flex flex-col items-center justify-center w-full mt-1.5">
+                              <div className="relative w-full h-full">
                                 <img
                                   src={displayImg ?? undefined}
-                                  className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow-sm"
+                                  className="w-full h-full object-cover block"
                                   alt="Badge"
                                   referrerPolicy="no-referrer"
                                 />
-                                <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full">
-                                  {displayName}
-                                </span>
                                 <button
                                   type="button"
                                   onClick={(e) =>
                                     handleClearSlot(e, "badge", undefined, key)
                                   }
-                                  className="absolute -top-1.5 -right-1.5 p-1 bg-rose-500 text-white rounded-full hover:scale-110 shadow hover:bg-rose-600 transition-all"
+                                  className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 p-0.5 sm:p-1 bg-rose-600/90 text-white hover:bg-rose-700 transition-colors z-10 cursor-pointer"
+                                  title="Xóa phù hiệu"
                                 >
-                                  <LucideIcon name="X" size={8} />
+                                  <LucideIcon
+                                    name="X"
+                                    size={10}
+                                    className="sm:w-3.5 sm:h-3.5"
+                                  />
                                 </button>
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-900/50 border border-dashed border-slate-250 flex items-center justify-center text-[#fce3bc] mt-1.5">
-                                <LucideIcon name="Plus" size={14} />
+                              <div className="w-5 h-5 sm:w-10 sm:h-10 bg-slate-800 flex items-center justify-center text-[#fce3bc]/80 border border-[#fce3bc]/40">
+                                <LucideIcon
+                                  name="Plus"
+                                  size={10}
+                                  className="sm:w-5 sm:h-5"
+                                />
                               </div>
                             )}
                           </div>
@@ -875,13 +968,13 @@ export default function BuildGuidesTab({
                     </div>
                   </div>
 
-                  {/* Nhánh Phụ 2 - 2 slots */}
-                  <div className="bg-slate-900/50 p-4  border border-[#fce3bc] space-y-3">
-                    <span className="text-[10px] font-black uppercase text-emerald-600  tracking-wider flex items-center gap-1.5">
-                      <span className="w-1.5 h-3 rounded-full bg-emerald-500"></span>
-                      Nhánh Phụ 2 (1 ô chọn nhánh + 1 ô phù hiệu)
+                  {/* NHÁNH PHỤ 2 */}
+                  <div className="bg-slate-900/60 p-1.5 sm:p-3 border border-[#fce3bc]/30 space-y-2">
+                    <span className="text-[9px] sm:text-xs font-black uppercase text-emerald-400 tracking-wider flex items-center gap-1 sm:gap-1.5 truncate">
+                      <span className="w-1.5 h-3 bg-emerald-500 shrink-0"></span>
+                      <span className="truncate">Nhánh Phụ 2</span>
                     </span>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-3">
                       {["NHANH_PHU_2_1", "NHANH_PHU_2_2"].map((key, idx) => {
                         const badgeId = selectedBadges[key];
                         const badge = badges.find((b) => b.id === badgeId);
@@ -890,11 +983,6 @@ export default function BuildGuidesTab({
                           activeSelector.key === key;
 
                         const isBranch = idx === 0;
-                        const displayName =
-                          badge && isBranch
-                            ? branchNameMap[getBadgeBranch(badge)] ||
-                              badge.ten_phu_hieu
-                            : badge?.ten_phu_hieu || "";
                         const displayImg =
                           badge && isBranch
                             ? branchImageMap[getBadgeBranch(badge)] ||
@@ -907,39 +995,42 @@ export default function BuildGuidesTab({
                             onClick={() =>
                               activateSelector("badge", undefined, key)
                             }
-                            className={`relative p-3.5 rounded border flex flex-col items-center justify-center text-center gap-1 cursor-pointer transition-all ${
+                            className={`relative aspect-square border transition-all cursor-pointer flex items-center justify-center overflow-hidden p-0 ${
                               isActive
-                                ? "border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-100 shadow-md scale-102"
-                                : "border-slate-200 bg-slate-900/50 hover:border-slate-300"
+                                ? "border-emerald-500 bg-emerald-950/40 ring-2 ring-emerald-500/50 shadow-lg"
+                                : "border-[#fce3bc]/30 hover:border-[#fce3bc] bg-slate-900/60"
                             }`}
                           >
-                            <span className="text-[8px] font-black text-[#fce3bc]  uppercase tracking-wider">
-                              {idx === 0 ? "Chọn Nhánh" : "Phù hiệu"}
-                            </span>
                             {badge ? (
-                              <div className="flex flex-col items-center justify-center w-full mt-1.5">
+                              <div className="relative w-full h-full">
                                 <img
                                   src={displayImg ?? undefined}
-                                  className="w-10 h-10 object-cover rounded-full border border-slate-200 shadow-sm"
+                                  className="w-full h-full object-cover block"
                                   alt="Badge"
                                   referrerPolicy="no-referrer"
                                 />
-                                <span className="text-[8.5px] font-black text-[#fce3bc] mt-1.5 truncate w-full">
-                                  {displayName}
-                                </span>
                                 <button
                                   type="button"
                                   onClick={(e) =>
                                     handleClearSlot(e, "badge", undefined, key)
                                   }
-                                  className="absolute -top-1.5 -right-1.5 p-1 bg-rose-500 text-white rounded-full hover:scale-110 shadow hover:bg-rose-600 transition-all"
+                                  className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 p-0.5 sm:p-1 bg-rose-600/90 text-white hover:bg-rose-700 transition-colors z-10 cursor-pointer"
+                                  title="Xóa phù hiệu"
                                 >
-                                  <LucideIcon name="X" size={8} />
+                                  <LucideIcon
+                                    name="X"
+                                    size={10}
+                                    className="sm:w-3.5 sm:h-3.5"
+                                  />
                                 </button>
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-900/50 border border-dashed border-slate-250 flex items-center justify-center text-[#fce3bc] mt-1.5">
-                                <LucideIcon name="Plus" size={14} />
+                              <div className="w-5 h-5 sm:w-10 sm:h-10 bg-slate-800 flex items-center justify-center text-[#fce3bc]/80 border border-[#fce3bc]/40">
+                                <LucideIcon
+                                  name="Plus"
+                                  size={10}
+                                  className="sm:w-5 sm:h-5"
+                                />
                               </div>
                             )}
                           </div>
@@ -1018,7 +1109,7 @@ export default function BuildGuidesTab({
               </div>
 
               {/* Form Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-[#fce3bc]">
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#fce3bc]/50">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
@@ -1044,21 +1135,12 @@ export default function BuildGuidesTab({
               </div>
             </div>
 
-            {/* Right Resource Panel Column (1/3 width) */}
-            <div className="lg:col-span-4 bg-slate-900/50 p-5 border border-[#fce3bc] shadow-sm space-y-4 lg:sticky lg:top-6">
-              <div className="pb-2 border-b border-[#fce3bc]">
+            {/* Right Resource Panel Column (1/3 width on desktop: order-1 on mobile so it pins at the top) */}
+            <div className="lg:col-span-4 order-1 lg:order-2 bg-slate-900/50 p-3 sm:p-5 border border-[#fce3bc]/50 shadow-sm space-y-4 lg:sticky lg:top-6">
+              <div className="pb-2 border-b border-[#fce3bc]/50">
                 <h3 className="font-black text-[#fce3bc] text-xs uppercase tracking-wider flex items-center gap-2">
-                  <LucideIcon
-                    name="Compass"
-                    className="text-indigo-500"
-                    size={14}
-                  />
                   Thư Viện Liên Quân
                 </h3>
-                <p className="text-[10px] text-[#fce3bc] mt-1">
-                  Chọn từ danh sách dưới để gán nhanh vào vị trí đang active bên
-                  trái.
-                </p>
               </div>
 
               {/* Right panel search bar */}
@@ -1068,7 +1150,7 @@ export default function BuildGuidesTab({
                   placeholder="Tìm kiếm..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-slate-900/50 border border-slate-200 rounded pl-8 pr-4 py-2 text-xs focus:outline-none focus:border-indigo-500 text-[#fce3bc]"
+                  className="w-full bg-slate-900/50 border border-[#fce3bc]/50 rounded pl-8 pr-4 py-2 text-xs focus:outline-none focus:border-[#fce3bc] text-[#fce3bc] placeholder-[#fce3bc]/60"
                 />
                 <LucideIcon
                   name="Search"
@@ -1079,7 +1161,7 @@ export default function BuildGuidesTab({
                   <button
                     type="button"
                     onClick={() => setSearchTerm("")}
-                    className="absolute right-2.5 top-2.5 text-[#fce3bc] hover:text-[#fce3bc]"
+                    className="absolute right-2.5 top-2.5 text-[#fce3bc] hover:opacity-80"
                   >
                     <LucideIcon name="X" size={12} />
                   </button>
@@ -1087,7 +1169,7 @@ export default function BuildGuidesTab({
               </div>
 
               {/* Resource Tabs Header */}
-              <div className="grid grid-cols-4 gap-1 bg-slate-900/50 p-1 rounded">
+              <div className="grid grid-cols-4 gap-1 bg-slate-900/50 p-1 rounded border border-[#fce3bc]/30">
                 {[
                   { id: "champion", label: "Tướng" },
                   { id: "item", label: "Trang bị" },
@@ -1098,10 +1180,10 @@ export default function BuildGuidesTab({
                     type="button"
                     key={tab.id}
                     onClick={() => setRightTab(tab.id as any)}
-                    className={`py-1.5  text-[9px] font-black transition-all ${
+                    className={`py-1.5 text-[9px] font-black rounded transition-all ${
                       rightTab === tab.id
-                        ? "bg-slate-900/50 text-indigo-600 shadow-sm border border-[#fce3bc]"
-                        : "text-[#fce3bc] hover:bg-slate-100"
+                        ? "bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] text-slate-950 shadow-md border border-[#fce3bc]"
+                        : "text-[#fce3bc] hover:bg-slate-800/80"
                     }`}
                   >
                     {tab.label}
@@ -1114,7 +1196,7 @@ export default function BuildGuidesTab({
               {/* Champion list */}
               {rightTab === "champion" && (
                 <div className="space-y-3">
-                  <div className="max-h-[350px] overflow-y-auto pr-1 space-y-1.5 scrollbar-thin">
+                  <div className="max-h-[200px] lg:max-h-[calc(100vh-350px)] overflow-y-auto pr-1 grid grid-cols-4 sm:grid-cols-4 gap-1.5 sm:gap-3 scrollbar-thin">
                     {champions
                       .filter((c) => {
                         const matchesSearch =
@@ -1139,40 +1221,42 @@ export default function BuildGuidesTab({
                             onClick={() =>
                               handleSelectFromRightList(c.id, c.ten_tuong)
                             }
-                            className={`flex items-center gap-2.5 p-2 rounded border cursor-pointer transition-all ${
-                              isSelected
-                                ? "bg-indigo-50 border-indigo-200 text-indigo-800 shadow-sm"
-                                : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200"
-                            }`}
+                            className="cursor-pointer transition-all flex flex-col items-center justify-center text-center relative group p-0.5 sm:p-1 rounded"
+                            title={`${c.ten_tuong} (${c.vai_tro || "Chưa rõ"})`}
                           >
-                            <img
-                              src={c.url_anh_dai_dien || ""}
-                              className="w-8 h-8 rounded-full object-cover border border-slate-200"
-                              alt=""
-                              referrerPolicy="no-referrer"
-                            />
-                            <div className="flex-1 min-w-0 text-left">
-                              <span className="block font-bold text-xs truncate">
-                                {c.ten_tuong}
-                              </span>
-                              <span className="block text-[8.5px] text-[#fce3bc] truncate">
-                                {c.vai_tro || "Chưa rõ"}
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <LucideIcon
-                                name="Check"
-                                size={12}
-                                className="text-indigo-600 shrink-0"
+                            <div className="relative w-full max-w-[48px] sm:max-w-none aspect-square mx-auto">
+                              <img
+                                src={c.url_anh_dai_dien || ""}
+                                className={`w-full h-full object-cover border-2 transition-all ${
+                                  isSelected
+                                    ? "border-[#fce3bc] ring-2 ring-[#fce3bc] shadow-[0_0_10px_rgba(252,227,188,0.6)]"
+                                    : "border-[#fce3bc]/50 opacity-85 hover:opacity-100"
+                                }`}
+                                alt={c.ten_tuong}
+                                referrerPolicy="no-referrer"
                               />
-                            )}
+                              {isSelected && (
+                                <span className="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[7px] p-0.5 shadow font-bold">
+                                  <LucideIcon name="Check" size={8} />
+                                </span>
+                              )}
+                            </div>
+                            <span
+                              className={`block text-[8px] sm:text-[9.5px] truncate w-full text-center mt-1 px-1 py-0.5 rounded transition-all ${
+                                isSelected
+                                  ? "bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] text-slate-950 font-black"
+                                  : "text-[#fce3bc] font-bold"
+                              }`}
+                            >
+                              {c.ten_tuong}
+                            </span>
                           </div>
                         );
                       })}
                   </div>
 
                   {/* Select filters below */}
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-50">
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#fce3bc]/30">
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-[#fce3bc] block">
                         Vai trò
@@ -1180,7 +1264,7 @@ export default function BuildGuidesTab({
                       <select
                         value={champRole}
                         onChange={(e) => setChampRole(e.target.value)}
-                        className="w-full bg-slate-900/50 border border-slate-200  px-2 py-1 text-[10px] focus:outline-none focus:border-indigo-500 text-[#fce3bc] font-semibold"
+                        className="w-full bg-slate-900/50 border border-[#fce3bc]/50 px-2 py-1 text-[10px] focus:outline-none focus:border-[#fce3bc] text-[#fce3bc] font-semibold"
                       >
                         <option value="ALL">Tất cả vai trò</option>
                         <option value="Đấu sĩ">Đấu sĩ</option>
@@ -1198,7 +1282,7 @@ export default function BuildGuidesTab({
                       <select
                         value={champLane}
                         onChange={(e) => setChampLane(e.target.value)}
-                        className="w-full bg-slate-900/50 border border-slate-200  px-2 py-1 text-[10px] focus:outline-none focus:border-indigo-500 text-[#fce3bc] font-semibold"
+                        className="w-full bg-slate-900/50 border border-[#fce3bc]/50 px-2 py-1 text-[10px] focus:outline-none focus:border-[#fce3bc] text-[#fce3bc] font-semibold"
                       >
                         <option value="ALL">Tất cả các đường</option>
                         <option value="Caesar">Đường Tà Thần</option>
@@ -1215,7 +1299,7 @@ export default function BuildGuidesTab({
               {/* Items list with categorization filters */}
               {rightTab === "item" && (
                 <div className="space-y-3">
-                  <div className="flex flex-wrap gap-1 pb-1 border-b border-slate-50">
+                  <div className="flex flex-wrap gap-1 pb-1 border-b border-[#fce3bc]/30">
                     {[
                       { code: "ALL", label: "Tất cả" },
                       { code: "CONG", label: "Công" },
@@ -1229,10 +1313,10 @@ export default function BuildGuidesTab({
                         type="button"
                         key={cat.code}
                         onClick={() => setItemCategory(cat.code)}
-                        className={`px-1.5 py-1  text-[8.5px] font-black transition-all ${
+                        className={`px-1.5 py-1 text-[8.5px] font-black transition-all rounded ${
                           itemCategory === cat.code
-                            ? "bg-indigo-600 text-white"
-                            : "bg-slate-900/50 text-[#fce3bc] hover:bg-slate-100"
+                            ? "bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] text-slate-950 border border-[#fce3bc]"
+                            : "bg-slate-900/50 text-[#fce3bc] hover:bg-slate-800/80 border border-transparent"
                         }`}
                       >
                         {cat.label}
@@ -1240,7 +1324,7 @@ export default function BuildGuidesTab({
                     ))}
                   </div>
 
-                  <div className="max-h-[300px] overflow-y-auto pr-1 grid grid-cols-2 gap-2 scrollbar-thin">
+                  <div className="max-h-[300px] overflow-y-auto pr-1 grid grid-cols-4 sm:grid-cols-4 gap-1.5 sm:gap-3 scrollbar-thin">
                     {items
                       .filter((item) => {
                         const matchesSearch = item.ten_trang_bi
@@ -1267,29 +1351,37 @@ export default function BuildGuidesTab({
                                 item.ten_trang_bi,
                               )
                             }
-                            className={`p-2 rounded border cursor-pointer transition-all flex flex-col items-center text-center gap-1.5 relative ${
-                              isEquippedInActive
-                                ? "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-50 shadow-sm"
-                                : isAnywhere
-                                  ? "bg-slate-900/50 border-slate-200 opacity-75"
-                                  : "bg-slate-900/50 border-[#fce3bc] hover:bg-slate-900/50 hover:border-slate-250"
-                            }`}
+                            className="cursor-pointer transition-all flex flex-col items-center justify-center text-center relative group p-0.5 sm:p-1 rounded"
                             title={item.mo_ta || ""}
                           >
-                            <img
-                              src={item.url_hinh_anh ?? undefined}
-                              className="w-8 h-8  object-cover border border-slate-200"
-                              alt=""
-                              referrerPolicy="no-referrer"
-                            />
-                            <span className="text-[8.5px] font-black text-[#fce3bc] truncate w-full">
+                            <div className="relative w-full max-w-[48px] sm:max-w-none aspect-square mx-auto">
+                              <img
+                                src={item.url_hinh_anh ?? undefined}
+                                className={`w-full h-full object-cover border-2 transition-all ${
+                                  isEquippedInActive
+                                    ? "border-[#fce3bc] ring-2 ring-[#fce3bc] shadow-[0_0_10px_rgba(252,227,188,0.6)]"
+                                    : isAnywhere
+                                      ? "border-[#fce3bc]/30 opacity-50"
+                                      : "border-[#fce3bc]/50 opacity-85 hover:opacity-100"
+                                }`}
+                                alt={item.ten_trang_bi}
+                                referrerPolicy="no-referrer"
+                              />
+                              {isEquippedInActive && (
+                                <span className="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[7px] p-0.5 shadow font-bold">
+                                  <LucideIcon name="Check" size={8} />
+                                </span>
+                              )}
+                            </div>
+                            <span
+                              className={`block text-[8px] sm:text-[9px] truncate w-full text-center mt-1 px-1 py-0.5 rounded transition-all ${
+                                isEquippedInActive
+                                  ? "bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] text-slate-950 font-black"
+                                  : "text-[#fce3bc] font-bold"
+                              }`}
+                            >
                               {item.ten_trang_bi}
                             </span>
-                            {isEquippedInActive && (
-                              <span className="absolute top-1 right-1 bg-indigo-600 text-white text-[7px] rounded-full p-0.5">
-                                <LucideIcon name="Check" size={6} />
-                              </span>
-                            )}
                           </div>
                         );
                       })}
@@ -1356,14 +1448,14 @@ export default function BuildGuidesTab({
                     return (
                       <div className="space-y-3">
                         <div className="text-left py-1">
-                          <span className="text-[10px] font-black uppercase text-indigo-600  tracking-wider">
+                          <span className="text-[10px] font-black uppercase text-[#fce3bc] tracking-wider">
                             Chọn Loại Phân Nhánh:
                           </span>
-                          <p className="text-[10px] text-[#fce3bc] mt-0.5">
+                          <p className="text-[10px] text-[#fce3bc]/80 mt-0.5">
                             Chọn 1 trong 4 phân nhánh phù hiệu chính dưới đây:
                           </p>
                         </div>
-                        <div className="grid grid-cols-1 gap-2 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
                           {branchBadges.map((b) => {
                             const equippedId = activeKey
                               ? selectedBadges[activeKey]
@@ -1383,33 +1475,34 @@ export default function BuildGuidesTab({
                                     b.ten_phu_hieu,
                                   )
                                 }
-                                className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition-all ${
-                                  isEquippedInActive
-                                    ? "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-50 text-indigo-800"
-                                    : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200 shadow-sm"
-                                }`}
+                                className="cursor-pointer transition-all flex flex-col items-center justify-center text-center relative group p-0.5 sm:p-1 rounded"
                               >
-                                <img
-                                  src={b.url_hinh_anh ?? undefined}
-                                  className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm shrink-0"
-                                  alt=""
-                                  referrerPolicy="no-referrer"
-                                />
-                                <div className="flex-1 min-w-0 text-left">
-                                  <span className="block font-black text-xs text-[#fce3bc]">
-                                    {b.ten_phu_hieu}
-                                  </span>
-                                  <span className="block text-[10px] text-[#fce3bc] font-medium">
-                                    Click để chọn nhánh này
-                                  </span>
-                                </div>
-                                {isEquippedInActive && (
-                                  <LucideIcon
-                                    name="Check"
-                                    size={16}
-                                    className="text-indigo-600 shrink-0"
+                                <div className="relative w-full max-w-[64px] sm:max-w-none aspect-square mx-auto">
+                                  <img
+                                    src={b.url_hinh_anh ?? undefined}
+                                    className={`w-full h-full object-cover border-2 transition-all ${
+                                      isEquippedInActive
+                                        ? "border-[#fce3bc] ring-2 ring-[#fce3bc] shadow-[0_0_10px_rgba(252,227,188,0.6)]"
+                                        : "border-[#fce3bc]/50 opacity-85 hover:opacity-100"
+                                    }`}
+                                    alt={b.ten_phu_hieu}
+                                    referrerPolicy="no-referrer"
                                   />
-                                )}
+                                  {isEquippedInActive && (
+                                    <span className="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[7px] p-0.5 shadow font-bold">
+                                      <LucideIcon name="Check" size={8} />
+                                    </span>
+                                  )}
+                                </div>
+                                <span
+                                  className={`block text-[8.5px] sm:text-[9.5px] truncate w-full text-center mt-1 px-1 py-0.5 rounded transition-all ${
+                                    isEquippedInActive
+                                      ? "bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] text-slate-950 font-black"
+                                      : "text-[#fce3bc] font-bold"
+                                  }`}
+                                >
+                                  {b.ten_phu_hieu}
+                                </span>
                               </div>
                             );
                           })}
@@ -1418,7 +1511,7 @@ export default function BuildGuidesTab({
                     );
                   }
 
-                  // If it is a functional badge slot (I, II, III)
+                  // Functional badge slots (I, II, III)
                   const parentKeyMap: Record<string, string> = {
                     NHANH_CHINH_2: "NHANH_CHINH_1",
                     NHANH_CHINH_3: "NHANH_CHINH_1",
@@ -1431,16 +1524,16 @@ export default function BuildGuidesTab({
 
                   if (!parentId) {
                     return (
-                      <div className="p-8 text-center text-[#fce3bc] text-xs font-semibold space-y-3 bg-slate-900/50  border border-[#fce3bc]">
+                      <div className="p-6 sm:p-8 text-center text-[#fce3bc] text-xs font-semibold space-y-3 bg-slate-900/50 border border-[#fce3bc]/50">
                         <LucideIcon
                           name="AlertCircle"
-                          className="mx-auto text-amber-500"
+                          className="mx-auto text-[#fce3bc]"
                           size={32}
                         />
                         <p className="font-extrabold text-[#fce3bc]">
                           Chưa chọn loại nhánh
                         </p>
-                        <p className="text-[10px] text-[#fce3bc] font-medium">
+                        <p className="text-[10px] text-[#fce3bc]/80 font-medium">
                           Vui lòng nhấp chọn ô "Chọn Nhánh" đầu tiên để thiết
                           lập loại nhánh cho nhánh này trước.
                         </p>
@@ -1470,23 +1563,23 @@ export default function BuildGuidesTab({
 
                   return (
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center bg-indigo-50/50 p-2 rounded border border-indigo-100/40 text-left">
+                      <div className="flex justify-between items-center bg-slate-900/80 p-2 border border-[#fce3bc]/50 text-left">
                         <div>
-                          <span className="block text-[8px] font-black uppercase text-indigo-700 tracking-wider">
+                          <span className="block text-[8px] font-black uppercase text-[#fce3bc]/80 tracking-wider">
                             Đang xem nhánh:
                           </span>
                           <span className="block font-black text-[11px] text-[#fce3bc]">
                             {branchLabelMap[parentBranch] || parentBranch}
                           </span>
                         </div>
-                        <span className="text-[9px] font-bold text-indigo-600 bg-slate-900/50 px-2 py-0.5 rounded-full border border-indigo-100">
+                        <span className="text-[9px] font-black text-slate-950 bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] px-2 py-0.5 rounded border border-[#fce3bc]">
                           {filteredBadges.length} phù hiệu
                         </span>
                       </div>
 
-                      <div className="max-h-[350px] overflow-y-auto pr-1 space-y-1.5 scrollbar-thin">
+                      <div className="max-h-[350px] overflow-y-auto pr-1 grid grid-cols-4 sm:grid-cols-4 gap-1.5 sm:gap-3 scrollbar-thin">
                         {filteredBadges.length === 0 ? (
-                          <div className="p-6 text-center text-[#fce3bc] text-xs">
+                          <div className="p-6 text-center text-[#fce3bc] text-xs col-span-full">
                             Không tìm thấy phù hiệu nào phù hợp.
                           </div>
                         ) : (
@@ -1506,32 +1599,37 @@ export default function BuildGuidesTab({
                                     b.ten_phu_hieu,
                                   )
                                 }
-                                className={`flex items-center gap-2.5 p-2 rounded border cursor-pointer transition-all ${
-                                  isEquippedInActive
-                                    ? "bg-indigo-50 border-indigo-200 text-indigo-800"
-                                    : isAnywhere
-                                      ? "bg-slate-900/50 border-slate-200 opacity-80"
-                                      : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200"
-                                }`}
+                                className="cursor-pointer transition-all flex flex-col items-center justify-center text-center relative group p-0.5 sm:p-1 rounded"
+                                title={b.ten_phu_hieu}
                               >
-                                <img
-                                  src={b.url_hinh_anh ?? undefined}
-                                  className="w-7 h-7 rounded-full object-cover border border-slate-200 shadow-sm shrink-0"
-                                  alt=""
-                                  referrerPolicy="no-referrer"
-                                />
-                                <div className="flex-1 min-w-0 text-left">
-                                  <span className="block font-bold text-xs truncate">
-                                    {b.ten_phu_hieu}
-                                  </span>
-                                </div>
-                                {isEquippedInActive && (
-                                  <LucideIcon
-                                    name="Check"
-                                    size={12}
-                                    className="text-indigo-600 shrink-0"
+                                <div className="relative w-full max-w-[48px] sm:max-w-none aspect-square mx-auto">
+                                  <img
+                                    src={b.url_hinh_anh ?? undefined}
+                                    className={`w-full h-full object-cover border-2 transition-all ${
+                                      isEquippedInActive
+                                        ? "border-[#fce3bc] ring-2 ring-[#fce3bc] shadow-[0_0_10px_rgba(252,227,188,0.6)]"
+                                        : isAnywhere
+                                          ? "border-[#fce3bc]/30 opacity-50"
+                                          : "border-[#fce3bc]/50 opacity-85 hover:opacity-100"
+                                    }`}
+                                    alt={b.ten_phu_hieu}
+                                    referrerPolicy="no-referrer"
                                   />
-                                )}
+                                  {isEquippedInActive && (
+                                    <span className="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[7px] p-0.5 shadow font-bold">
+                                      <LucideIcon name="Check" size={8} />
+                                    </span>
+                                  )}
+                                </div>
+                                <span
+                                  className={`block text-[8px] sm:text-[9px] truncate w-full text-center mt-1 px-1 py-0.5 rounded transition-all ${
+                                    isEquippedInActive
+                                      ? "bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] text-slate-950 font-black"
+                                      : "text-[#fce3bc] font-bold"
+                                  }`}
+                                >
+                                  {b.ten_phu_hieu}
+                                </span>
                               </div>
                             );
                           })
@@ -1544,7 +1642,7 @@ export default function BuildGuidesTab({
               {/* Spells list */}
               {rightTab === "spell" && (
                 <div className="space-y-3">
-                  <div className="max-h-[350px] overflow-y-auto pr-1 space-y-1.5 scrollbar-thin">
+                  <div className="max-h-[350px] overflow-y-auto pr-1 grid grid-cols-4 sm:grid-cols-4 gap-1.5 sm:gap-3 scrollbar-thin">
                     {spells
                       .filter((s) =>
                         s.ten_phu_tro
@@ -1559,31 +1657,35 @@ export default function BuildGuidesTab({
                             onClick={() =>
                               handleSelectFromRightList(s.id, s.ten_phu_tro)
                             }
-                            className={`flex items-center gap-2.5 p-2.5 rounded border cursor-pointer transition-all ${
-                              isSelected
-                                ? "bg-indigo-50 border-indigo-200 text-indigo-800"
-                                : "border-[#fce3bc] hover:bg-slate-900/50 bg-slate-900/50 hover:border-slate-200"
-                            }`}
+                            className="cursor-pointer transition-all flex flex-col items-center justify-center text-center relative group p-0.5 sm:p-1 rounded"
                             title={s.mo_ta || ""}
                           >
-                            <img
-                              src={s.url_hinh_anh ?? undefined}
-                              className="w-7 h-7 rounded-full object-cover border border-slate-200 shadow-sm"
-                              alt=""
-                              referrerPolicy="no-referrer"
-                            />
-                            <div className="flex-1 min-w-0 text-left">
-                              <span className="block font-bold text-xs truncate">
-                                {s.ten_phu_tro}
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <LucideIcon
-                                name="Check"
-                                size={12}
-                                className="text-indigo-600 shrink-0"
+                            <div className="relative w-full max-w-[48px] sm:max-w-none aspect-square mx-auto">
+                              <img
+                                src={s.url_hinh_anh ?? undefined}
+                                className={`w-full h-full object-cover border-2 transition-all ${
+                                  isSelected
+                                    ? "border-[#fce3bc] ring-2 ring-[#fce3bc] shadow-[0_0_10px_rgba(252,227,188,0.6)]"
+                                    : "border-[#fce3bc]/50 opacity-85 hover:opacity-100"
+                                }`}
+                                alt={s.ten_phu_tro}
+                                referrerPolicy="no-referrer"
                               />
-                            )}
+                              {isSelected && (
+                                <span className="absolute top-0 right-0 bg-amber-400 text-slate-950 text-[7px] p-0.5 shadow font-bold">
+                                  <LucideIcon name="Check" size={8} />
+                                </span>
+                              )}
+                            </div>
+                            <span
+                              className={`block text-[8px] sm:text-[9px] truncate w-full text-center mt-1 px-1 py-0.5 rounded transition-all ${
+                                isSelected
+                                  ? "bg-gradient-to-r from-[#ffe8b3] via-[#fce3bc] to-[#e6b800] text-slate-950 font-black"
+                                  : "text-[#fce3bc] font-bold"
+                              }`}
+                            >
+                              {s.ten_phu_tro}
+                            </span>
                           </div>
                         );
                       })}
@@ -1599,11 +1701,11 @@ export default function BuildGuidesTab({
           {guides.map((g) => (
             <div
               key={g.id}
-              className="bg-slate-900/50 p-5  border border-[#fce3bc] shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-200"
+              className="bg-slate-900/50 p-5  border border-[#fce3bc]/50 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-200"
             >
               <div className="flex items-center gap-4">
                 {/* Champion Avatar */}
-                <div className="w-12 h-12 rounded-full overflow-hidden border-1 border-[#fce3bc] shadow-inner shrink-0 relative">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-1 border-[#fce3bc]/50 shadow-inner shrink-0 relative">
                   {g.tuong?.url_anh_dai_dien ? (
                     <img
                       src={g.tuong.url_anh_dai_dien}
@@ -1672,19 +1774,30 @@ export default function BuildGuidesTab({
               {/* Action buttons on the right */}
               <div className="flex items-center gap-2.5 self-end md:self-auto border-t md:border-t-0 pt-3 md:pt-0 border-slate-50">
                 <button
+                  type="button"
+                  onClick={() => handleDuplicate(g)}
+                  className="p-2 bg-indigo-950/60 hover:bg-indigo-900 text-indigo-300 hover:text-white rounded border border-indigo-500/50 transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                  title="Sao chép bộ giáo án này"
+                >
+                  <LucideIcon name="Copy" size={13} />
+                  Sao chép
+                </button>
+                <button
+                  type="button"
                   onClick={() => handleStartEdit(g)}
-                  className="p-2 bg-slate-900/50 hover:bg-slate-100 text-[#fce3bc] hover:text-indigo-600 rounded transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                  className="p-2 bg-slate-900/50 hover:bg-slate-100 text-[#fce3bc] hover:text-indigo-600 rounded transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold border border-[#fce3bc]/50/30"
                 >
                   <LucideIcon name="Edit" size={13} />
                   Sửa
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     if (confirm("Bạn có chắc chắn muốn xóa bộ giáo án này?")) {
                       onDeleteGuide(g.id);
                     }
                   }}
-                  className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-500 hover:text-rose-700 rounded transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                  className="p-2 bg-rose-950/60 hover:bg-rose-900 text-rose-300 hover:text-rose-100 rounded border border-rose-500/50 transition-all cursor-pointer flex items-center gap-1 text-[11px] font-bold"
                 >
                   <LucideIcon name="Trash2" size={13} />
                   Xóa

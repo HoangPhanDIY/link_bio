@@ -337,10 +337,7 @@ export default function PublicBuildGuides({
                         Có {championGuides.length} lối lên đồ khác nhau
                       </span>
                     ) : (
-                      <p
-                        className={`text-xs font-bold mt-0.5 flex items-center gap-1 ${isDark ? "text-indigo-400" : "text-indigo-600"}`}
-                      >
-                        <LucideIcon name="Sword" size={11} />
+                      <p className="text-[12px] text-slate-400 block">
                         {currentGuide.tieu_de_giao_an}
                       </p>
                     )}
@@ -377,7 +374,7 @@ export default function PublicBuildGuides({
                   >
                     Chọn lối lên đồ
                   </span>
-                  <div className="flex flex-wrap gap-1.5 border border-[#bd9867]">
+                  <div className="flex flex-wrap border border-[#bd9867]">
                     {championGuides.map((g, idx) => (
                       <button
                         key={g.id}

@@ -6,12 +6,13 @@ export interface BioLink {
   enabled: boolean;
   clicks: number;
   conversions: number; // For analytics
-  status: 'Active' | 'Paused';
+  status: "Active" | "Paused";
+  thu_tu_uu_tien?: number;
 }
 
-export type InterfaceMode = 'light' | 'dark';
+export type InterfaceMode = "light" | "dark";
 
-export type FontFamilyType = 'Plus Jakarta Sans' | 'Inter' | 'JetBrains Mono';
+export type FontFamilyType = "Plus Jakarta Sans" | "Inter" | "JetBrains Mono";
 
 export interface AppearanceSettings {
   mode: InterfaceMode;
@@ -32,24 +33,24 @@ export interface AppearanceSettings {
   donateNote?: string;
   bankEnabled?: boolean;
   momoEnabled?: boolean;
-  backgroundColor?: string;      // Custom web page background color
-  linkBackgroundColor?: string;  // Custom link card background color
-  linkTextColor?: string;        // Custom link card text color
-  loadingWebGif?: string;        // Custom GIF for loading web application
-  loadingDataGif?: string;       // Custom GIF for loading page data
-  streamAlertGif?: string;       // Custom GIF for live stream donation alerts
-  streamAlertSound?: string;     // Custom sound URL or base64 for live stream donation alerts
-  streamAlertTemplate?: string;  // Custom template text for alerts (e.g. "{name} đã ủng hộ bạn")
-  streamAlertTts?: boolean;      // Toggle Text-to-speech reading for alerts
-  streamAlertDuration?: number;  // Duration of alert in seconds
+  backgroundColor?: string; // Custom web page background color
+  linkBackgroundColor?: string; // Custom link card background color
+  linkTextColor?: string; // Custom link card text color
+  loadingWebGif?: string; // Custom GIF for loading web application
+  loadingDataGif?: string; // Custom GIF for loading page data
+  streamAlertGif?: string; // Custom GIF for live stream donation alerts
+  streamAlertSound?: string; // Custom sound URL or base64 for live stream donation alerts
+  streamAlertTemplate?: string; // Custom template text for alerts (e.g. "{name} đã ủng hộ bạn")
+  streamAlertTts?: boolean; // Toggle Text-to-speech reading for alerts
+  streamAlertDuration?: number; // Duration of alert in seconds
   streamAlertVoiceGender?: string; // Voice gender: 'default' | 'male' | 'female'
-  streamAlertVoiceName?: string;   // Selected Web Speech voice name
-  bao_tri?: boolean;               // System maintenance mode
+  streamAlertVoiceName?: string; // Selected Web Speech voice name
+  bao_tri?: boolean; // System maintenance mode
 }
 
 export interface ActivityLog {
   id: string;
-  type: 'create' | 'milestone' | 'spike' | 'cleanup';
+  type: "create" | "milestone" | "spike" | "cleanup";
   message: string;
   boldText?: string;
   time: string;

@@ -245,6 +245,7 @@ export default function App() {
             clicks: 0,
             conversions: 0,
             status: dbl.hien_thi ? "Active" : "Paused",
+            thu_tu_uu_tien: dbl.thu_tu_uu_tien ?? 0,
           }));
           setLinks(mappedLinks);
         }
@@ -706,7 +707,13 @@ export default function App() {
       console.error("Failed to like build guide:", err);
     }
   };
-  const handleAddLink = async (title: string, url: string, icon: string) => {
+  const handleAddLink = async (
+    title: string,
+    url: string,
+    icon: string,
+    thuTuUuTien?: number,
+  ) => {
+    const order = thuTuUuTien !== undefined ? thuTuUuTien : links.length;
     const tempId = `link-${Date.now()}`;
     const newLink: BioLink = {
       id: tempId,
@@ -717,9 +724,10 @@ export default function App() {
       clicks: 0,
       conversions: 0,
       status: "Active",
+      thu_tu_uu_tien: order,
     };
 
-    setLinks((prev) => [newLink, ...prev]);
+    setLinks((prev) => [...prev, newLink]);
 
     // Save to database
     try {
@@ -728,7 +736,7 @@ export default function App() {
         url_lienketing: url,
         url_icon: icon,
         hien_thi: true,
-        thu_tu_uu_tien: 0,
+        thu_tu_uu_tien: order,
       });
       if (saved) {
         setLinks((prev) =>
@@ -757,6 +765,7 @@ export default function App() {
     title: string,
     url: string,
     icon: string,
+    thuTuUuTien?: number,
   ) => {
     setLinks((prev) =>
       prev.map((l) => {
@@ -766,6 +775,9 @@ export default function App() {
             title,
             url,
             icon,
+            ...(thuTuUuTien !== undefined
+              ? { thu_tu_uu_tien: thuTuUuTien }
+              : {}),
           };
         }
         return l;
@@ -778,6 +790,7 @@ export default function App() {
         tieu_de: title,
         url_lienketing: url,
         url_icon: icon,
+        ...(thuTuUuTien !== undefined ? { thu_tu_uu_tien: thuTuUuTien } : {}),
       });
     } catch (err) {
       console.warn("Failed to update link in DB:", err);
@@ -844,13 +857,17 @@ export default function App() {
   };
 
   const handleReorderLinks = (reordered: BioLink[]) => {
-    setLinks(reordered);
+    const updatedWithOrder = reordered.map((l, idx) => ({
+      ...l,
+      thu_tu_uu_tien: idx,
+    }));
+    setLinks(updatedWithOrder);
     // Write priorities back asynchronously
-    reordered.forEach(async (l, idx) => {
+    updatedWithOrder.forEach(async (l) => {
       try {
         await dbService.saveLink({
           id: l.id,
-          thu_tu_uu_tien: idx,
+          thu_tu_uu_tien: l.thu_tu_uu_tien,
         });
       } catch (e) {
         console.warn("Reordering update failed in DB", e);
@@ -1682,6 +1699,21 @@ export default function App() {
       {/* Desktop Left Sidebar - ONLY visible when in Admin panel on desktop */}
       {isAdminMode && (
         <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 text-slate-200 border-r border-[#bd9867]/60 z-30 shadow-2xl transition-all duration-300 bg-slate-950/90 backdrop-blur-md">
+          {/* Sidebar Header: Brand / Logo */}
+          <div className="p-6 border-b border-[#bd9867]/40 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white shadow-md">
+              <LucideIcon name="Settings" size={18} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-xs font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent tracking-wider uppercase">
+                BẢNG QUẢN TRỊ
+              </h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase">
+                Vivid Link Bio
+              </p>
+            </div>
+          </div>
+
           {/* User Info */}
           {loggedInUser && (
             <div className="px-6 py-4 border-b border-[#bd9867]/40 bg-black/40 flex items-center gap-3">
