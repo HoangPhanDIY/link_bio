@@ -269,52 +269,59 @@ export default function BuildGuidesTab({
     }
   };
 
-  // Populate Khac Che form whenever kcTargetChampId changes
-  useEffect(() => {
-    if (!kcTargetChampId) return;
-    const found = khacCheList.find((x) => x.tuong_id === kcTargetChampId);
-    if (found) {
-      setKcCounterChampIds(found.tuong_khac_che_ids || []);
-      setKcCounterItemIds(found.trang_bi_khac_che_ids || []);
-      setKcSynergyChampIds(found.tuong_phoi_hop_ids || []);
-      setKcGhiChuKhacChe(found.ghi_chu_khac_che || "");
-      setKcGhiChuPhoiHop(found.ghi_chu_phoi_hop || "");
-    } else {
-      setKcCounterChampIds([]);
-      setKcCounterItemIds([]);
-      setKcSynergyChampIds([]);
-      setKcGhiChuKhacChe("");
-      setKcGhiChuPhoiHop("");
+  // Helper to find assigned location for a champion in tierDrafts
+  const getAssignedLocation = (
+    champId: string,
+  ): { lane: string; tier: string; key: string } | null => {
+    for (const [key, ids] of Object.entries(tierDrafts)) {
+      if (ids && ids.includes(champId)) {
+        const parts = key.split("_");
+        if (parts.length >= 2) {
+          return { lane: parts[0], tier: parts[1], key };
+        }
+      }
     }
-  }, [kcTargetChampId, khacCheList]);
-
-  // Set default champion IDs if empty
-  useEffect(() => {
-    if (!kcTargetChampId && champions.length > 0) {
-      setKcTargetChampId(champions[0].id);
-    }
-  }, [champions]);
+    return null;
+  };
 
   // Toggle champion selection in Tier Drafts
   const toggleChampInTier = (champId: string) => {
     const activeKey = `${ttLane}_${ttTier}`;
     const currentList = tierDrafts[activeKey] || [];
     const isChecked = currentList.includes(champId);
-    const newList = isChecked
-      ? currentList.filter((id) => id !== champId)
-      : [...currentList, champId];
 
-    setTierDrafts((prev) => ({
-      ...prev,
-      [activeKey]: newList,
-    }));
+    if (isChecked) {
+      setTierDrafts((prev) => ({
+        ...prev,
+        [activeKey]: currentList.filter((id) => id !== champId),
+      }));
+    } else {
+      const location = getAssignedLocation(champId);
+      if (location && (location.lane !== ttLane || location.tier !== ttTier)) {
+        setTtMsg(
+          `Tướng này đã được xếp ở Đường ${location.lane} - Tier ${location.tier}. Không thể chọn lại!`,
+        );
+        setTimeout(() => setTtMsg(""), 4000);
+        return;
+      }
+      setTierDrafts((prev) => ({
+        ...prev,
+        [activeKey]: [...currentList, champId],
+      }));
+    }
   };
 
-  const selectAllInActiveTier = (champIds: string[]) => {
+  const selectAllInActiveTier = (candidateIds: string[]) => {
     const activeKey = `${ttLane}_${ttTier}`;
+    const currentList = tierDrafts[activeKey] || [];
+    const validIds = candidateIds.filter((id) => {
+      const loc = getAssignedLocation(id);
+      return !loc || (loc.lane === ttLane && loc.tier === ttTier);
+    });
+    const combined = Array.from(new Set([...currentList, ...validIds]));
     setTierDrafts((prev) => ({
       ...prev,
-      [activeKey]: champIds,
+      [activeKey]: combined,
     }));
   };
 
@@ -358,47 +365,63 @@ export default function BuildGuidesTab({
     await loadKhacCheData();
   };
 
-  // Handle Save Top Tier
+  // Handle Save Top Tier (Batch save all modified tiers across lanes)
   const handleSaveTopTier = async () => {
-    if (!ttLane || !ttTier) return;
     setTtSaving(true);
     setTtMsg("");
     try {
-      const activeKey = `${ttLane}_${ttTier}`;
-      const activeSelectedIds = tierDrafts[activeKey] || [];
-
-      const existingInLaneTier = topTierList.filter(
-        (x) => x.phandanh_lane === ttLane && x.tier === ttTier,
+      const targetVersion =
+        ttVersion || selectedVersion || "Phiên bản hiện tại";
+      const versionItems = topTierList.filter(
+        (x) => (x.phien_ban || "Phiên bản hiện tại") === targetVersion,
       );
 
-      // Remove items that were unchecked
-      const toRemove = existingInLaneTier.filter(
-        (x) => !activeSelectedIds.includes(x.tuong_id),
-      );
-      for (const item of toRemove) {
-        await dbService.deleteTopTierItem(item.id, item.tuong_id, ttLane);
-      }
+      const allKeys = new Set([
+        ...Object.keys(tierDrafts),
+        ...versionItems.map((x) => `${x.phandanh_lane}_${x.tier}`),
+      ]);
 
-      // Save/Upsert selected champions
-      for (const champId of activeSelectedIds) {
-        await dbService.saveTopTierItem({
-          tuong_id: champId,
-          phien_ban: ttVersion || "Phiên bản hiện tại",
-          phandanh_lane: ttLane,
-          tier: ttTier,
-          ghi_chu: ttGhiChu,
-        });
+      for (const key of allKeys) {
+        const [lane, tier] = key.split("_");
+        if (!lane || !tier) continue;
+
+        const draftIds = tierDrafts[key] || [];
+        const existingInKey = versionItems.filter(
+          (x) => x.phandanh_lane === lane && x.tier === tier,
+        );
+
+        // Remove DB items no longer in draft
+        const toRemove = existingInKey.filter(
+          (x) => !draftIds.includes(x.tuong_id),
+        );
+        for (const item of toRemove) {
+          await dbService.deleteTopTierItem(item.id, item.tuong_id, lane);
+        }
+
+        // Add newly checked draft items to DB
+        const existingChampIds = existingInKey.map((x) => x.tuong_id);
+        const toAdd = draftIds.filter((id) => !existingChampIds.includes(id));
+        for (const champId of toAdd) {
+          await dbService.saveTopTierItem({
+            tuong_id: champId,
+            phien_ban: targetVersion,
+            phandanh_lane: lane,
+            tier: tier,
+            ghi_chu: ttGhiChu || "",
+          });
+        }
       }
 
       setTtMsg(
-        `Đã cập nhật danh sách Tier ${ttTier} - Đường ${ttLane} thành công!`,
+        `Đã lưu tất cả phân loại Top Tier cho phiên bản "${targetVersion}" thành công!`,
       );
       await loadTopTierData();
     } catch (e) {
+      console.error(e);
       setTtMsg("Lỗi khi lưu Top Tier.");
     } finally {
       setTtSaving(false);
-      setTimeout(() => setTtMsg(""), 3000);
+      setTimeout(() => setTtMsg(""), 4000);
     }
   };
 
@@ -2658,22 +2681,27 @@ export default function BuildGuidesTab({
                     1. Chọn Đường / Vị Trí:
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {["Rừng", "Mid", "Tà Thần", "AD", "Đỡ Đòn", "Trợ Thủ"].map(
-                      (lane) => (
-                        <button
-                          key={lane}
-                          type="button"
-                          onClick={() => setTtLane(lane)}
-                          className={`px-3.5 py-1.5 text-xs font-bold border transition-all cursor-pointer ${
-                            ttLane === lane
-                              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-400 font-black shadow-md scale-105"
-                              : "bg-slate-950 text-slate-300 border-slate-700 hover:border-amber-500/50"
-                          }`}
-                        >
-                          Đường {lane}
-                        </button>
-                      ),
-                    )}
+                    {[
+                      "Rừng",
+                      "Pháp Sư",
+                      "Đấu Sĩ",
+                      "Xạ Thủ",
+                      "Đỡ Đòn",
+                      "Trợ Thủ",
+                    ].map((lane) => (
+                      <button
+                        key={lane}
+                        type="button"
+                        onClick={() => setTtLane(lane)}
+                        className={`px-3.5 py-1.5 text-xs font-bold border transition-all cursor-pointer ${
+                          ttLane === lane
+                            ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-400 font-black shadow-md scale-105"
+                            : "bg-slate-950 text-slate-300 border-slate-700 hover:border-amber-500/50"
+                        }`}
+                      >
+                        Đường {lane}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -2843,17 +2871,28 @@ export default function BuildGuidesTab({
                       const activeSelected =
                         tierDrafts[`${ttLane}_${ttTier}`] || [];
                       const isChecked = activeSelected.includes(c.id);
+                      const location = getAssignedLocation(c.id);
+                      const isPickedElsewhere =
+                        location &&
+                        (location.lane !== ttLane || location.tier !== ttTier);
 
                       return (
                         <button
                           key={c.id}
                           type="button"
-                          title={c.ten_tuong} // Hiển thị tên tướng khi rê chuột vào
+                          disabled={!!isPickedElsewhere}
+                          title={
+                            isPickedElsewhere
+                              ? `${c.ten_tuong} (Đã chọn ở Đường ${location.lane} - Tier ${location.tier})`
+                              : c.ten_tuong
+                          }
                           onClick={() => toggleChampInTier(c.id)}
-                          className={`p-0.5 border transition-all cursor-pointer relative aspect-square flex items-center justify-center overflow-hidden ${
+                          className={`p-0.5 border transition-all relative aspect-square flex items-center justify-center overflow-hidden ${
                             isChecked
-                              ? "bg-amber-950/80 border-amber-400 shadow-lg ring-2 ring-amber-400/80 scale-[1.03] z-10"
-                              : "bg-black/60 border-slate-700 hover:border-amber-400/60 hover:scale-105"
+                              ? "bg-amber-950/80 border-amber-400 shadow-lg ring-2 ring-amber-400/80 scale-[1.03] z-10 cursor-pointer"
+                              : isPickedElsewhere
+                                ? "bg-slate-900/90 border-red-900/60 opacity-40 cursor-not-allowed grayscale"
+                                : "bg-black/60 border-slate-700 hover:border-amber-400/60 hover:scale-105 cursor-pointer"
                           }`}
                         >
                           {/* Badge tích chọn góc trên */}
@@ -2863,14 +2902,23 @@ export default function BuildGuidesTab({
                             </span>
                           )}
 
-                          {/* Ảnh đại diện tướng rõ nét (Không dùng opacity) */}
+                          {/* Badge báo vị trí đã chọn ở lane/tier khác */}
+                          {isPickedElsewhere && (
+                            <span className="absolute inset-x-0 bottom-0 bg-red-950/95 text-red-300 text-[7px] font-extrabold py-0.5 text-center truncate z-20 border-t border-red-700/60 px-0.5">
+                              {location.lane}-{location.tier}
+                            </span>
+                          )}
+
+                          {/* Ảnh đại diện tướng */}
                           <img
                             src={c.url_anh_dai_dien || "/placeholder.jpg"}
                             alt={c.ten_tuong}
                             className={`w-full h-full object-cover transition-all ${
                               isChecked
                                 ? "brightness-100"
-                                : "brightness-90 grayscale-[25%] hover:grayscale-0 hover:brightness-100"
+                                : isPickedElsewhere
+                                  ? "brightness-50"
+                                  : "brightness-90 grayscale-[25%] hover:grayscale-0 hover:brightness-100"
                             }`}
                             referrerPolicy="no-referrer"
                           />
@@ -2942,28 +2990,22 @@ export default function BuildGuidesTab({
 
             {/* Lane Filter Buttons for Admin View */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {[
-                "Tất cả",
-                "Rừng",
-                "Mid",
-                "Tà Thần",
-                "AD",
-                "Đỡ Đòn",
-                "Trợ Thủ",
-              ].map((lane) => (
-                <button
-                  key={lane}
-                  type="button"
-                  onClick={() => setAdminTopTierLane(lane)}
-                  className={`px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
-                    adminTopTierLane === lane
-                      ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#fce3bc] font-black shadow-md scale-[1.02]"
-                      : "bg-slate-900 text-[#fce3bc] border-[#bd9867]/40 hover:bg-[#bd9867]/20 hover:border-[#bd9867]"
-                  }`}
-                >
-                  {lane === "Tất cả" ? "Tất Cả Đường" : `Đường ${lane}`}
-                </button>
-              ))}
+              {["Tất cả", "JUG", "MID", "DSL", "ADL", "TANK", "SUP"].map(
+                (lane) => (
+                  <button
+                    key={lane}
+                    type="button"
+                    onClick={() => setAdminTopTierLane(lane)}
+                    className={`px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
+                      adminTopTierLane === lane
+                        ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#fce3bc] font-black shadow-md scale-[1.02]"
+                        : "bg-slate-900 text-[#fce3bc] border-[#bd9867]/40 hover:bg-[#bd9867]/20 hover:border-[#bd9867]"
+                    }`}
+                  >
+                    {lane === "Tất cả" ? "Tất Cả Đường" : `Đường ${lane}`}
+                  </button>
+                ),
+              )}
             </div>
 
             {topTierList.length === 0 ? (

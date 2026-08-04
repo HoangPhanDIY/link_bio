@@ -251,12 +251,12 @@ export default function PublicBuildGuides({
 
   const laneList = [
     { value: "All", label: "All", isText: true },
-    { value: "Rừng", label: "Rừng", icon: "SatThu.png" }, // Hoặc đổi tên file tương ứng nếu bạn đặt tên khác
-    { value: "Tà Thần", label: "Tà Thần", icon: "DauSi.png" },
-    { value: "Pháp Sư", label: "Pháp Sư", icon: "PhapSu.png" },
-    { value: "Xạ Thủ", label: "Xạ Thủ", icon: "XaThu.png" },
-    { value: "Đỡ Đòn", label: "Đỡ Đòn", icon: "DoDon.png" },
-    { value: "Trợ Thủ", label: "Trợ Thủ", icon: "TroThu.png" },
+    { value: "JUG", label: "Rừng", icon: "SatThu.png" }, // Hoặc đổi tên file tương ứng nếu bạn đặt tên khác
+    { value: "DSL", label: "Tà Thần", icon: "DauSi.png" },
+    { value: "MID", label: "Pháp Sư", icon: "PhapSu.png" },
+    { value: "ADL", label: "Xạ Thủ", icon: "XaThu.png" },
+    { value: "TANK", label: "Đỡ Đòn", icon: "DoDon.png" },
+    { value: "SUP", label: "Trợ Thủ", icon: "TroThu.png" },
   ];
 
   // Tự động chọn phiên bản đầu tiên khi load xong topTierList
