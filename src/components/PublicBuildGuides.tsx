@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { toPng } from "html-to-image";
 import {
   DBBuildGuide,
   DBChampion,
@@ -8,6 +9,36 @@ import {
 } from "../supabase";
 import { dbService } from "../dbService";
 import LucideIcon from "./LucideIcon";
+
+function WatermarkOverlay({ text }: { text: string }) {
+  if (!text) return null;
+  const cleanText = text.trim().toUpperCase();
+  const rawSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80" viewBox="0 0 160 80"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" transform="rotate(-20 80 40)" fill="#fce3bc" font-size="12" font-weight="900" font-family="sans-serif" letter-spacing="1.5" opacity="0.15">${cleanText}</text></svg>`;
+  const encodedSvg = encodeURIComponent(rawSvg);
+
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 pointer-events-none select-none z-20 overflow-hidden flex items-center justify-center"
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml;charset=utf-8,${encodedSvg}")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
+      {/* <div className="absolute inset-0 flex items-center justify-center p-4">
+        <img
+          src="/logo-light.png"
+          alt=""
+          className="w-36 h-36 sm:w-56 sm:h-56 max-w-full max-h-full object-contain opacity-15 filter drop-shadow-lg"
+          referrerPolicy="no-referrer"
+        />
+      </div> */}
+    </div>
+  );
+}
 
 const getBadgeBranch = (badge?: any): string => {
   if (!badge) return "KHAC";
@@ -245,6 +276,49 @@ export default function PublicBuildGuides({
   const [kcSearchTerm, setKcSearchTerm] = useState<string>("");
   const [selectedVersion, setSelectedVersion] = useState<string>("");
 
+  // Watermark & Export state
+  const [watermarkText, setWatermarkText] = useState<string>("HOÀNG PHAN");
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const topTierBoardRef = useRef<HTMLDivElement>(null);
+
+  // Fetch admin profile for watermark name setting
+  useEffect(() => {
+    dbService
+      .getProfile()
+      .then((profile) => {
+        if (profile?.ten_hien_thi) {
+          setWatermarkText(profile.ten_hien_thi);
+        } else if (profile?.ten_dang_nhap) {
+          setWatermarkText(profile.ten_dang_nhap);
+        }
+      })
+      .catch((err) => console.warn("Failed to load watermark profile:", err));
+  }, []);
+
+  const handleDownloadTopTier = async () => {
+    if (!topTierBoardRef.current || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(topTierBoardRef.current, {
+        cacheBust: true,
+        backgroundColor: "#05050a",
+        pixelRatio: 2,
+      });
+      const link = document.createElement("a");
+      const ver = selectedVersion
+        ? selectedVersion.replace(/\s+/g, "_")
+        : "Current";
+      const lane = selectedTopTierLane ? selectedTopTierLane : "All";
+      link.download = `Bang_Top_Tier_${ver}_${lane}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Lỗi khi tải ảnh bảng Top Tier:", err);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const availableVersions = Array.from(
     new Set(topTierList.map((item) => item.phien_ban).filter(Boolean)),
   );
@@ -425,29 +499,34 @@ export default function PublicBuildGuides({
                 }
 
                 return (
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-3">
-                    {filteredChampIds.map((champId) => {
-                      const championGuides = groupedGuides[champId];
-                      const champ = championGuides[0]?.tuong;
+                  <div className="p-3 border border-[#bd9867]/60 bg-[#1d182b]/70 backdrop-blur-md relative overflow-hidden">
+                    <WatermarkOverlay text={watermarkText} />
+                    <div className="relative z-10 grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-3">
+                      {filteredChampIds.map((champId) => {
+                        const championGuides = groupedGuides[champId];
+                        const champ = championGuides[0]?.tuong;
 
-                      return (
-                        <button
-                          key={champId}
-                          onClick={() => setSelectedTrangBiChampId(champId)}
-                          className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
-                        >
-                          <img
-                            src={champ?.url_anh_dai_dien || "/placeholder.jpg"}
-                            alt={champ?.ten_tuong}
-                            className="w-14 h-14 sm:w-16 sm:h-16 object-cover border border-[#bd9867]/60 group-hover:border-[#fce3bc] shadow-md group-hover:shadow-[#fce3bc]/30 transition-all"
-                            referrerPolicy="no-referrer"
-                          />
-                          <span className="font-extrabold text-[11px] sm:text-xs text-[#fce3bc] group-hover:text-white block truncate w-full text-center">
-                            {champ?.ten_tuong}
-                          </span>
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={champId}
+                            onClick={() => setSelectedTrangBiChampId(champId)}
+                            className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
+                          >
+                            <img
+                              src={
+                                champ?.url_anh_dai_dien || "/placeholder.jpg"
+                              }
+                              alt={champ?.ten_tuong}
+                              className="w-14 h-14 sm:w-16 sm:h-16 object-cover border border-[#bd9867]/60 group-hover:border-[#fce3bc] shadow-md group-hover:shadow-[#fce3bc]/30 transition-all"
+                              referrerPolicy="no-referrer"
+                            />
+                            <span className="font-extrabold text-[11px] sm:text-xs text-[#fce3bc] group-hover:text-white block truncate w-full text-center">
+                              {champ?.ten_tuong}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })()}
@@ -511,12 +590,13 @@ export default function PublicBuildGuides({
 
                 return (
                   <div
-                    className="p-3 border transition-all shadow-sm text-[#fce3bc] backdrop-blur-md space-y-3"
+                    className="p-3 border transition-all shadow-sm text-[#fce3bc] backdrop-blur-md space-y-3 relative overflow-hidden"
                     style={{
                       borderColor: "#bd9867",
                       background: "rgba(29, 24, 43, 0.7)",
                     }}
                   >
+                    <WatermarkOverlay text={watermarkText} />
                     {/* Champion Header */}
                     <div className="flex sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#bd9867]">
                       <div className="flex items-center gap-3">
@@ -1064,29 +1144,45 @@ export default function PublicBuildGuides({
               </h3>
             </div>
 
-            {/* Dropdown Chọn Phiên bản bên phải */}
-            <div className="flex items-center gap-1 bg-[#bd9867]/20 border border-[#bd9867]/60 px-2 py-1 shrink-0">
-              <select
-                value={selectedVersion}
-                onChange={(e) => setSelectedVersion(e.target.value)}
-                className="bg-transparent text-[11px] sm:text-xs font-bold text-[#fce3bc] focus:outline-none cursor-pointer border-none py-0.5"
-              >
-                {availableVersions.length > 0 ? (
-                  availableVersions.map((ver) => (
-                    <option
-                      key={ver}
-                      value={ver}
-                      className="bg-slate-900 text-[#fce3bc]"
-                    >
-                      {ver}
+            {/* Dropdown Chọn Phiên bản + Nút Tải BXH bên phải */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1 bg-[#bd9867]/20 border border-[#bd9867]/60 px-2 py-1">
+                <select
+                  value={selectedVersion}
+                  onChange={(e) => setSelectedVersion(e.target.value)}
+                  className="bg-transparent text-[11px] sm:text-xs font-bold text-[#fce3bc] focus:outline-none cursor-pointer border-none py-0.5"
+                >
+                  {availableVersions.length > 0 ? (
+                    availableVersions.map((ver) => (
+                      <option
+                        key={ver}
+                        value={ver}
+                        className="bg-slate-900 text-[#fce3bc]"
+                      >
+                        {ver}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" className="bg-slate-900 text-[#fce3bc]">
+                      Phiên bản hiện tại
                     </option>
-                  ))
-                ) : (
-                  <option value="" className="bg-slate-900 text-[#fce3bc]">
-                    Phiên bản hiện tại
-                  </option>
-                )}
-              </select>
+                  )}
+                </select>
+              </div>
+
+              <button
+                onClick={handleDownloadTopTier}
+                disabled={isDownloading}
+                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 font-black text-[11px] sm:text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow border border-[#fce3bc]/80 disabled:opacity-50"
+                title="Tải bảng Top Tier về thiết bị"
+              >
+                <LucideIcon
+                  name={isDownloading ? "Loader2" : "Download"}
+                  size={13}
+                  className={isDownloading ? "animate-spin" : ""}
+                />
+                <span>{isDownloading ? "Đang tải..." : "Tải BXH"}</span>
+              </button>
             </div>
           </div>
 
@@ -1143,8 +1239,25 @@ export default function PublicBuildGuides({
               </p>
             </div>
           ) : (
-            <div className="bg-slate-950/90 border border-[#bd9867]/60 shadow-2xl backdrop-blur-md overflow-hidden">
-              <div className="divide-y divide-[#bd9867]/30">
+            <div
+              ref={topTierBoardRef}
+              id="top-tier-board"
+              className="bg-slate-950/90 border border-[#bd9867]/60 shadow-2xl backdrop-blur-md overflow-hidden relative"
+            >
+              <WatermarkOverlay text={watermarkText} />
+              {/* Logo nhỏ nằm ở góc trên bên phải của bảng Top Tier */}
+              <div className="absolute top-2 right-2 sm:top-2.5 sm:right-3 z-30 flex items-center gap-1.5 pointer-events-none select-none px-2 py-1 shadow-lg opacity-40">
+                <img
+                  src="/logo-light.png"
+                  alt="Logo"
+                  className="w-10 h-10 sm:w-20 sm:h-20 object-contain"
+                  referrerPolicy="no-referrer"
+                />
+                {/* <span className="text-[10px] sm:text-xs font-black text-[#fce3bc] tracking-wider uppercase drop-shadow">
+                  {watermarkText}
+                </span> */}
+              </div>
+              <div className="relative z-10 divide-y divide-[#bd9867]/30">
                 {[
                   { tier: "S", bgColor: "#ff7f7e" }, // Đỏ hồng
                   { tier: "A", bgColor: "#ffbf7f" }, // Cam nhạt
@@ -1264,25 +1377,27 @@ export default function PublicBuildGuides({
                 }
 
                 return (
-                  /* CHỈ HIỂN THỊ ẢNH VÀ TÊN TƯỚNG DƯỚI ẢNH - KHÔNG BOX BAO BỌC */
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-3">
-                    {champsWithKcData.map((champ) => (
-                      <button
-                        key={champ.id}
-                        onClick={() => setSelectedKhacCheChampId(champ.id)}
-                        className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
-                      >
-                        <img
-                          src={champ.url_anh_dai_dien || "/placeholder.jpg"}
-                          alt={champ.ten_tuong}
-                          className="w-14 h-14 sm:w-16 sm:h-16 object-cover border border-[#bd9867]/60 group-hover:border-[#fce3bc] shadow-md group-hover:shadow-[#fce3bc]/30 transition-all"
-                          referrerPolicy="no-referrer"
-                        />
-                        <span className="font-extrabold text-[11px] sm:text-xs text-[#fce3bc] group-hover:text-white block truncate w-full text-center">
-                          {champ.ten_tuong}
-                        </span>
-                      </button>
-                    ))}
+                  <div className="p-3 border border-[#bd9867]/60 bg-[#1d182b]/70 backdrop-blur-md relative overflow-hidden">
+                    <WatermarkOverlay text={watermarkText} />
+                    <div className="relative z-10 grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-3">
+                      {champsWithKcData.map((champ) => (
+                        <button
+                          key={champ.id}
+                          onClick={() => setSelectedKhacCheChampId(champ.id)}
+                          className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
+                        >
+                          <img
+                            src={champ.url_anh_dai_dien || "/placeholder.jpg"}
+                            alt={champ.ten_tuong}
+                            className="w-14 h-14 sm:w-16 sm:h-16 object-cover border border-[#bd9867]/60 group-hover:border-[#fce3bc] shadow-md group-hover:shadow-[#fce3bc]/30 transition-all"
+                            referrerPolicy="no-referrer"
+                          />
+                          <span className="font-extrabold text-[11px] sm:text-xs text-[#fce3bc] group-hover:text-white block truncate w-full text-center">
+                            {champ.ten_tuong}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 );
               })()}
@@ -1319,7 +1434,8 @@ export default function PublicBuildGuides({
                 );
 
                 return (
-                  <div className="space-y-4">
+                  <div className="space-y-4 relative overflow-hidden border border-[#bd9867]/60 bg-[#1d182b]/70 p-3 sm:p-4 backdrop-blur-md">
+                    <WatermarkOverlay text={watermarkText} />
                     {/* Header */}
                     <div className="bg-gradient-to-r from-red-950/60 via-slate-950 to-indigo-950/60 border border-[#bd9867] p-3 sm:p-4 shadow-xl flex items-center gap-3 sm:gap-4">
                       <img
