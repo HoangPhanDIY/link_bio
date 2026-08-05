@@ -28,7 +28,7 @@ export default function PublicBottomNav({
           onClick={() => setPublicTab("links")}
           className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
             publicTab === "links"
-              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] font-extrabold shadow-sm"
               : "hover:opacity-80"
           }`}
         >
@@ -36,13 +36,13 @@ export default function PublicBottomNav({
             name="Link2"
             size={18}
             className={
-              publicTab === "links" ? "text-white" : "stroke-[#bd9867]"
+              publicTab === "links" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
             className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
               publicTab === "links"
-                ? "text-white"
+                ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
             }`}
           >
@@ -55,7 +55,7 @@ export default function PublicBottomNav({
           onClick={() => setPublicTab("guides")}
           className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
             publicTab === "guides"
-              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] font-extrabold shadow-sm"
               : "hover:opacity-80"
           }`}
         >
@@ -63,13 +63,13 @@ export default function PublicBottomNav({
             name="GraduationCap"
             size={18}
             className={
-              publicTab === "guides" ? "text-white" : "stroke-[#bd9867]"
+              publicTab === "guides" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
             className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
               publicTab === "guides"
-                ? "text-white"
+                ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
             }`}
           >
@@ -82,7 +82,7 @@ export default function PublicBottomNav({
           onClick={() => setPublicTab("posts")}
           className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer relative ${
             publicTab === "posts"
-              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 font-extrabold shadow-sm"
               : "hover:opacity-80"
           }`}
         >
@@ -90,13 +90,13 @@ export default function PublicBottomNav({
             name="FileText"
             size={18}
             className={
-              publicTab === "posts" ? "text-white" : "stroke-[#bd9867]"
+              publicTab === "posts" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
             className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
               publicTab === "posts"
-                ? "text-white"
+                ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
             }`}
           >
@@ -109,7 +109,7 @@ export default function PublicBottomNav({
           onClick={() => setPublicTab("donate")}
           className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
             publicTab === "donate"
-              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white font-extrabold shadow-sm"
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 font-extrabold shadow-sm"
               : "hover:opacity-80"
           }`}
         >
@@ -117,15 +117,13 @@ export default function PublicBottomNav({
             name="Heart"
             size={18}
             className={
-              publicTab === "donate"
-                ? "text-white fill-white"
-                : "stroke-[#bd9867]"
+              publicTab === "donate" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
             className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
               publicTab === "donate"
-                ? "text-white"
+                ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
             }`}
           >

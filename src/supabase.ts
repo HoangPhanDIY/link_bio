@@ -241,6 +241,8 @@ export interface DBDonation {
   phuong_thuc: number; // 0=bank, 1=momo
   trang_thai: number; // 0=chờ xử lý, 1=đã xác nhận, 2=đã hủy
   xac_nhan_boi: string | null;
+  nguoi_dung_id?: string | null;
+  id_nguoi_dung?: string | null;
   created_at?: string;
 }
 

@@ -404,12 +404,11 @@ export default function PublicBuildGuides({
 
   return (
     <div className="space-y-2">
-      {/* Top Academy Sub-Nav */}
-      <div className="flex items-center">
+      {/* <div className="flex items-center">
         <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
-          HỌC VIỆN
+          HỌC VIỆN LIÊN QUÂN
         </h2>
-      </div>
+      </div> */}
       <div className="shadow-xl backdrop-blur-md">
         {/* 3 Sub-tab options */}
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
@@ -417,7 +416,7 @@ export default function PublicBuildGuides({
             onClick={() => handleTabChange("trangbi")}
             className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border ${
               academyTab === "trangbi"
-                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white border-[#bd9867] shadow-md"
+                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#bd9867] shadow-md"
                 : "border-[#bd9867]/40 bg-black/40 text-[#fce3bc] hover:bg-[#bd9867]/20"
             }`}
           >
@@ -429,7 +428,7 @@ export default function PublicBuildGuides({
             onClick={() => handleTabChange("toptier")}
             className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border ${
               academyTab === "toptier"
-                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white border-[#bd9867] shadow-md"
+                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#bd9867] shadow-md"
                 : "border-[#bd9867]/40 bg-black/40 text-[#fce3bc] hover:bg-[#bd9867]/20"
             }`}
           >
@@ -441,7 +440,7 @@ export default function PublicBuildGuides({
             onClick={() => handleTabChange("khacche")}
             className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border ${
               academyTab === "khacche"
-                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white border-[#bd9867] shadow-md"
+                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#bd9867] shadow-md"
                 : "border-[#bd9867]/40 bg-black/40 text-[#fce3bc] hover:bg-[#bd9867]/20"
             }`}
           >
@@ -465,7 +464,7 @@ export default function PublicBuildGuides({
               <div className="relative w-full">
                 <input
                   type="text"
-                  placeholder="Tìm tướng trang bị..."
+                  placeholder="Tìm tướng..."
                   value={trangBiSearchTerm}
                   onChange={(e) => setTrangBiSearchTerm(e.target.value)}
                   className="w-full bg-black/60 border border-[#bd9867]/60 rounded-none pl-8 pr-3 py-1.5 text-xs text-[#fce3bc] placeholder-slate-400 focus:outline-none focus:border-[#fce3bc]"
@@ -499,9 +498,9 @@ export default function PublicBuildGuides({
                 }
 
                 return (
-                  <div className="p-3 border border-[#bd9867]/60 bg-[#1d182b]/70 backdrop-blur-md relative overflow-hidden">
+                  <div className="pt-2 relative overflow-hidden">
                     <WatermarkOverlay text={watermarkText} />
-                    <div className="relative z-10 grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-3">
+                    <div className="relative z-10 grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-1">
                       {filteredChampIds.map((champId) => {
                         const championGuides = groupedGuides[champId];
                         const champ = championGuides[0]?.tuong;
@@ -510,7 +509,7 @@ export default function PublicBuildGuides({
                           <button
                             key={champId}
                             onClick={() => setSelectedTrangBiChampId(champId)}
-                            className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
+                            className="flex flex-col items-center justify-center cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
                           >
                             <img
                               src={
@@ -1204,7 +1203,7 @@ export default function PublicBuildGuides({
                   {/* Nút All: Hiển thị Text */}
                   {lane.isText ? (
                     <span
-                      className={`text-xs sm:text-sm font-black ${
+                      className={`text-xs sm:text-sm font-black transition-colors ${
                         isActive ? "text-slate-950" : "text-[#fce3bc]"
                       }`}
                     >
@@ -1217,7 +1216,7 @@ export default function PublicBuildGuides({
                       alt={lane.label}
                       className={`w-6 h-6 sm:w-7 sm:h-7 object-contain transition-all ${
                         isActive
-                          ? "brightness-110 drop-shadow-[#000_0_1px_2px]"
+                          ? "brightness-0 opacity-90" /* Chuyển icon màu xám đen gần như text-slate-950 */
                           : "opacity-80 hover:opacity-100"
                       }`}
                     />
@@ -1345,7 +1344,7 @@ export default function PublicBuildGuides({
               <div className="relative w-full w-full ">
                 <input
                   type="text"
-                  placeholder="Tìm tướng trang bị..."
+                  placeholder="Tìm tướng..."
                   value={kcSearchTerm}
                   onChange={(e) => setKcSearchTerm(e.target.value)}
                   className="w-full bg-black/60 border border-[#bd9867]/60 rounded-none pl-8 pr-3 py-1.5 text-xs text-[#fce3bc] placeholder-slate-400 focus:outline-none focus:border-[#fce3bc]"
@@ -1377,14 +1376,14 @@ export default function PublicBuildGuides({
                 }
 
                 return (
-                  <div className="p-3 border border-[#bd9867]/60 bg-[#1d182b]/70 backdrop-blur-md relative overflow-hidden">
+                  <div className="pt-2 relative overflow-hidden">
                     <WatermarkOverlay text={watermarkText} />
-                    <div className="relative z-10 grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-3">
+                    <div className="relative z-10 grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-1">
                       {champsWithKcData.map((champ) => (
                         <button
                           key={champ.id}
                           onClick={() => setSelectedKhacCheChampId(champ.id)}
-                          className="flex flex-col items-center justify-center gap-1 cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
+                          className="flex flex-col items-center justify-center cursor-pointer transition-transform hover:scale-110 group focus:outline-none w-full"
                         >
                           <img
                             src={champ.url_anh_dai_dien || "/placeholder.jpg"}

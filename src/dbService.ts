@@ -169,8 +169,8 @@ export const dbService = {
       // Create local fallback structure only if database is completely empty and uninitialized
       profile = {
         id: "00000000-0000-0000-0000-000000000000",
-        ten_dang_nhap: "HoangPhanDIY",
-        ten_hien_thi: "Hoang Phan DIY",
+        ten_dang_nhap: "admin",
+        ten_hien_thi: "Admin",
         avatar_url: "/image/tuong/DauSi/Florentino.jpg",
         anh_bia_url:
           "/image/phu_hieu/thanh_khoi_nguyen/background_ThanhKhoiNguyen_1.jpg",
@@ -370,6 +370,25 @@ export const dbService = {
     } catch (err: any) {
       console.error("Google login error:", err);
       throw new Error("Đăng nhập Google thất bại!");
+    }
+  },
+
+  async changePassword(
+    newPassword: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.message || "Đã xảy ra lỗi khi đổi mật khẩu",
+      };
     }
   },
 
@@ -1273,6 +1292,10 @@ export const dbService = {
       noi_dung_ck: donation.noi_dung_ck || "",
       phuong_thuc: donation.phuong_thuc ?? 0,
       trang_thai: donation.trang_thai ?? 0,
+      nguoi_dung_id:
+        (donation as any).nguoi_dung_id ||
+        (donation as any).id_nguoi_dung ||
+        null,
     };
 
     const data = await handleQuery(

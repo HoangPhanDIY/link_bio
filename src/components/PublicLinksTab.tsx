@@ -23,15 +23,14 @@ export default function PublicLinksTab({
 
   return (
     <div className="space-y-3 animate-in fade-in duration-300">
-      {/* Section Title */}
-      <div className="flex items-center">
+      {/* <div className="flex items-center">
         <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
           LIÊN KẾT CÁ NHÂN
         </h2>
-      </div>
+      </div> */}
 
       {/* Public Links list */}
-      <div className="w-full grid grid-cols-1 gap-3">
+      <div className="w-full grid grid-cols-1 gap-3 pt-5">
         {links
           .filter((l) => l.enabled)
           .map((link) => {

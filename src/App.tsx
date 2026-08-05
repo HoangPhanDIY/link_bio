@@ -40,6 +40,7 @@ import PublicDonateTab from "./components/PublicDonateTab";
 import PublicPostsTab from "./components/PublicPostsTab";
 import PublicContactBoard from "./components/PublicContactBoard";
 import PublicBottomNav from "./components/PublicBottomNav";
+import UserProfileTab from "./components/UserProfileTab";
 
 const STORAGE_KEY_LINKS = "vivid_persona_links";
 const STORAGE_KEY_APPEARANCE = "vivid_persona_appearance";
@@ -136,6 +137,9 @@ export default function App() {
   const [isAdminMode, setIsAdminMode] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const [isUserInfoModalOpen, setIsUserInfoModalOpen] =
+    useState<boolean>(false);
 
   const [colorMode, setColorMode] = useState<"light" | "dark" | "system">(
     () => {
@@ -153,7 +157,7 @@ export default function App() {
   const [isAdminNavOpen, setIsAdminNavOpen] = useState<boolean>(false);
 
   const [publicTab, setPublicTab] = useState<
-    "links" | "guides" | "donate" | "posts"
+    "links" | "guides" | "donate" | "posts" | "profile"
   >("links");
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
@@ -1465,7 +1469,7 @@ export default function App() {
         >
           <div className="flex justify-between items-center w-full px-3 py-3 max-w-7xl mx-auto">
             <div
-              className="flex items-center gap-2.5 cursor-pointer select-none group"
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none group"
               onClick={() => setPublicTab("links")}
             >
               {/* Logo lấy từ thư mục public */}
@@ -1474,38 +1478,172 @@ export default function App() {
                 alt={appearance.name || "Logo"}
                 className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 group-hover:scale-105 transition-transform"
               />
+              <span className="text-[#bd9867]/60 text-sm font-light select-none">
+                |
+              </span>
+              <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase truncate">
+                {publicTab === "links" && "LIÊN KẾT CÁ NHÂN"}
+                {publicTab === "guides" && "HỌC VIỆN LIÊN QUÂN"}
+                {publicTab === "posts" && "BÀI VIẾT"}
+                {publicTab === "donate" && " ỦNG HỘ"}
+              </h2>
             </div>
 
             {/* Right side Profile & Login buttons */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5">
               {isAuthenticated && loggedInUser ? (
-                <div className="flex items-center gap-2 sm:gap-3">
-                  {/* User Avatar & Info */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
-                      <img
-                        src={
-                          loggedInUser.avatar_url ||
-                          "/image/tuong/DauSi/Florentino.jpg"
-                        }
-                        alt={loggedInUser.ten_dang_nhap}
-                        className="w-full h-full object-cover bg-slate-900"
-                        referrerPolicy="no-referrer"
+                <div className="flex items-center gap-2 sm:gap-2.5 relative">
+                  {/* Clickable User Avatar & Info triggering Dropdown */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="flex items-center gap-2 h-9 transition-all cursor-pointer group active:scale-95"
+                      title="Menu tài khoản cá nhân"
+                    >
+                      <div className="w-7 h-7 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
+                        <img
+                          src={
+                            loggedInUser.avatar_url ||
+                            "/image/tuong/DauSi/Ata.jpg"
+                          }
+                          alt={loggedInUser.ten_dang_nhap}
+                          className="w-full h-full object-cover bg-slate-900 group-hover:scale-105 transition-transform"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div className="hidden sm:block text-left pr-1">
+                        <p className="text-xs font-black leading-tight bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent truncate max-w-[100px]">
+                          {loggedInUser.ten_dang_nhap}
+                        </p>
+                        <p className="text-[10px] text-slate-300 font-bold">
+                          {loggedInUser.vai_tro === 1
+                            ? "Quản trị viên"
+                            : "Thành viên"}
+                        </p>
+                      </div>
+                      <LucideIcon
+                        name="ChevronDown"
+                        size={14}
+                        className={`text-[#fce3bc] transition-transform duration-200 ${
+                          isUserMenuOpen ? "rotate-180" : ""
+                        }`}
                       />
-                    </div>
-                    <div className="hidden sm:block text-left">
-                      <p className="text-xs font-black leading-tight bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
-                        {loggedInUser.ten_dang_nhap}
-                      </p>
-                      <p className="text-[10px] text-slate-300 font-bold">
-                        {loggedInUser.vai_tro === 1
-                          ? "Quản trị viên"
-                          : "Thành viên"}
-                      </p>
-                    </div>
+                    </button>
+
+                    {/* User Menu Dropdown Popup */}
+                    {isUserMenuOpen && (
+                      <>
+                        {/* Backdrop to dismiss menu */}
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        />
+
+                        <div className="absolute right-0 mt-2 w-56 bg-slate-950/95 border-2 border-[#bd9867] shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200 text-left">
+                          {/* Header section inside dropdown */}
+                          <div className="px-3 py-2 border-b border-[#bd9867]/30 flex items-center gap-2.5 bg-black/40">
+                            <div className="w-9 h-9 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
+                              <img
+                                src={
+                                  loggedInUser.avatar_url ||
+                                  "/image/tuong/DauSi/Ata.jpg"
+                                }
+                                alt={loggedInUser.ten_dang_nhap}
+                                className="w-full h-full object-cover bg-slate-900"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent truncate">
+                                {loggedInUser.ten_dang_nhap}
+                              </p>
+                              <span className="inline-block text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 bg-[#bd9867]/20 text-[#fce3bc] border border-[#bd9867]/40">
+                                {loggedInUser.vai_tro === 1
+                                  ? "Quản trị viên"
+                                  : "Thành viên"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Menu Options */}
+                          <div className="py-1">
+                            {/* Option 1: Xem thông tin cá nhân */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsUserMenuOpen(false);
+                                setPublicTab("profile");
+                              }}
+                              className="w-full text-left px-3 py-2 text-xs font-bold text-[#fce3bc] hover:bg-[#bd9867]/20 flex items-center gap-2.5 transition-colors cursor-pointer"
+                            >
+                              <LucideIcon
+                                name="User"
+                                size={15}
+                                className="text-[#bd9867]"
+                              />
+                              <span>Xem thông tin cá nhân</span>
+                            </button>
+
+                            {/* Option 2: Bảng quản trị (if Admin) */}
+                            {loggedInUser.vai_tro === 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsUserMenuOpen(false);
+                                  setIsAdminMode(true);
+                                  setActiveTab("links");
+                                  localStorage.setItem(
+                                    "vivid_persona_admin_mode",
+                                    "true",
+                                  );
+                                }}
+                                className="w-full text-left px-3 py-2 text-xs font-bold text-[#fce3bc] hover:bg-[#bd9867]/20 flex items-center gap-2.5 transition-colors cursor-pointer"
+                              >
+                                <LucideIcon
+                                  name="Settings"
+                                  size={15}
+                                  className="text-[#bd9867]"
+                                />
+                                <span>Bảng quản trị</span>
+                              </button>
+                            )}
+
+                            {/* Option 3: Đăng xuất */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsUserMenuOpen(false);
+                                setIsAuthenticated(false);
+                                setLoggedInUser(null);
+                                setIsAdminMode(false);
+                                localStorage.removeItem(
+                                  "vivid_persona_session",
+                                );
+                                localStorage.removeItem(
+                                  "vivid_persona_admin_mode",
+                                );
+                                showNotification(
+                                  "Đăng xuất thành công!",
+                                  "info",
+                                );
+                              }}
+                              className="w-full text-left px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/20 flex items-center gap-2.5 transition-colors border-t border-[#bd9867]/20 mt-1 cursor-pointer"
+                            >
+                              <LucideIcon
+                                name="LogOut"
+                                size={15}
+                                className="text-red-400"
+                              />
+                              <span>Đăng xuất</span>
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  {/* If Admin, show a button to go to Management Dashboard */}
+                  {/* Button Bảng Quản Trị (Quick Admin access) */}
                   {loggedInUser.vai_tro === 1 && (
                     <button
                       type="button"
@@ -1517,55 +1655,34 @@ export default function App() {
                           "true",
                         );
                       }}
-                      className="px-3.5 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer hover:brightness-110 shadow-md active:scale-95"
+                      className="h-9 px-3 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-900 text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:brightness-110 shadow-md active:scale-95 shrink-0"
                     >
                       <LucideIcon
                         name="Settings"
-                        size={13}
-                        className="text-white"
+                        size={14}
+                        className="text-slate-900"
                       />
                       <span className="hidden sm:inline">Bảng Quản Trị</span>
                     </button>
                   )}
-
-                  {/* Sign Out Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAuthenticated(false);
-                      setLoggedInUser(null);
-                      setIsAdminMode(false);
-                      localStorage.removeItem("vivid_persona_session");
-                      localStorage.removeItem("vivid_persona_admin_mode");
-                      showNotification("Đăng xuất thành công!", "info");
-                    }}
-                    className="px-3 py-1.5 border border-[#bd9867]/60 bg-white/10 hover:bg-[#bd9867] text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
-                    title="Đăng xuất"
-                  >
-                    <LucideIcon name="LogOut" size={13} />
-                    <span className="hidden sm:inline">Đăng xuất</span>
-                  </button>
                 </div>
               ) : (
+                /* Button Đăng nhập (Chỉ dùng ảnh icon w-9 h-9 khi chưa đăng nhập) */
                 <button
                   type="button"
                   onClick={() => setIsLoggingIn(true)}
-                  className="px-4 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer hover:brightness-110 shadow-md active:scale-95"
+                  className="flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95 shrink-0"
+                  title="Đăng nhập"
                 >
-                  <LucideIcon name="LogIn" size={13} className="text-white" />
-                  <span className="hidden sm:inline">Đăng nhập</span>
+                  <div className="w-9 h-9 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
+                    <img
+                      src="/image/Decor/icon-user.png"
+                      alt="Đăng nhập"
+                      className="w-full h-full object-cover bg-slate-900"
+                    />
+                  </div>
                 </button>
               )}
-
-              {/* Share Website Button with 'Link' icon */}
-              <button
-                type="button"
-                onClick={() => setIsShareModalOpen(true)}
-                className="px-2.5 py-1.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-white text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:brightness-110 shadow-md active:scale-95"
-                title="Chia sẻ trang web"
-              >
-                <LucideIcon name="Link" size={14} className="text-white" />
-              </button>
             </div>
           </div>
         </header>
@@ -1699,8 +1816,6 @@ export default function App() {
       {/* Desktop Left Sidebar - ONLY visible when in Admin panel on desktop */}
       {isAdminMode && (
         <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 text-slate-200 border-r border-[#bd9867]/60 z-30 shadow-2xl transition-all duration-300 bg-slate-950/90 backdrop-blur-md">
-
-
           {/* User Info */}
           {loggedInUser && (
             <div className="px-6 py-4 border-b border-[#bd9867]/40 bg-black/40 flex items-center gap-3">
@@ -1953,7 +2068,13 @@ export default function App() {
               isDarkPublic ? "text-slate-100" : "text-slate-800"
             }`}
           >
-            <PublicHeader appearance={appearance} isDarkPublic={isDarkPublic} />
+            {/* Render PublicHeader (Admin Info / Avatar / Banner / Bio) ONLY on 'Liên hệ' (links) tab */}
+            {publicTab === "links" && (
+              <PublicHeader
+                appearance={appearance}
+                isDarkPublic={isDarkPublic}
+              />
+            )}
 
             {/* 5. Main public content area */}
             <div className="w-full mt-2 space-y-3">
@@ -1996,6 +2117,7 @@ export default function App() {
                   }}
                   hasLoadedDonations={hasLoadedDonations}
                   onSuccessRedirect={() => setPublicTab("links")}
+                  loggedInUser={loggedInUser}
                 />
               )}
 
@@ -2011,8 +2133,46 @@ export default function App() {
                 />
               )}
 
-              {/* Contact message board instead of newsletter subscription */}
-              {appearance.newsletterEnabled && (
+              {publicTab === "profile" &&
+                (loggedInUser ? (
+                  <UserProfileTab
+                    user={loggedInUser}
+                    onUpdateUser={(updated) => {
+                      setLoggedInUser(updated);
+                      localStorage.setItem(
+                        "vivid_persona_session",
+                        JSON.stringify(updated),
+                      );
+                    }}
+                    showNotification={showNotification}
+                    setPublicTab={setPublicTab}
+                  />
+                ) : (
+                  <div className="p-8 text-center space-y-4 bg-slate-950/80 border border-[#bd9867]">
+                    <LucideIcon
+                      name="UserCheck"
+                      size={36}
+                      className="mx-auto text-[#bd9867]"
+                    />
+                    <h3 className="text-base font-black text-[#fce3bc]">
+                      VUI LÒNG ĐĂNG NHẬP
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Bạn cần đăng nhập để xem thông tin cá nhân và lịch sử ủng
+                      hộ.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setIsLoggingIn(true)}
+                      className="px-5 py-2.5 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 font-black text-xs uppercase tracking-wider shadow-md hover:brightness-110 cursor-pointer"
+                    >
+                      Đăng nhập ngay
+                    </button>
+                  </div>
+                ))}
+
+              {/* Contact message board on 'Liên hệ' tab */}
+              {publicTab === "links" && appearance.newsletterEnabled && (
                 <PublicContactBoard
                   appearance={appearance}
                   isDarkPublic={isDarkPublic}

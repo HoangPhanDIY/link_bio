@@ -27,12 +27,11 @@ export default function PublicPostsTab({
 }: PublicPostsTabProps) {
   return (
     <div className="space-y-3 animate-in fade-in duration-300 pb-8 text-left">
-      {/* Section Title */}
-      <div className="flex items-center">
+      {/* <div className="flex items-center">
         <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
           BÀI VIẾT
         </h2>
-      </div>
+      </div> */}
 
       <div className="space-y-3">
         {(() => {
@@ -213,7 +212,7 @@ export default function PublicPostsTab({
 
         {posts.length === 0 && (
           <div
-            className={`text-center font-sans text-xs border-slate-200 text-slate-400`}
+            className={`text-center font-sans text-xs border-slate-200 text-slate-400 pt-10`}
           >
             Chưa có bài viết nào.
           </div>

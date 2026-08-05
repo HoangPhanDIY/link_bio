@@ -151,7 +151,7 @@ export default function AdminLogin({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-[#1d182b]/95 w-full max-w-md border border-[#bd9867] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Banner header top */}
-        <div className="p-6 text-center border-b border-[#bd9867]/40 relative space-y-2 bg-slate-900/80">
+        <div className="p-6 pb-0 text-center relative space-y-2">
           <div className="mx-auto w-12 h-12 flex items-center justify-center shadow-md border border-[#bd9867] bg-[#bd9867]/20 text-[#fce3bc]">
             <LucideIcon
               name={mode === "login" ? "LogIn" : "UserPlus"}
@@ -160,15 +160,10 @@ export default function AdminLogin({
           </div>
 
           <div>
-            <h2 className="font-display text-lg font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
+            <h2 className="font-display text-lg uppercase font-black bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent">
               {mode === "login" && "Đăng nhập"}
               {mode === "register" && "Tạo tài khoản mới"}
             </h2>
-            <p className="text-xs text-slate-300 font-medium">
-              {mode === "login" && "Sử dụng tài khoản cá nhân để kết nối"}
-              {mode === "register" &&
-                "Đăng ký thành viên để khám phá giáo án và tiện ích"}
-            </p>
           </div>
 
           <button
@@ -241,14 +236,14 @@ export default function AdminLogin({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] py-3 font-extrabold transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
+                className="w-full text-slate-900 uppercase bg-gradient-to-t from-[#bd9867] to-[#fce3bc] py-3 font-extrabold transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
               >
                 {isSubmitting ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
                 ) : (
                   <LucideIcon name="LogIn" size={16} />
                 )}
-                <span>Đăng nhập ngay</span>
+                <span>Đăng nhập</span>
               </button>
 
               <div className="text-center pt-2">
@@ -274,7 +269,7 @@ export default function AdminLogin({
             <form onSubmit={handleRegisterDirectly} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-[#fce3bc] uppercase tracking-wider font-sans">
-                  Tên đăng nhập (Username)
+                  Tên đăng nhập
                 </label>
                 <div className="relative">
                   <LucideIcon
@@ -363,10 +358,10 @@ export default function AdminLogin({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full text-white bg-gradient-to-t from-[#bd9867] to-[#fce3bc] py-3 font-extrabold transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
+                className="w-full text-slate-900 uppercase bg-gradient-to-t from-[#bd9867] to-[#fce3bc] py-3 font-extrabold transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-md text-sm cursor-pointer mt-2"
               >
                 {isSubmitting ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
                 ) : (
                   <LucideIcon name="UserPlus" size={16} />
                 )}
