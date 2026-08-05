@@ -277,3 +277,25 @@ export interface DBTopTier {
 
   tuong?: DBChampion;
 }
+
+export interface DBNotification {
+  id: string;
+  tieu_de: string;
+  noi_dung: string;
+  loai_thong_bao: "chao_mung" | "hinh_anh" | "qua_tang" | "chung";
+  url_hinh_anh?: string | null;
+  ma_qua_tang?: string | null;
+  nguoi_gui_id?: string | null;
+  nguoi_gui_ten?: string | null;
+  created_at?: string;
+  da_doc?: number; // 0 = Chưa đọc, 1 = Đã đọc
+  da_doc_luc?: string | null;
+  total_readers_count?: number; // For admin view
+}
+
+export interface DBNotificationRead {
+  id?: string;
+  thong_bao_id: string;
+  user_id: string;
+  da_doc_luc?: string;
+}

@@ -259,11 +259,21 @@ export default function PublicBuildGuides({
   >("trangbi");
   const [expandedChampId, setExpandedChampId] = useState<string | null>(null);
 
-  // Loaded data state for Khac Che and Top Tier
-  const [allChampions, setAllChampions] = useState<DBChampion[]>(champions);
-  const [allItems, setAllItems] = useState<DBItem[]>(items);
-  const [khacCheList, setKhacCheList] = useState<DBKhacChe[]>([]);
-  const [topTierList, setTopTierList] = useState<DBTopTier[]>([]);
+  // Loaded data state for Khac Che and Top Tier (Instant synchronous initialization)
+  const [allChampions, setAllChampions] = useState<DBChampion[]>(() =>
+    champions && champions.length > 0
+      ? champions
+      : dbService.getChampionsSync(),
+  );
+  const [allItems, setAllItems] = useState<DBItem[]>(() =>
+    items && items.length > 0 ? items : dbService.getItemsSync(),
+  );
+  const [khacCheList, setKhacCheList] = useState<DBKhacChe[]>(() =>
+    dbService.getKhacCheListSync(),
+  );
+  const [topTierList, setTopTierList] = useState<DBTopTier[]>(() =>
+    dbService.getTopTierListSync(),
+  );
 
   // Selected Champion States for Tabs
   const [selectedTrangBiChampId, setSelectedTrangBiChampId] = useState<
@@ -364,11 +374,16 @@ export default function PublicBuildGuides({
 
   // Load Khac Che and Top Tier lists
   useEffect(() => {
+    const kcSync = dbService.getKhacCheListSync();
+    if (kcSync.length > 0 && khacCheList.length === 0) setKhacCheList(kcSync);
+    const ttSync = dbService.getTopTierListSync();
+    if (ttSync.length > 0 && topTierList.length === 0) setTopTierList(ttSync);
+
     dbService.getKhacCheList().then((res) => {
-      if (res) setKhacCheList(res);
+      if (res && res.length > 0) setKhacCheList(res);
     });
     dbService.getTopTierList().then((res) => {
-      if (res) setTopTierList(res);
+      if (res && res.length > 0) setTopTierList(res);
     });
   }, []);
 
@@ -589,13 +604,12 @@ export default function PublicBuildGuides({
 
                 return (
                   <div
-                    className="p-3 border transition-all shadow-sm text-[#fce3bc] backdrop-blur-md space-y-3 relative overflow-hidden"
+                    className="transition-all text-[#fce3bc] space-y-3 relative overflow-hidden"
                     style={{
                       borderColor: "#bd9867",
-                      background: "rgba(29, 24, 43, 0.7)",
                     }}
                   >
-                    <WatermarkOverlay text={watermarkText} />
+                    {/* <WatermarkOverlay text={watermarkText} /> */}
                     {/* Champion Header */}
                     <div className="flex sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#bd9867]">
                       <div className="flex items-center gap-3">
@@ -643,7 +657,7 @@ export default function PublicBuildGuides({
                               onLikeGuide(currentGuide.id);
                             }
                           }}
-                          className="flex items-center gap-1 px-2.5 py-1 hover:bg-red-100/10 text-red-500 transition-all text-[15px] font-bold cursor-pointer active:scale-95 border border-red-500/30"
+                          className="flex items-center gap-1 px-2.5 py-1 text-red-500 transition-all text-[15px] font-bold cursor-pointer active:scale-95"
                           title="Thích trang bị này"
                         >
                           <span>{currentGuide.luot_xem || 0}</span>
@@ -662,7 +676,7 @@ export default function PublicBuildGuides({
                         <span className="block text-[12px] font-black uppercase tracking-wider mb-1 text-white">
                           Chọn lối lên đồ:
                         </span>
-                        <div className="flex flex-wrap border border-[#bd9867] bg-black/40">
+                        <div className="flex flex-wrap gap-2 shadow-inner">
                           {championGuides.map((g, idx) => (
                             <button
                               key={g.id}
@@ -672,10 +686,12 @@ export default function PublicBuildGuides({
                                   [selectedTrangBiChampId]: idx,
                                 }))
                               }
-                              className={`px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                              className={`px-3 py-1.5 text-xs transition-all duration-150 cursor-pointer shadow-sm active:scale-95 shrink-0 ${
                                 safeIndex === idx
-                                  ? "bg-[#bd9867] text-white shadow-sm border border-[#bd9867]"
-                                  : "text-[#bd9867] hover:bg-[#bd9867]/10 hover:text-[#fce3bc]"
+                                  ? // Trạng thái ACTIVE: BG Gradient Vàng, Text Tối, Font Đậm
+                                    "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-900 font-extrabold border border-[#fce3bc]"
+                                  : // Trạng thái MẶC ĐỊNH: Chỉ có viền vàng mỏng, Text Vàng sáng
+                                    "border border-[#bd9867]/60 text-[#fce3bc] font-bold hover:border-[#bd9867] hover:bg-[#bd9867]/10"
                               }`}
                             >
                               {g.tieu_de_giao_an}
@@ -687,7 +703,7 @@ export default function PublicBuildGuides({
 
                     {/* Items & Spell */}
                     <div>
-                      <span className="block text-[12px] font-bold uppercase tracking-wider text-white mb-1.5">
+                      <span className="block text-[14px] font-bold uppercase tracking-wider text-white mb-1.5">
                         Trang bị & Phép bổ trợ:
                       </span>
 
@@ -705,9 +721,9 @@ export default function PublicBuildGuides({
                                 alt={item.ten_trang_bi}
                                 referrerPolicy="no-referrer"
                               />
-                              <span className="absolute bottom-0 right-0 bg-black/80 text-white text-[8px] font-bold px-1 rounded-tl-md">
+                              {/* <span className="absolute bottom-0 right-0 bg-black/80 text-white text-[8px] font-bold px-1 rounded-tl-md">
                                 {index + 1}
-                              </span>
+                              </span> */}
                             </div>
                             <span className="text-[8px] sm:text-[9.5px] font-bold text-center truncate w-full text-slate-400 group-hover:text-slate-200 transition-colors">
                               {item.ten_trang_bi}
@@ -721,7 +737,7 @@ export default function PublicBuildGuides({
                             className="flex flex-col items-center gap-1 group relative cursor-help"
                             title={currentGuide.phu_tro.ten_phu_tro}
                           >
-                            <div className="relative aspect-square w-full rounded overflow-hidden transition-all hover:scale-105 hover:shadow-md border border-indigo-500/50">
+                            <div className="relative aspect-square w-full overflow-hidden transition-all">
                               <img
                                 src={currentGuide.phu_tro.url_hinh_anh}
                                 className="w-full h-full object-cover"
@@ -737,81 +753,117 @@ export default function PublicBuildGuides({
                       </div>
                     </div>
 
-                    {/* Expandable Panel (Phù hiệu & Bảng Ngọc) */}
-                    {isExpanded && (
-                      <div className="mt-2 pt-2 space-y-4 animate-in slide-in-from-top duration-200">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Badge Column (Phù hiệu) */}
-                          {currentGuide.phu_hieu_list &&
-                            currentGuide.phu_hieu_list.length > 0 &&
-                            (() => {
-                              const mainFinalBadge =
-                                mainBadgesList[mainBadgesList.length - 1];
-                              const mainBranchType =
-                                getBadgeBranch(mainFinalBadge);
-                              const mainColors =
-                                branchColors[mainBranchType] ||
-                                branchColors.KHAC;
+                    {/* Full Details Panel (Phù hiệu & Bảng Ngọc) */}
+                    <div className="mt-2 pt-2 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Badge Column (Phù hiệu) */}
+                        {currentGuide.phu_hieu_list &&
+                          currentGuide.phu_hieu_list.length > 0 &&
+                          (() => {
+                            const mainFinalBadge =
+                              mainBadgesList[mainBadgesList.length - 1];
+                            const mainBranchType =
+                              getBadgeBranch(mainFinalBadge);
+                            const mainColors =
+                              branchColors[mainBranchType] || branchColors.KHAC;
 
-                              const sub1FinalBadge =
-                                sub1BadgesList[sub1BadgesList.length - 1];
-                              const sub1BranchType =
-                                getBadgeBranch(sub1FinalBadge);
-                              const sub1Colors =
-                                branchColors[sub1BranchType] ||
-                                branchColors.KHAC;
+                            const sub1FinalBadge =
+                              sub1BadgesList[sub1BadgesList.length - 1];
+                            const sub1BranchType =
+                              getBadgeBranch(sub1FinalBadge);
+                            const sub1Colors =
+                              branchColors[sub1BranchType] || branchColors.KHAC;
 
-                              const sub2FinalBadge =
-                                sub2BadgesList[sub2BadgesList.length - 1];
-                              const sub2BranchType =
-                                getBadgeBranch(sub2FinalBadge);
-                              const sub2Colors =
-                                branchColors[sub2BranchType] ||
-                                branchColors.KHAC;
+                            const sub2FinalBadge =
+                              sub2BadgesList[sub2BadgesList.length - 1];
+                            const sub2BranchType =
+                              getBadgeBranch(sub2FinalBadge);
+                            const sub2Colors =
+                              branchColors[sub2BranchType] || branchColors.KHAC;
 
-                              return (
-                                <div className="bg-slate-950 p-3 rounded-md border border-slate-800 shadow-xl flex flex-col gap-3 text-left">
-                                  <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-                                    <h4 className="text-[12px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
-                                      <LucideIcon name="Award" size={14} />
-                                      PHÙ HIỆU THAM KHẢO
-                                    </h4>
-                                  </div>
+                            return (
+                              <div className="flex flex-col gap-3 text-left">
+                                <div className="flex justify-between items-center">
+                                  <h4 className="text-[14px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                                    PHÙ HIỆU THAM KHẢO
+                                  </h4>
+                                </div>
 
-                                  <div>
-                                    {/* Main Branch */}
-                                    {mainBadgesList.length > 0 && (
-                                      <div className="flex py-2 items-center gap-8 md:gap-11 overflow-x-auto scrollbar-none">
-                                        {mainBadgesList.map((badge, idx) => {
-                                          const isRoot = idx === 0;
-                                          const isTier3 = idx === 3;
-                                          const isLarge = isRoot || isTier3;
+                                <div>
+                                  {/* Main Branch */}
+                                  {mainBadgesList.length > 0 && (
+                                    <div className="grid grid-cols-4 items-center justify-items-center relative pb-5">
+                                      {mainBadgesList.map((badge, idx) => {
+                                        const isRoot = idx === 0;
+                                        const isTier3 = idx === 3;
 
-                                          const containerSize = isLarge
-                                            ? "w-11 h-11 md:w-13 md:h-13"
-                                            : "w-8 h-8 md:w-9.5 md:h-9.5";
-                                          const imageSize = isLarge
-                                            ? "w-9 h-9 md:w-11 md:h-11"
-                                            : "w-6 h-6 md:w-7.5 md:h-7.5";
+                                        const displayName = isRoot
+                                          ? branchNameMap[
+                                              getBadgeBranch(badge)
+                                            ] || badge.ten_phu_hieu
+                                          : badge.ten_phu_hieu;
+                                        const displayImg = isRoot
+                                          ? branchImageMap[
+                                              getBadgeBranch(badge)
+                                            ] || badge.url_hinh_anh
+                                          : badge.url_hinh_anh;
 
-                                          const displayName = isRoot
-                                            ? branchNameMap[
-                                                getBadgeBranch(badge)
-                                              ] || badge.ten_phu_hieu
-                                            : badge.ten_phu_hieu;
-                                          const displayImg = isRoot
-                                            ? branchImageMap[
-                                                getBadgeBranch(badge)
-                                              ] || badge.url_hinh_anh
-                                            : badge.url_hinh_anh;
-
-                                          return (
-                                            <div
-                                              key={`${badge.id || "main"}-${idx}`}
-                                              className="relative flex items-center shrink-0"
-                                            >
+                                        return (
+                                          <div
+                                            key={`${badge.id || "main"}-${idx}`}
+                                            className="relative flex items-center justify-center w-full shrink-0"
+                                          >
+                                            {isTier3 ? (
+                                              /* Specialized Tier III Emblem: smaller outer circle + 45 deg square overlay */
                                               <div
-                                                className={`relative z-10 ${containerSize} rounded-full bg-[#050508] border flex items-center justify-center transition-all hover:scale-105 group cursor-help`}
+                                                className="relative z-10 w-15 h-15 flex items-center justify-center transition-all hover:scale-105 group cursor-help shrink-0"
+                                                title={displayName}
+                                              >
+                                                {/* Outer circle */}
+                                                <div
+                                                  className="absolute inset-0 rounded-full bg-[#050508] border transition-all"
+                                                  style={{
+                                                    borderColor:
+                                                      mainColors.main,
+                                                    boxShadow: `0 0 12px ${mainColors.glow}, inset 0 0 6px ${mainColors.glow}`,
+                                                  }}
+                                                />
+                                                {/* Rotated 45-degree square overlay */}
+                                                <div
+                                                  className="absolute w-13 h-13 border-1 rotate-45 transition-all pointer-events-none bg-black"
+                                                  style={{
+                                                    borderColor:
+                                                      mainColors.main,
+                                                    boxShadow: `0 0 10px ${mainColors.glow}`,
+                                                  }}
+                                                />
+                                                {/* Emblem Image */}
+                                                <img
+                                                  src={displayImg}
+                                                  className="w-18 h-18 object-cover z-10 relative"
+                                                  alt=""
+                                                  referrerPolicy="no-referrer"
+                                                />
+                                                {/* Roman Numeral III tag with colored glowing border */}
+                                                <span
+                                                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#0a0a0f] border text-[8px] md:text-[9px] font-black text-slate-200 px-1 py-0.5 rounded-full select-none shadow"
+                                                  style={{
+                                                    borderColor:
+                                                      mainColors.main,
+                                                    boxShadow: `0 0 8px ${mainColors.main}`,
+                                                  }}
+                                                >
+                                                  III
+                                                </span>
+                                              </div>
+                                            ) : (
+                                              /* Standard Emblem for Root, Tier 1, and Tier 2 */
+                                              <div
+                                                className={`relative z-10 ${
+                                                  isRoot
+                                                    ? "w-15 h-15"
+                                                    : "w-11 h-11"
+                                                } rounded-full bg-[#050508] border flex items-center justify-center transition-all hover:scale-105 group cursor-help shrink-0`}
                                                 style={{
                                                   borderColor: mainColors.main,
                                                   boxShadow: isRoot
@@ -822,307 +874,301 @@ export default function PublicBuildGuides({
                                               >
                                                 <img
                                                   src={displayImg}
-                                                  className={`${imageSize} object-cover rounded-full`}
+                                                  className={`${
+                                                    isRoot
+                                                      ? "w-15 h-15"
+                                                      : "w-10 h-10"
+                                                  } object-cover rounded-full`}
                                                   alt=""
                                                   referrerPolicy="no-referrer"
                                                 />
                                                 {!isRoot && (
-                                                  <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#0a0a0f] border border-slate-800 text-[7.5px] md:text-[8.5px] font-black text-slate-300 px-1.5 py-0.5 rounded-full select-none shadow">
+                                                  <span
+                                                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#0a0a0f] border text-[8px] md:text-[9px] font-black text-slate-200 px-1 py-0.2 rounded-full select-none shadow"
+                                                    style={{
+                                                      borderColor:
+                                                        mainColors.main,
+                                                      boxShadow: `0 0 8px ${mainColors.main}`,
+                                                    }}
+                                                  >
                                                     {getRomanNumeral(idx - 1)}
                                                   </span>
                                                 )}
                                               </div>
-                                              {idx <
-                                                mainBadgesList.length - 1 && (
-                                                <div
-                                                  className="absolute left-full h-[3px] z-0 pointer-events-none w-8 md:w-11"
-                                                  style={{
-                                                    backgroundColor:
-                                                      mainColors.main,
-                                                    boxShadow: `0 0 10px ${mainColors.main}`,
-                                                  }}
-                                                />
-                                              )}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
+                                            )}
 
-                                    {/* Sub Branches Row */}
-                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/60">
-                                      {/* Sub Branch 1 */}
-                                      {sub1BadgesList.length > 0 && (
-                                        <div className="py-1">
-                                          <div className="flex items-center gap-8 md:gap-10 py-2 overflow-x-auto scrollbar-none">
-                                            {sub1BadgesList.map(
-                                              (badge, idx) => {
-                                                const isRoot = idx === 0;
-                                                const isLarge = isRoot;
-
-                                                const containerSize = isLarge
-                                                  ? "w-11 h-11 md:w-13 md:h-13"
-                                                  : "w-8 h-8 md:w-9.5 md:h-9.5";
-                                                const imageSize = isLarge
-                                                  ? "w-9 h-9 md:w-11 md:h-11"
-                                                  : "w-6 h-6 md:w-7.5 md:h-7.5";
-
-                                                const displayName = isRoot
-                                                  ? branchNameMap[
-                                                      getBadgeBranch(badge)
-                                                    ] || badge.ten_phu_hieu
-                                                  : badge.ten_phu_hieu;
-                                                const displayImg = isRoot
-                                                  ? branchImageMap[
-                                                      getBadgeBranch(badge)
-                                                    ] || badge.url_hinh_anh
-                                                  : badge.url_hinh_anh;
-
-                                                return (
-                                                  <div
-                                                    key={`${badge.id || "sub1"}-${idx}`}
-                                                    className="relative flex items-center shrink-0"
-                                                  >
-                                                    <div
-                                                      className={`relative z-10 ${containerSize} rounded-full bg-[#050508] border flex items-center justify-center transition-all hover:scale-105 group cursor-help`}
-                                                      style={{
-                                                        borderColor:
-                                                          sub1Colors.main,
-                                                        boxShadow: isRoot
-                                                          ? `0 0 12px ${sub1Colors.glow}, inset 0 0 6px ${sub1Colors.glow}`
-                                                          : `0 0 8px ${sub1Colors.glow}`,
-                                                      }}
-                                                      title={displayName}
-                                                    >
-                                                      <img
-                                                        src={displayImg}
-                                                        className={`${imageSize} object-cover rounded-full`}
-                                                        alt=""
-                                                        referrerPolicy="no-referrer"
-                                                      />
-                                                      {!isRoot && (
-                                                        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#0a0a0f] border border-slate-800 text-[7px] font-black text-slate-300 px-1 py-0.5 rounded-full select-none shadow">
-                                                          I
-                                                        </span>
-                                                      )}
-                                                    </div>
-                                                    {idx <
-                                                      sub1BadgesList.length -
-                                                        1 && (
-                                                      <div
-                                                        className="absolute left-full h-[3px] z-0 pointer-events-none w-8 md:w-10"
-                                                        style={{
-                                                          backgroundColor:
-                                                            sub1Colors.main,
-                                                          boxShadow: `0 0 8px ${sub1Colors.main}`,
-                                                        }}
-                                                      />
-                                                    )}
-                                                  </div>
-                                                );
-                                              },
+                                            {idx <
+                                              mainBadgesList.length - 1 && (
+                                              <div
+                                                className="absolute left-1/2 w-full h-[3px] top-1/2 -translate-y-1/2 z-0 pointer-events-none"
+                                                style={{
+                                                  backgroundColor:
+                                                    mainColors.main,
+                                                  boxShadow: `0 0 10px ${mainColors.main}`,
+                                                }}
+                                              />
                                             )}
                                           </div>
-                                        </div>
-                                      )}
-
-                                      {/* Sub Branch 2 */}
-                                      {sub2BadgesList.length > 0 && (
-                                        <div className="py-1">
-                                          <div className="flex items-center gap-8 md:gap-10 py-2 overflow-x-auto scrollbar-none">
-                                            {sub2BadgesList.map(
-                                              (badge, idx) => {
-                                                const isRoot = idx === 0;
-                                                const isLarge = isRoot;
-
-                                                const containerSize = isLarge
-                                                  ? "w-11 h-11 md:w-13 md:h-13"
-                                                  : "w-8 h-8 md:w-9.5 md:h-9.5";
-                                                const imageSize = isLarge
-                                                  ? "w-9 h-9 md:w-11 md:h-11"
-                                                  : "w-6 h-6 md:w-7.5 md:h-7.5";
-
-                                                const displayName = isRoot
-                                                  ? branchNameMap[
-                                                      getBadgeBranch(badge)
-                                                    ] || badge.ten_phu_hieu
-                                                  : badge.ten_phu_hieu;
-                                                const displayImg = isRoot
-                                                  ? branchImageMap[
-                                                      getBadgeBranch(badge)
-                                                    ] || badge.url_hinh_anh
-                                                  : badge.url_hinh_anh;
-
-                                                return (
-                                                  <div
-                                                    key={`${badge.id || "sub2"}-${idx}`}
-                                                    className="relative flex items-center shrink-0"
-                                                  >
-                                                    <div
-                                                      className={`relative z-10 ${containerSize} rounded-full bg-[#050508] border flex items-center justify-center transition-all hover:scale-105 group cursor-help`}
-                                                      style={{
-                                                        borderColor:
-                                                          sub2Colors.main,
-                                                        boxShadow: isRoot
-                                                          ? `0 0 12px ${sub2Colors.glow}, inset 0 0 6px ${sub2Colors.glow}`
-                                                          : `0 0 8px ${sub2Colors.glow}`,
-                                                      }}
-                                                      title={displayName}
-                                                    >
-                                                      <img
-                                                        src={displayImg}
-                                                        className={`${imageSize} object-cover rounded-full`}
-                                                        alt=""
-                                                        referrerPolicy="no-referrer"
-                                                      />
-                                                      {!isRoot && (
-                                                        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#0a0a0f] border border-slate-800 text-[7px] font-black text-slate-300 px-1 py-0.5 rounded-full select-none shadow">
-                                                          II
-                                                        </span>
-                                                      )}
-                                                    </div>
-                                                    {idx <
-                                                      sub2BadgesList.length -
-                                                        1 && (
-                                                      <div
-                                                        className="absolute left-full h-[3px] z-0 pointer-events-none w-8 md:w-10"
-                                                        style={{
-                                                          backgroundColor:
-                                                            sub2Colors.main,
-                                                          boxShadow: `0 0 8px ${sub2Colors.main}`,
-                                                        }}
-                                                      />
-                                                    )}
-                                                  </div>
-                                                );
-                                              },
-                                            )}
-                                          </div>
-                                        </div>
-                                      )}
+                                        );
+                                      })}
                                     </div>
+                                  )}
+
+                                  {/* Sub Branches Row */}
+                                  <div className="grid grid-cols-4 items-center justify-items-center py-2 relative pt-2">
+                                    {/* Sub Branch 1 */}
+                                    {sub1BadgesList.map((badge, idx) => {
+                                      const isRoot = idx === 0;
+                                      const isLarge = isRoot;
+
+                                      const containerSize = isLarge
+                                        ? "w-15 h-15"
+                                        : "w-11 h-11";
+                                      const imageSize = isLarge
+                                        ? "w-15 h-15"
+                                        : "w-10 h-10";
+
+                                      const displayName = isRoot
+                                        ? branchNameMap[
+                                            getBadgeBranch(badge)
+                                          ] || badge.ten_phu_hieu
+                                        : badge.ten_phu_hieu;
+                                      const displayImg = isRoot
+                                        ? branchImageMap[
+                                            getBadgeBranch(badge)
+                                          ] || badge.url_hinh_anh
+                                        : badge.url_hinh_anh;
+
+                                      return (
+                                        <div
+                                          key={`${badge.id || "sub1"}-${idx}`}
+                                          className="relative flex items-center justify-center w-full shrink-0"
+                                        >
+                                          <div
+                                            className={`relative z-10 ${containerSize} rounded-full bg-[#050508] border flex items-center justify-center transition-all hover:scale-105 group cursor-help`}
+                                            style={{
+                                              borderColor: sub1Colors.main,
+                                              boxShadow: isRoot
+                                                ? `0 0 12px ${sub1Colors.glow}, inset 0 0 6px ${sub1Colors.glow}`
+                                                : `0 0 8px ${sub1Colors.glow}`,
+                                            }}
+                                            title={displayName}
+                                          >
+                                            <img
+                                              src={displayImg}
+                                              className={`${imageSize} object-cover rounded-full`}
+                                              alt=""
+                                              referrerPolicy="no-referrer"
+                                            />
+                                            {!isRoot && (
+                                              <span
+                                                className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#0a0a0f] border text-[8px] md:text-[9px] font-black text-slate-200 px-1 py-0.2 rounded-full select-none shadow"
+                                                style={{
+                                                  borderColor: sub1Colors.main,
+                                                  boxShadow: `0 0 8px ${sub1Colors.main}`,
+                                                }}
+                                              >
+                                                I
+                                              </span>
+                                            )}
+                                          </div>
+                                          {idx < sub1BadgesList.length - 1 && (
+                                            <div
+                                              className="absolute left-1/2 w-full h-[3px] top-1/2 -translate-y-1/2 z-0 pointer-events-none"
+                                              style={{
+                                                backgroundColor:
+                                                  sub1Colors.main,
+                                                boxShadow: `0 0 8px ${sub1Colors.main}`,
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+
+                                    {/* Fill empty slots if sub1 has fewer than 2 items */}
+                                    {Array.from({
+                                      length: Math.max(
+                                        0,
+                                        2 - sub1BadgesList.length,
+                                      ),
+                                    }).map((_, i) => (
+                                      <div
+                                        key={`empty-sub1-${i}`}
+                                        className="w-full"
+                                      />
+                                    ))}
+
+                                    {/* Sub Branch 2 */}
+                                    {sub2BadgesList.map((badge, idx) => {
+                                      const isRoot = idx === 0;
+                                      const isLarge = isRoot;
+
+                                      const containerSize = isLarge
+                                        ? "w-15 h-15"
+                                        : "w-11 h-11";
+                                      const imageSize = isLarge
+                                        ? "w-15 h-15"
+                                        : "w-10 h-10";
+
+                                      const displayName = isRoot
+                                        ? branchNameMap[
+                                            getBadgeBranch(badge)
+                                          ] || badge.ten_phu_hieu
+                                        : badge.ten_phu_hieu;
+                                      const displayImg = isRoot
+                                        ? branchImageMap[
+                                            getBadgeBranch(badge)
+                                          ] || badge.url_hinh_anh
+                                        : badge.url_hinh_anh;
+
+                                      return (
+                                        <div
+                                          key={`${badge.id || "sub2"}-${idx}`}
+                                          className="relative flex items-center justify-center w-full shrink-0"
+                                        >
+                                          <div
+                                            className={`relative z-10 ${containerSize} rounded-full bg-[#050508] border flex items-center justify-center transition-all hover:scale-105 group cursor-help`}
+                                            style={{
+                                              borderColor: sub2Colors.main,
+                                              boxShadow: isRoot
+                                                ? `0 0 12px ${sub2Colors.glow}, inset 0 0 6px ${sub2Colors.glow}`
+                                                : `0 0 8px ${sub2Colors.glow}`,
+                                            }}
+                                            title={displayName}
+                                          >
+                                            <img
+                                              src={displayImg}
+                                              className={`${imageSize} object-cover rounded-full`}
+                                              alt=""
+                                              referrerPolicy="no-referrer"
+                                            />
+                                            {!isRoot && (
+                                              <span
+                                                className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#0a0a0f] border text-[8px] md:text-[9px] font-black text-slate-200 px-1 py-0.2 rounded-full select-none shadow"
+                                                style={{
+                                                  borderColor: sub2Colors.main,
+                                                  boxShadow: `0 0 8px ${sub2Colors.main}`,
+                                                }}
+                                              >
+                                                II
+                                              </span>
+                                            )}
+                                          </div>
+                                          {idx < sub2BadgesList.length - 1 && (
+                                            <div
+                                              className="absolute left-1/2 w-full h-[3px] top-1/2 -translate-y-1/2 z-0 pointer-events-none"
+                                              style={{
+                                                backgroundColor:
+                                                  sub2Colors.main,
+                                                boxShadow: `0 0 8px ${sub2Colors.main}`,
+                                              }}
+                                            />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 </div>
-                              );
-                            })()}
+                              </div>
+                            );
+                          })()}
 
-                          {/* Arcana Column (Bảng ngọc) */}
-                          <div className="bg-slate-950 p-4 rounded-md border border-slate-800 shadow-xl flex flex-col gap-3 text-left">
-                            <h4 className="text-[12px] font-black uppercase tracking-wider text-white flex items-center gap-1.5 text-left">
-                              <LucideIcon name="Zap" size={15} />
-                              BẢNG NGỌC THAM KHẢO
-                            </h4>
+                        {/* Arcana Column (Bảng ngọc) */}
+                        <div className="flex flex-col gap-3 text-left">
+                          <h4 className="text-[14px] font-black uppercase tracking-wider text-white flex items-center gap-1.5 text-left">
+                            BẢNG NGỌC THAM KHẢO
+                          </h4>
 
-                            {(() => {
-                              const redLines = (currentGuide.ngoc_do || "N/A")
-                                .split("\n")
-                                .map((s) => s.trim())
-                                .filter(Boolean);
-                              const purpleLines = (
-                                currentGuide.ngoc_tim || "N/A"
-                              )
-                                .split("\n")
-                                .map((s) => s.trim())
-                                .filter(Boolean);
-                              const greenLines = (
-                                currentGuide.ngoc_xanh || "N/A"
-                              )
-                                .split("\n")
-                                .map((s) => s.trim())
-                                .filter(Boolean);
+                          {(() => {
+                            const redLines = (currentGuide.ngoc_do || "N/A")
+                              .split("\n")
+                              .map((s) => s.trim())
+                              .filter(Boolean);
+                            const purpleLines = (currentGuide.ngoc_tim || "N/A")
+                              .split("\n")
+                              .map((s) => s.trim())
+                              .filter(Boolean);
+                            const greenLines = (currentGuide.ngoc_xanh || "N/A")
+                              .split("\n")
+                              .map((s) => s.trim())
+                              .filter(Boolean);
 
-                              return (
-                                <div className="flex flex-col sm:flex-row gap-5 items-center">
-                                  <div className="hidden sm:flex w-1/2 max-w-[100px] sm:max-w-[120px] justify-center items-center shrink-0 sm:border-r border-slate-800 sm:pr-4">
+                            return (
+                              <div className="flex flex-row gap-3 sm:gap-5 items-center">
+                                {/* Thẻ chứa ảnh Bảng Ngọc: Bỏ flex-col & w-1/2, đổi sang flex-row chuẩn */}
+                                <div className="w-40 flex justify-center items-center shrink-0 border-r border-slate-800/80 pr-3 sm:pr-4">
+                                  <img
+                                    src="/image/ngoc/bang_ngoc.png"
+                                    className="w-40 h-auto object-contain hover:scale-105 transition-all duration-250"
+                                    alt="Bảng Ngọc"
+                                  />
+                                </div>
+
+                                {/* Khung thông tin các dòng Ngọc */}
+                                <div className="flex-1 w-full space-y-2 min-w-0">
+                                  {/* Red row */}
+                                  <div className="flex items-center gap-2.5 sm:gap-3">
                                     <img
-                                      src="/image/ngoc/bang_ngoc.png"
-                                      className="w-full h-auto object-contain hover:scale-105 transition-all duration-250"
-                                      alt="Bảng Ngọc"
+                                      src="/image/ngoc/do.png"
+                                      className="w-10 h-10 object-contain shrink-0"
+                                      alt="Ngọc Đỏ"
                                     />
+                                    <div className="flex flex-col justify-center text-left min-w-0">
+                                      {redLines.map((line, lIdx) => (
+                                        <span
+                                          key={lIdx}
+                                          className="text-[11px] sm:text-[11.5px] font-black text-rose-500 block leading-tight truncate"
+                                        >
+                                          {line}
+                                        </span>
+                                      ))}
+                                    </div>
                                   </div>
 
-                                  <div className="flex-1 w-full space-y-2">
-                                    {/* Red row */}
-                                    <div className="flex items-center gap-3">
-                                      <img
-                                        src="/image/ngoc/do.png"
-                                        className="w-8 h-8 object-contain shrink-0"
-                                        alt="Ngọc Đỏ"
-                                      />
-                                      <div className="flex flex-col justify-center text-left">
-                                        {redLines.map((line, lIdx) => (
-                                          <span
-                                            key={lIdx}
-                                            className="text-[11.5px] font-black text-rose-500 block leading-tight"
-                                          >
-                                            {line}
-                                          </span>
-                                        ))}
-                                      </div>
+                                  {/* Purple row */}
+                                  <div className="flex items-center gap-2.5 sm:gap-3">
+                                    <img
+                                      src="/image/ngoc/tim.png"
+                                      className="w-10 h-10 object-contain shrink-0"
+                                      alt="Ngọc Tím"
+                                    />
+                                    <div className="flex flex-col justify-center text-left min-w-0">
+                                      {purpleLines.map((line, lIdx) => (
+                                        <span
+                                          key={lIdx}
+                                          className="text-[11px] sm:text-[11.5px] font-black text-purple-400 block leading-tight truncate"
+                                        >
+                                          {line}
+                                        </span>
+                                      ))}
                                     </div>
+                                  </div>
 
-                                    {/* Purple row */}
-                                    <div className="flex items-center gap-3">
-                                      <img
-                                        src="/image/ngoc/tim.png"
-                                        className="w-8 h-8 object-contain shrink-0"
-                                        alt="Ngọc Tím"
-                                      />
-                                      <div className="flex flex-col justify-center text-left">
-                                        {purpleLines.map((line, lIdx) => (
-                                          <span
-                                            key={lIdx}
-                                            className="text-[11.5px] font-black text-purple-400 block leading-tight"
-                                          >
-                                            {line}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    {/* Green row */}
-                                    <div className="flex items-center gap-3">
-                                      <img
-                                        src="/image/ngoc/xanh.png"
-                                        className="w-8 h-8 object-contain shrink-0"
-                                        alt="Ngọc Lục"
-                                      />
-                                      <div className="flex flex-col justify-center text-left">
-                                        {greenLines.map((line, lIdx) => (
-                                          <span
-                                            key={lIdx}
-                                            className="text-[11.5px] font-black text-emerald-400 block leading-tight"
-                                          >
-                                            {line}
-                                          </span>
-                                        ))}
-                                      </div>
+                                  {/* Green row */}
+                                  <div className="flex items-center gap-2.5 sm:gap-3">
+                                    <img
+                                      src="/image/ngoc/xanh.png"
+                                      className="w-10 h-10 object-contain shrink-0"
+                                      alt="Ngọc Lục"
+                                    />
+                                    <div className="flex flex-col justify-center text-left min-w-0">
+                                      {greenLines.map((line, lIdx) => (
+                                        <span
+                                          key={lIdx}
+                                          className="text-[11px] sm:text-[11.5px] font-black text-emerald-400 block leading-tight truncate"
+                                        >
+                                          {line}
+                                        </span>
+                                      ))}
                                     </div>
                                   </div>
                                 </div>
-                              );
-                            })()}
-                          </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
-                    )}
-
-                    {/* Toggle Detail Button Footer */}
-                    <div className="mt-3 pt-3 border-t border-[#bd9867]/30 flex justify-end">
-                      <button
-                        onClick={() => toggleExpand(selectedTrangBiChampId)}
-                        className="px-3.5 py-1.5 text-[10px] font-bold flex items-center gap-1.5 border border-[#bd9867] hover:bg-[#bd9867]/10 hover:text-[#fce3bc] transition-all cursor-pointer text-[#bd9867]"
-                      >
-                        <span>
-                          {isExpanded
-                            ? "Thu gọn ngọc & phù hiệu"
-                            : "Xem chi tiết ngọc & phù hiệu"}
-                        </span>
-                        <LucideIcon
-                          name={isExpanded ? "ChevronUp" : "ChevronDown"}
-                          size={12}
-                        />
-                      </button>
                     </div>
                   </div>
                 );
@@ -1433,10 +1479,10 @@ export default function PublicBuildGuides({
                 );
 
                 return (
-                  <div className="space-y-4 relative overflow-hidden border border-[#bd9867]/60 bg-[#1d182b]/70 p-3 sm:p-4 backdrop-blur-md">
-                    <WatermarkOverlay text={watermarkText} />
+                  <div className="space-y-2 relative overflow-hidden backdrop-blur-md">
+                    {/* <WatermarkOverlay text={watermarkText} /> */}
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-red-950/60 via-slate-950 to-indigo-950/60 border border-[#bd9867] p-3 sm:p-4 shadow-xl flex items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
                       <img
                         src={
                           selectedChamp.url_anh_dai_dien || "/placeholder.jpg"
@@ -1457,9 +1503,9 @@ export default function PublicBuildGuides({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
                       {/* Tướng Khắc Chế */}
-                      <div className="bg-slate-950/80 border border-red-900/60 p-3 sm:p-4 shadow-xl space-y-3">
+                      <div className="space-y-2 mt-5">
                         <div className="flex items-center gap-2 border-b border-red-800/40 pb-2">
                           <LucideIcon
                             name="ShieldAlert"
@@ -1473,7 +1519,7 @@ export default function PublicBuildGuides({
 
                         {counterChamps.length === 0 ? (
                           <p className="text-xs text-slate-300 italic">
-                            Chưa chọn tướng khắc chế.
+                            Chưa có tướng khắc chế.
                           </p>
                         ) : (
                           /* CẬP NHẬT UI: CHỈ HIỂN THỊ ẢNH TƯỚNG */
@@ -1496,20 +1542,16 @@ export default function PublicBuildGuides({
                         )}
 
                         {kcData?.ghi_chu_khac_che && (
-                          <div className="bg-red-950/40 border border-red-900/60 p-2.5 rounded text-xs text-red-200 space-y-1">
+                          <div className="text-xs text-red-200 space-y-1">
                             <span className="font-bold flex items-center gap-1 text-[11px] text-red-300">
-                              <LucideIcon name="Lightbulb" size={12} /> Mẹo khắc
-                              chế:
+                              Mẹo khắc chế: {kcData.ghi_chu_khac_che}
                             </span>
-                            <p className="leading-relaxed font-medium">
-                              {kcData.ghi_chu_khac_che}
-                            </p>
                           </div>
                         )}
                       </div>
 
                       {/* Trang Bị Khắc Chế */}
-                      <div className="bg-slate-950/80 border border-amber-900/60 p-3 sm:p-4 shadow-xl space-y-3">
+                      <div className="space-y-3 mt-5">
                         <div className="flex items-center gap-2 border-b border-amber-800/40 pb-2">
                           <LucideIcon
                             name="Shield"
@@ -1547,7 +1589,7 @@ export default function PublicBuildGuides({
                       </div>
 
                       {/* Tướng Phối Hợp */}
-                      <div className="bg-slate-950/80 border border-emerald-900/60 p-3 sm:p-4 shadow-xl space-y-3">
+                      <div className="mt-5 space-y-3">
                         <div className="flex items-center gap-2 border-b border-emerald-800/40 pb-2">
                           <LucideIcon
                             name="Users"
@@ -1561,7 +1603,7 @@ export default function PublicBuildGuides({
 
                         {comboChamps.length === 0 ? (
                           <p className="text-xs text-slate-300 italic">
-                            Chưa chọn tướng phối hợp.
+                            Chưa có tướng phối hợp.
                           </p>
                         ) : (
                           /* CẬP NHẬT UI: CHỈ HIỂN THỊ ẢNH TƯỚNG PHỐI HỢP */
@@ -1584,14 +1626,11 @@ export default function PublicBuildGuides({
                         )}
 
                         {kcData?.ghi_chu_phoi_hop && (
-                          <div className="bg-emerald-950/40 border border-emerald-900/60 p-2.5 rounded text-xs text-emerald-200 space-y-1">
+                          <div className="text-xs text-emerald-200 space-y-1">
                             <span className="font-bold flex items-center gap-1 text-[11px] text-emerald-300">
-                              <LucideIcon name="Sparkles" size={12} /> Bí quyết
-                              phối hợp:
+                              {" "}
+                              Bí quyết phối hợp: {kcData.ghi_chu_phoi_hop}
                             </span>
-                            <p className="leading-relaxed font-medium">
-                              {kcData.ghi_chu_phoi_hop}
-                            </p>
                           </div>
                         )}
                       </div>

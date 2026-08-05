@@ -15,16 +15,29 @@ interface UserProfileTabProps {
 
 // Preset avatars from /image/Avt directory
 const AVATAR_PRESETS = [
-  { name: "Ata", url: "/image/Avt/1.jpg" },
-  { name: "Florentino", url: "/image/Avt/2.jpg" },
-  { name: "Valhein", url: "/image/Avt/3.jpg" },
-  { name: "Raz", url: "/image/Avt/4.jpg" },
-  { name: "Nakroth", url: "/image/Avt/5.jpg" },
-  { name: "Liliana", url: "/image/Avt/6.jpg" },
-  { name: "Allain", url: "/image/Avt/7.jpg" },
-  { name: "Yena", url: "/image/Avt/8.jpg" },
-  { name: "Qi", url: "/image/Avt/9.jpg" },
-  { name: "Zuka", url: "/image/Avt/10.jpg" },
+  { name: "1", url: "/image/Avt/1.jpg" },
+  { name: "2", url: "/image/Avt/2.jpg" },
+  { name: "3", url: "/image/Avt/3.jpg" },
+  { name: "4", url: "/image/Avt/4.jpg" },
+  { name: "5", url: "/image/Avt/5.jpg" },
+  { name: "6", url: "/image/Avt/6.jpg" },
+  { name: "7", url: "/image/Avt/7.jpg" },
+  { name: "8", url: "/image/Avt/8.jpg" },
+  { name: "9", url: "/image/Avt/9.jpg" },
+  { name: "10", url: "/image/Avt/10.jpg" },
+  { name: "11", url: "/image/Avt/11.jpg" },
+  { name: "12", url: "/image/Avt/12.jpg" },
+  { name: "13", url: "/image/Avt/13.jpg" },
+  { name: "14", url: "/image/Avt/14.jpg" },
+  { name: "15", url: "/image/Avt/15.jpg" },
+  { name: "16", url: "/image/Avt/16.jpg" },
+  { name: "17", url: "/image/Avt/17.jpg" },
+  { name: "18", url: "/image/Avt/18.jpg" },
+  { name: "19", url: "/image/Avt/19.jpg" },
+  { name: "20", url: "/image/Avt/20.jpg" },
+  { name: "21", url: "/image/Avt/21.jpg" },
+  { name: "22", url: "/image/Avt/22.jpg" },
+  { name: "23", url: "/image/Avt/23.jpg" },
 ];
 
 export default function UserProfileTab({
@@ -254,7 +267,7 @@ export default function UserProfileTab({
               <div className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-emerald-500/10 border border-emerald-500/30 text-[10px] sm:text-[11px] font-bold text-emerald-300 flex items-center gap-1">
                 <LucideIcon name="CheckCircle" size={12} className="shrink-0" />
                 <span className="truncate">
-                  {myDonations.length} lượt giao dịch
+                  {myDonations.length} Lần ủng hộ
                 </span>
               </div>
             </div>

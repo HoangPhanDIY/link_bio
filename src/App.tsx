@@ -32,6 +32,7 @@ import {
   DBMessage,
   DBDonation,
   DBPost,
+  DBNotification,
 } from "./supabase";
 import { isCustomIcon, getVisitorInfo, BANNER_OPTIONS } from "./utils";
 import PublicHeader from "./components/PublicHeader";
@@ -41,6 +42,8 @@ import PublicPostsTab from "./components/PublicPostsTab";
 import PublicContactBoard from "./components/PublicContactBoard";
 import PublicBottomNav from "./components/PublicBottomNav";
 import UserProfileTab from "./components/UserProfileTab";
+import NotificationsAdminTab from "./components/NotificationsAdminTab";
+import PublicNotificationsTab from "./components/PublicNotificationsTab";
 
 const STORAGE_KEY_LINKS = "vivid_persona_links";
 const STORAGE_KEY_APPEARANCE = "vivid_persona_appearance";
@@ -54,6 +57,7 @@ type TabType =
   | "messages"
   | "donations"
   | "posts"
+  | "notifications"
   | "stream";
 
 declare global {
@@ -104,11 +108,19 @@ export default function App() {
   // --- Game Library & Guide States ---
   const [dbUser, setDbUser] = useState<DBUser | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<DBUser | null>(null);
-  const [champions, setChampions] = useState<DBChampion[]>([]);
-  const [items, setItems] = useState<DBItem[]>([]);
-  const [spells, setSpells] = useState<DBSpell[]>([]);
-  const [badges, setBadges] = useState<DBBadge[]>([]);
-  const [guides, setGuides] = useState<DBBuildGuide[]>([]);
+  const [champions, setChampions] = useState<DBChampion[]>(() =>
+    dbService.getChampionsSync(),
+  );
+  const [items, setItems] = useState<DBItem[]>(() => dbService.getItemsSync());
+  const [spells, setSpells] = useState<DBSpell[]>(() =>
+    dbService.getSpellsSync(),
+  );
+  const [badges, setBadges] = useState<DBBadge[]>(() =>
+    dbService.getBadgesSync(),
+  );
+  const [guides, setGuides] = useState<DBBuildGuide[]>(() =>
+    dbService.getBuildGuidesSync(),
+  );
   const [banners, setBanners] = useState<DBBanner[]>([]);
   const [messages, setMessages] = useState<DBMessage[]>([]);
   const [clickLogs, setClickLogs] = useState<any[]>([]);
@@ -123,7 +135,10 @@ export default function App() {
   // Lazy load flags & status indicators
   const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
   const [isGuidesLoading, setIsGuidesLoading] = useState<boolean>(false);
-  const [hasLoadedGuides, setHasLoadedGuides] = useState<boolean>(false);
+  const [hasLoadedGuides, setHasLoadedGuides] = useState<boolean>(() => {
+    const syncGuides = dbService.getBuildGuidesSync();
+    return syncGuides.length > 0;
+  });
   const [isClickLogsLoading, setIsClickLogsLoading] = useState<boolean>(false);
   const [hasLoadedClickLogs, setHasLoadedClickLogs] = useState<boolean>(false);
   const [isMessagesLoading, setIsMessagesLoading] = useState<boolean>(false);
@@ -157,10 +172,57 @@ export default function App() {
   const [isAdminNavOpen, setIsAdminNavOpen] = useState<boolean>(false);
 
   const [publicTab, setPublicTab] = useState<
-    "links" | "guides" | "donate" | "posts" | "profile"
+    "links" | "guides" | "donate" | "posts" | "profile" | "notifications"
   >("links");
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+
+  // --- Notifications State & Modal ---
+  const [notificationsList, setNotificationsList] = useState<DBNotification[]>(
+    [],
+  );
+  const [isNotificationModalOpen, setIsNotificationModalOpen] =
+    useState<boolean>(false);
+
+  useEffect(() => {
+    dbService.getNotifications(loggedInUser?.id).then((notifs) => {
+      setNotificationsList(notifs);
+    });
+  }, [loggedInUser?.id]);
+
+  const handleMarkNotificationAsRead = async (id: string) => {
+    const userId = loggedInUser?.id || "guest-user";
+    setNotificationsList((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, da_doc: 1 } : n)),
+    );
+    await dbService.markNotificationAsRead(id, userId);
+  };
+
+  const handleMarkAllNotificationsAsRead = async () => {
+    const userId = loggedInUser?.id || "guest-user";
+    const allIds = notificationsList.map((n) => n.id);
+    setNotificationsList((prev) => prev.map((n) => ({ ...n, da_doc: 1 })));
+    await dbService.markAllNotificationsAsRead(userId, allIds);
+  };
+
+  const handleSendNotification = async (notifData: Partial<DBNotification>) => {
+    const newNotif = await dbService.sendNotification({
+      ...notifData,
+      nguoi_gui_id: loggedInUser?.id || null,
+      nguoi_gui_ten: loggedInUser?.ten_dang_nhap || "Admin Giáo Án",
+    });
+    if (newNotif) {
+      setNotificationsList((prev) => [newNotif, ...prev]);
+    }
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    const success = await dbService.deleteNotification(id);
+    if (success) {
+      setNotificationsList((prev) => prev.filter((n) => n.id !== id));
+      showNotification("Đã xóa thông báo!", "success");
+    }
+  };
 
   // --- Notifications State (multi-toast queue) ---
   const [notifications, setNotifications] = useState<
@@ -277,6 +339,26 @@ export default function App() {
       } finally {
         setIsAppLoading(false);
       }
+
+      // Non-blocking background pre-fetch of Academy & Game Library data for instant loading
+      Promise.all([
+        dbService.getChampions(),
+        dbService.getItems(),
+        dbService.getSpells(),
+        dbService.getBadges(),
+        dbService.getBuildGuides(),
+        dbService.getKhacCheList(),
+        dbService.getTopTierList(),
+      ])
+        .then(([champsData, itemsData, spellsData, badgesData, guidesData]) => {
+          if (champsData && champsData.length > 0) setChampions(champsData);
+          if (itemsData && itemsData.length > 0) setItems(itemsData);
+          if (spellsData && spellsData.length > 0) setSpells(spellsData);
+          if (badgesData && badgesData.length > 0) setBadges(badgesData);
+          if (guidesData && guidesData.length > 0) setGuides(guidesData);
+          setHasLoadedGuides(true);
+        })
+        .catch((e) => console.warn("Academy background preload warning:", e));
 
       // Non-blocking background session restore
       const savedSessionStr = localStorage.getItem("vivid_persona_session");
@@ -1486,11 +1568,38 @@ export default function App() {
                 {publicTab === "guides" && "HỌC VIỆN LIÊN QUÂN"}
                 {publicTab === "posts" && "BÀI VIẾT"}
                 {publicTab === "donate" && " ỦNG HỘ"}
+                {publicTab === "profile" && "THÔNG TIN CÁ NHÂN"}
+                {publicTab === "notifications" && "THÔNG BÁO HỆ THỐNG"}
               </h2>
             </div>
 
             {/* Right side Profile & Login buttons */}
             <div className="flex items-center gap-2 sm:gap-2.5">
+              {/* Notification Bell Icon Button with Unread Badge (Only visible when logged in) */}
+              {isAuthenticated && loggedInUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAdminMode(false);
+                    setPublicTab("notifications");
+                  }}
+                  className="relative w-9 h-9 border border-[#bd9867]/60 bg-black/40 hover:bg-[#bd9867]/20 transition-all cursor-pointer flex items-center justify-center text-[#fce3bc] group active:scale-95 shrink-0"
+                  title="Thông báo hệ thống"
+                >
+                  <LucideIcon
+                    name="Bell"
+                    size={18}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                  {notificationsList.filter((n) => n.da_doc === 0).length >
+                    0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center border border-black shadow-[0_0_6px_rgba(225,29,72,0.9)] animate-bounce">
+                      {notificationsList.filter((n) => n.da_doc === 0).length}
+                    </span>
+                  )}
+                </button>
+              )}
+
               {isAuthenticated && loggedInUser ? (
                 <div className="flex items-center gap-2 sm:gap-2.5 relative">
                   {/* Clickable User Avatar & Info triggering Dropdown */}
@@ -1501,14 +1610,14 @@ export default function App() {
                       className="flex items-center gap-2 h-9 transition-all cursor-pointer group active:scale-95"
                       title="Menu tài khoản cá nhân"
                     >
-                      <div className="w-7 h-7 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
+                      <div className="w-8.5 h-8.5 p-[1px] bg-gradient-to-t from-[#bd9867] to-[#fce3bc] shadow-sm shrink-0">
                         <img
                           src={
                             loggedInUser.avatar_url ||
                             "/image/tuong/DauSi/Ata.jpg"
                           }
                           alt={loggedInUser.ten_dang_nhap}
-                          className="w-full h-full object-cover bg-slate-900 group-hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover bg-slate-900 transition-transform"
                           referrerPolicy="no-referrer"
                         />
                       </div>
@@ -1524,7 +1633,7 @@ export default function App() {
                       </div>
                       <LucideIcon
                         name="ChevronDown"
-                        size={14}
+                        size={20}
                         className={`text-[#fce3bc] transition-transform duration-200 ${
                           isUserMenuOpen ? "rotate-180" : ""
                         }`}
@@ -1573,6 +1682,7 @@ export default function App() {
                               type="button"
                               onClick={() => {
                                 setIsUserMenuOpen(false);
+                                setIsAdminMode(false);
                                 setPublicTab("profile");
                               }}
                               className="w-full text-left px-3 py-2 text-xs font-bold text-[#fce3bc] hover:bg-[#bd9867]/20 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -1583,6 +1693,36 @@ export default function App() {
                                 className="text-[#bd9867]"
                               />
                               <span>Xem thông tin cá nhân</span>
+                            </button>
+
+                            {/* Option 2: Thông báo hệ thống */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsUserMenuOpen(false);
+                                setIsAdminMode(false);
+                                setPublicTab("notifications");
+                              }}
+                              className="w-full text-left px-3 py-2 text-xs font-bold text-[#fce3bc] hover:bg-[#bd9867]/20 flex items-center justify-between transition-colors cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <LucideIcon
+                                  name="Bell"
+                                  size={15}
+                                  className="text-[#bd9867]"
+                                />
+                                <span>Thông báo hệ thống</span>
+                              </div>
+                              {notificationsList.filter((n) => n.da_doc === 0)
+                                .length > 0 && (
+                                <span className="bg-rose-600 text-white text-[9px] px-1.5 py-0.2 font-black rounded-full">
+                                  {
+                                    notificationsList.filter(
+                                      (n) => n.da_doc === 0,
+                                    ).length
+                                  }
+                                </span>
+                              )}
                             </button>
 
                             {/* Option 2: Bảng quản trị (if Admin) */}
@@ -1739,6 +1879,13 @@ export default function App() {
                           badge: messages.length,
                         },
                         {
+                          id: "notifications",
+                          label: "Thông báo",
+                          icon: "Bell",
+                          badge: notificationsList.filter((n) => n.da_doc === 0)
+                            .length,
+                        },
+                        {
                           id: "donations",
                           label: "Donate",
                           icon: "Heart",
@@ -1853,6 +2000,12 @@ export default function App() {
                 label: "Tin nhắn",
                 icon: "MessageSquare",
                 badge: messages.length,
+              },
+              {
+                id: "notifications",
+                label: "Thông báo",
+                icon: "Bell",
+                badge: notificationsList.filter((n) => n.da_doc === 0).length,
               },
               {
                 id: "donations",
@@ -2035,6 +2188,16 @@ export default function App() {
                   dbUser={dbUser}
                 />
               )}
+
+              {activeTab === "notifications" && (
+                <NotificationsAdminTab
+                  notifications={notificationsList}
+                  onSendNotification={handleSendNotification}
+                  onDeleteNotification={handleDeleteNotification}
+                  usersCount={usersCount}
+                  adminUser={loggedInUser}
+                />
+              )}
             </div>
 
             {/* Right Column: Live Sticky Mockup Preview (Only visible in Links & Appearance) */}
@@ -2170,6 +2333,18 @@ export default function App() {
                     </button>
                   </div>
                 ))}
+
+              {publicTab === "notifications" && (
+                <PublicNotificationsTab
+                  notifications={notificationsList}
+                  currentUserId={loggedInUser?.id}
+                  isAuthenticated={isAuthenticated}
+                  onOpenLogin={() => setIsLoggingIn(true)}
+                  onMarkAsRead={handleMarkNotificationAsRead}
+                  onMarkAllAsRead={handleMarkAllNotificationsAsRead}
+                  isDarkPublic={isDarkPublic}
+                />
+              )}
 
               {/* Contact message board on 'Liên hệ' tab */}
               {publicTab === "links" && appearance.newsletterEnabled && (
