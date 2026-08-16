@@ -497,8 +497,8 @@ export default function PublicDonateTab({
               <input
                 type="number"
                 required
-                min="1000"
-                step="1000"
+                min="2000"
+                step="1"
                 value={donateAmount}
                 onChange={(e) => setDonateAmount(e.target.value)}
                 placeholder="Ví dụ: 5000"

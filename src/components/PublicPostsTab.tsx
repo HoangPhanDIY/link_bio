@@ -68,10 +68,7 @@ export default function PublicPostsTab({
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-500 bg-slate-150 shrink-0">
                       <img
-                        src={
-                          appearance.avatarUrl ||
-                          "/image/tuong/DauSi/Florentino.jpg"
-                        }
+                        src={appearance.avatarUrl}
                         alt="Author avatar"
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
@@ -107,7 +104,7 @@ export default function PublicPostsTab({
                     <img
                       src={post.url_hinh_anh}
                       alt="Status visual assets"
-                      className="w-full object-cover max-h-96"
+                      className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
                   </div>
