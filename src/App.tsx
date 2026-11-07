@@ -1360,15 +1360,21 @@ export default function App() {
 
   if (isAppLoading) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center z-50">
-        <div className="flex flex-col items-center gap-4">
+      <div
+        className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/image/Decor/bg-academy.jpg')" }}
+      >
+        {/* Lớp phủ tối tùy chọn giúp làm nổi bật GIF và text (bỏ nếu không cần) */}
+        <div className="absolute inset-0 bg-black/40 -z-10" />
+
+        <div className="flex flex-col items-center gap-4 relative z-10">
           <img
-            src={"/giphy.webp"}
+            src="/giphy.webp"
             alt="Loading..."
             className="w-32 h-32 object-contain"
             referrerPolicy="no-referrer"
           />
-          <span className="text-slate-400 font-bold tracking-wider text-xs uppercase animate-pulse">
+          <span className="text-white font-bold tracking-wider text-xs uppercase animate-pulse drop-shadow-md">
             Chờ chút xíu...
           </span>
         </div>
@@ -1579,13 +1585,13 @@ export default function App() {
                 |
               </span>
               <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase truncate">
-                {publicTab === "links" && "LIÊN KẾT CÁ NHÂN"}
-                {publicTab === "guides" && "HỌC VIỆN LIÊN QUÂN"}
-                {publicTab === "accounts" && "KHO ACC LIÊN QUÂN"}
+                {publicTab === "links" && "LIÊN KẾT"}
+                {publicTab === "guides" && "HỌC VIỆN"}
+                {publicTab === "accounts" && "KHO ACC"}
                 {publicTab === "posts" && "BÀI VIẾT"}
                 {publicTab === "donate" && " ỦNG HỘ"}
-                {publicTab === "profile" && "THÔNG TIN CÁ NHÂN"}
-                {publicTab === "notifications" && "THÔNG BÁO HỆ THỐNG"}
+                {publicTab === "profile" && "THÔNG TIN"}
+                {publicTab === "notifications" && "THÔNG BÁO"}
               </h2>
             </div>
 
@@ -2290,23 +2296,31 @@ export default function App() {
               )}
 
               {publicTab === "guides" && (
-                <div className="animate-in fade-in duration-300">
-                  {isGuidesLoading ? (
-                    renderDataLoading(
-                      "Đang tải dữ liệu Học Viện...",
-                      isDarkPublic,
-                    )
-                  ) : (
-                    <PublicBuildGuides
-                      guides={guides}
-                      champions={champions}
-                      items={items}
-                      isDark={isDarkPublic}
-                      accentColor={appearance.accentColor}
-                      onLikeGuide={handleLikeGuide}
-                    />
-                  )}
-                </div>
+                // <div className="animate-in fade-in duration-300">
+                //   {isGuidesLoading ? (
+                //     renderDataLoading(
+                //       "Đang tải dữ liệu Học Viện...",
+                //       isDarkPublic,
+                //     )
+                //   ) : (
+                //     <PublicBuildGuides
+                //       guides={guides}
+                //       champions={champions}
+                //       items={items}
+                //       isDark={isDarkPublic}
+                //       accentColor={appearance.accentColor}
+                //       onLikeGuide={handleLikeGuide}
+                //     />
+                //   )}
+                // </div>
+                <PublicBuildGuides
+                  guides={guides}
+                  champions={champions}
+                  items={items}
+                  isDark={isDarkPublic}
+                  accentColor={appearance.accentColor}
+                  onLikeGuide={handleLikeGuide}
+                />
               )}
 
               {publicTab === "donate" && (

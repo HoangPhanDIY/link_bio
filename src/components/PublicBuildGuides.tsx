@@ -424,7 +424,7 @@ export default function PublicBuildGuides({
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
           <button
             onClick={() => handleTabChange("trangbi")}
-            className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border ${
+            className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border rounded-lg ${
               academyTab === "trangbi"
                 ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#bd9867] shadow-md"
                 : "border-[#bd9867]/40 bg-black/40 text-[#fce3bc] hover:bg-[#bd9867]/20"
@@ -436,7 +436,7 @@ export default function PublicBuildGuides({
 
           <button
             onClick={() => handleTabChange("toptier")}
-            className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border ${
+            className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border rounded-lg ${
               academyTab === "toptier"
                 ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#bd9867] shadow-md"
                 : "border-[#bd9867]/40 bg-black/40 text-[#fce3bc] hover:bg-[#bd9867]/20"
@@ -448,7 +448,7 @@ export default function PublicBuildGuides({
 
           <button
             onClick={() => handleTabChange("khacche")}
-            className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border ${
+            className={`flex items-center justify-center gap-1.5 py-2 px-1.5 sm:px-3 text-xs font-bold transition-all cursor-pointer border rounded-lg ${
               academyTab === "khacche"
                 ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 border-[#bd9867] shadow-md"
                 : "border-[#bd9867]/40 bg-black/40 text-[#fce3bc] hover:bg-[#bd9867]/20"
@@ -471,19 +471,30 @@ export default function PublicBuildGuides({
               </h3>
 
               {/* Ô Tìm kiếm DÀNH RIÊNG cho Danh sách Tướng Có Trang Bị */}
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Tìm tướng..."
-                  value={trangBiSearchTerm}
-                  onChange={(e) => setTrangBiSearchTerm(e.target.value)}
-                  className="w-full bg-black/60 border border-[#bd9867]/60 rounded-none pl-8 pr-3 py-1.5 text-xs text-[#fce3bc] placeholder-slate-400 focus:outline-none focus:border-[#fce3bc]"
-                />
-                <LucideIcon
-                  name="Search"
-                  size={14}
-                  className="absolute left-2.5 top-2.5 text-[#bd9867]"
-                />
+              <div className="flex flex-col sm:flex-row gap-2">
+                {/* Search bar */}
+                <div className="relative flex-1">
+                  <LucideIcon
+                    name="Search"
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#bd9867]"
+                  />
+                  <input
+                    type="text"
+                    value={trangBiSearchTerm}
+                    onChange={(e) => setTrangBiSearchTerm(e.target.value)}
+                    placeholder="Tìm kiếm theo tên tướng"
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-900/80 border border-[#bd9867]/30 text-slate-100 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:border-[#bd9867] focus:ring-1 focus:ring-[#bd9867] transition-all"
+                  />
+                  {trangBiSearchTerm && (
+                    <button
+                      onClick={() => setTrangBiSearchTerm("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <LucideIcon name="X" size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {(() => {
@@ -1186,7 +1197,7 @@ export default function PublicBuildGuides({
 
             {/* Dropdown Chọn Phiên bản + Nút Tải BXH bên phải */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <div className="flex items-center gap-1 bg-[#bd9867]/20 border border-[#bd9867]/60 px-2 py-1">
+              <div className="flex items-center gap-1 bg-[#bd9867]/20 border border-[#bd9867]/60 px-2 py-1 rounded-lg">
                 <select
                   value={selectedVersion}
                   onChange={(e) => setSelectedVersion(e.target.value)}
@@ -1213,7 +1224,7 @@ export default function PublicBuildGuides({
               <button
                 onClick={handleDownloadTopTier}
                 disabled={isDownloading}
-                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 font-black text-[11px] sm:text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow border border-[#fce3bc]/80 disabled:opacity-50"
+                className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 font-black text-[11px] sm:text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow border border-[#fce3bc]/80 disabled:opacity-50 rounded-lg"
                 title="Tải bảng Top Tier về thiết bị"
               >
                 <LucideIcon
@@ -1235,7 +1246,7 @@ export default function PublicBuildGuides({
                   key={lane.value}
                   onClick={() => setSelectedTopTierLane(lane.value)}
                   title={lane.label}
-                  className={`flex-1 flex items-center justify-center h-9 sm:h-10 px-1 sm:px-3 transition-all border cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center h-9 sm:h-10 px-1 sm:px-3 transition-all border cursor-pointer rounded-lg ${
                     isActive
                       ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] border-[#fce3bc] shadow-md scale-[1.02]"
                       : "bg-slate-950/80 border-[#bd9867]/40 hover:bg-[#bd9867]/20 hover:border-[#bd9867]"
@@ -1382,19 +1393,30 @@ export default function PublicBuildGuides({
               </h3>
 
               {/* Ô Tìm kiếm DÀNH RIÊNG cho Danh sách Tướng Có Trang Bị */}
-              <div className="relative w-full w-full ">
-                <input
-                  type="text"
-                  placeholder="Tìm tướng..."
-                  value={kcSearchTerm}
-                  onChange={(e) => setKcSearchTerm(e.target.value)}
-                  className="w-full bg-black/60 border border-[#bd9867]/60 rounded-none pl-8 pr-3 py-1.5 text-xs text-[#fce3bc] placeholder-slate-400 focus:outline-none focus:border-[#fce3bc]"
-                />
-                <LucideIcon
-                  name="Search"
-                  size={14}
-                  className="absolute left-2.5 top-2.5 text-[#bd9867]"
-                />
+              <div className="flex flex-col sm:flex-row gap-2">
+                {/* Search bar */}
+                <div className="relative flex-1">
+                  <LucideIcon
+                    name="Search"
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#bd9867]"
+                  />
+                  <input
+                    type="text"
+                    value={kcSearchTerm}
+                    onChange={(e) => setKcSearchTerm(e.target.value)}
+                    placeholder="Tìm kiếm theo tên tướng"
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-900/80 border border-[#bd9867]/30 text-slate-100 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:border-[#bd9867] focus:ring-1 focus:ring-[#bd9867] transition-all"
+                  />
+                  {trangBiSearchTerm && (
+                    <button
+                      onClick={() => setKcSearchTerm("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <LucideIcon name="X" size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {(() => {

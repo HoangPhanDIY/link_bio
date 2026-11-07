@@ -164,7 +164,7 @@ export default function PublicAccountsTab({
             onClick={() => setStatusFilter("available")}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap ${
               statusFilter === "available"
-                ? "bg-[#bd9867] text-slate-950 font-bold shadow-md shadow-[#bd9867]/20"
+                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc]"
                 : "bg-slate-900/60 border border-[#bd9867]/20 text-slate-300 hover:border-[#bd9867]/50"
             }`}
           >
@@ -174,7 +174,7 @@ export default function PublicAccountsTab({
             onClick={() => setStatusFilter("all")}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap ${
               statusFilter === "all"
-                ? "bg-[#bd9867] text-slate-950 font-bold shadow-md shadow-[#bd9867]/20"
+                ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc]"
                 : "bg-slate-900/60 border border-[#bd9867]/20 text-slate-300 hover:border-[#bd9867]/50"
             }`}
           >
@@ -185,7 +185,7 @@ export default function PublicAccountsTab({
               onClick={() => setStatusFilter("sold")}
               className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap ${
                 statusFilter === "sold"
-                  ? "bg-[#bd9867] text-slate-950 font-bold shadow-md shadow-[#bd9867]/20"
+                  ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc]"
                   : "bg-slate-900/60 border border-[#bd9867]/20 text-slate-300 hover:border-[#bd9867]/50"
               }`}
             >

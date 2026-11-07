@@ -41,7 +41,7 @@ export default function PublicLinksTab({
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => onLinkClick(link.id)}
-                className="flex items-center p-3 border-1 transition-all hover:-translate-y-0.5 group active:scale-[0.99] shadow-xs backdrop-blur-md"
+                className="flex items-center p-3 border-1 transition-all hover:-translate-y-0.5 group active:scale-[0.99] shadow-xs backdrop-blur-md rounded-lg"
                 style={{
                   borderColor: "rgb(156, 140, 103)",
                   background: "rgba(29, 24, 43, 0.75)",

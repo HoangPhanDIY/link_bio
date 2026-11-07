@@ -42,7 +42,7 @@ export default function PublicBottomNav({
         {/* Button 1: Liên hệ / Liên kết */}
         <button
           onClick={() => setPublicTab("links")}
-          className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-2 transition-all cursor-pointer ${
             publicTab === "links"
               ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] font-extrabold shadow-sm"
               : "hover:opacity-80"

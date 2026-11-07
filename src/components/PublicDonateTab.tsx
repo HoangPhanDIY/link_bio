@@ -340,7 +340,7 @@ export default function PublicDonateTab({
           <button
             type="button"
             onClick={() => setMainTab("donate")}
-            className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 rounded-lg ${
               mainTab === "donate"
                 ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 shadow-md scale-105"
                 : "text-white opacity-80 hover:opacity-100"
@@ -353,7 +353,7 @@ export default function PublicDonateTab({
           <button
             type="button"
             onClick={() => setMainTab("bank")}
-            className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`flex-1 sm:flex-initial justify-center px-3.5 py-2 sm:py-1.5 text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 rounded-lg ${
               mainTab === "bank"
                 ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-950 shadow-md scale-105"
                 : "text-white opacity-80 hover:opacity-100"
@@ -435,7 +435,7 @@ export default function PublicDonateTab({
                 <button
                   type="button"
                   onClick={() => handleDownloadStaticQR(staticBankQrUrl)}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold border border-[#bd9867]/60 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-900 transition-all cursor-pointer w-full text-center shadow-xs"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold border border-[#bd9867]/60 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] text-slate-900 transition-all cursor-pointer w-full text-center shadow-xs rounded-lg"
                 >
                   <LucideIcon name="Download" size={14} />
                   <span>Lưu ảnh QR</span>
@@ -475,7 +475,7 @@ export default function PublicDonateTab({
                 value={donorName}
                 onChange={(e) => !loggedInUser && setDonorName(e.target.value)}
                 placeholder="Nhập tên hiển thị trên stream..."
-                className={`w-full p-3 border border-[#bd9867]/60 text-[#bd9867] placeholder:text-slate-400 outline-none transition-all text-sm font-sans font-medium focus:border-[#bd9867] ${
+                className={`w-full p-3 border border-[#bd9867]/60 text-[#bd9867] placeholder:text-slate-400 outline-none transition-all text-sm font-sans font-medium focus:border-[#bd9867] rounded-lg ${
                   loggedInUser
                     ? "bg-slate-900/80 cursor-not-allowed font-bold"
                     : ""
@@ -502,7 +502,7 @@ export default function PublicDonateTab({
                 value={donateAmount}
                 onChange={(e) => setDonateAmount(e.target.value)}
                 placeholder="Ví dụ: 5000"
-                className="w-full p-3 border border-[#bd9867]/60 text-[#bd9867] placeholder:text-slate-400 outline-none transition-all text-sm font-sans font-medium focus:border-[#bd9867]"
+                className="w-full p-3 border border-[#bd9867]/60 text-[#bd9867] placeholder:text-slate-400 outline-none transition-all text-sm font-sans font-medium focus:border-[#bd9867] rounded-lg"
               />
 
               {/* Quick Amount Choices */}
@@ -512,7 +512,7 @@ export default function PublicDonateTab({
                     key={val}
                     type="button"
                     onClick={() => setDonateAmount(String(val))}
-                    className="text-[11px] font-bold px-2.5 py-1 text-slate-900 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] transition-all cursor-pointer"
+                    className="text-[11px] font-bold px-2.5 py-1 text-slate-900 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] transition-all cursor-pointer rounded-sm"
                   >
                     {val.toLocaleString("vi-VN")} đ
                   </button>
@@ -531,7 +531,7 @@ export default function PublicDonateTab({
                 placeholder="Gửi lời chúc, góp ý hoặc lời nhắn của bạn..."
                 rows={3}
                 maxLength={200}
-                className="w-full p-3 border border-[#bd9867]/60 text-[#bd9867] placeholder:text-slate-400 outline-none transition-all text-sm font-sans font-medium resize-none focus:border-[#bd9867]"
+                className="w-full p-3 border border-[#bd9867]/60 text-[#bd9867] placeholder:text-slate-400 outline-none transition-all text-sm font-sans font-medium resize-none focus:border-[#bd9867] rounded-lg"
               />
             </div>
 
@@ -583,10 +583,10 @@ export default function PublicDonateTab({
                 <button
                   type="submit"
                   disabled={isDonating}
-                  className="w-full py-3 px-4 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 text-slate-950 font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
+                  className="w-full py-3 px-4 bg-gradient-to-t from-[#bd9867] to-[#fce3bc] hover:brightness-110 text-slate-950 font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100 rounded-lg"
                 >
                   {isDonating ? (
-                    <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin " />
                   ) : (
                     <LucideIcon
                       name="ArrowRight"
