@@ -354,36 +354,31 @@ export default function PublicBuildGuides({
   const [selectedTopTierLane, setSelectedTopTierLane] =
     useState<string>("Tất cả");
 
-  // Load champions & items fallback if empty
+  // Load champions & items
   useEffect(() => {
-    if (champions && champions.length > 0) {
+    if (champions) {
       setAllChampions(champions);
     } else {
       dbService.getChampions().then((res) => {
-        if (res && res.length > 0) setAllChampions(res);
+        if (res) setAllChampions(res);
       });
     }
-    if (items && items.length > 0) {
+    if (items) {
       setAllItems(items);
     } else {
       dbService.getItems().then((res) => {
-        if (res && res.length > 0) setAllItems(res);
+        if (res) setAllItems(res);
       });
     }
   }, [champions, items]);
 
-  // Load Khac Che and Top Tier lists
+  // Load Khac Che and Top Tier lists fresh from DB
   useEffect(() => {
-    const kcSync = dbService.getKhacCheListSync();
-    if (kcSync.length > 0 && khacCheList.length === 0) setKhacCheList(kcSync);
-    const ttSync = dbService.getTopTierListSync();
-    if (ttSync.length > 0 && topTierList.length === 0) setTopTierList(ttSync);
-
     dbService.getKhacCheList().then((res) => {
-      if (res && res.length > 0) setKhacCheList(res);
+      if (res) setKhacCheList(res);
     });
     dbService.getTopTierList().then((res) => {
-      if (res && res.length > 0) setTopTierList(res);
+      if (res) setTopTierList(res);
     });
   }, []);
 

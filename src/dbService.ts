@@ -17,6 +17,7 @@ import {
   DBTopTier,
   DBNotification,
   DBNotificationRead,
+  DBGameAccount,
 } from "./supabase";
 
 export type {
@@ -27,6 +28,7 @@ export type {
   DBTopTier,
   DBNotification,
   DBNotificationRead,
+  DBGameAccount,
 };
 
 // Global in-memory cache for instant data access (0ms delay)
@@ -37,21 +39,39 @@ let _cacheBadges: DBBadge[] | null = null;
 let _cacheGuides: DBBuildGuide[] | null = null;
 let _cacheKhacChe: DBKhacChe[] | null = null;
 let _cacheTopTier: DBTopTier[] | null = null;
+let _cacheAccounts: DBGameAccount[] | null = null;
 
-function getLocalCache<T>(key: string): T | null {
+// Clear any legacy browser cache immediately to ensure only fresh DB data is loaded
+export function clearStaleBrowserCache() {
   try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
+    const staleKeys = [
+      "cache_champions",
+      "cache_items",
+      "cache_spells",
+      "cache_badges",
+      "cache_build_guides",
+      "aov_khac_che",
+      "aov_top_tier",
+      "aov_notifications",
+      "vivid_persona_links",
+      "vivid_persona_appearance",
+      "vivid_persona_logs",
+    ];
+    staleKeys.forEach((key) => localStorage.removeItem(key));
+    // Also remove any legacy cau_hinh_* keys
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("cau_hinh_")) {
+        localStorage.removeItem(k);
+      }
+    }
   } catch (e) {
-    return null;
+    // Ignore in non-browser or restricted environments
   }
 }
 
-function setLocalCache<T>(key: string, data: T): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {}
-}
+// Execute immediately on script evaluation
+clearStaleBrowserCache();
 
 // Helper to check if a string is a valid UUID
 function isUUID(str: any): boolean {
@@ -699,159 +719,72 @@ export const dbService = {
   // 4. GAME LIBRARY
   // ==========================================
   getChampionsSync(): DBChampion[] {
-    if (_cacheChampions && _cacheChampions.length > 0) return _cacheChampions;
-    const local = getLocalCache<DBChampion[]>("cache_champions");
-    if (local) {
-      _cacheChampions = local;
-      return local;
-    }
-    return [];
+    return _cacheChampions || [];
   },
   getItemsSync(): DBItem[] {
-    if (_cacheItems && _cacheItems.length > 0) return _cacheItems;
-    const local = getLocalCache<DBItem[]>("cache_items");
-    if (local) {
-      _cacheItems = local;
-      return local;
-    }
-    return [];
+    return _cacheItems || [];
   },
   getSpellsSync(): DBSpell[] {
-    if (_cacheSpells && _cacheSpells.length > 0) return _cacheSpells;
-    const local = getLocalCache<DBSpell[]>("cache_spells");
-    if (local) {
-      _cacheSpells = local;
-      return local;
-    }
-    return [];
+    return _cacheSpells || [];
   },
   getBadgesSync(): DBBadge[] {
-    if (_cacheBadges && _cacheBadges.length > 0) return _cacheBadges;
-    const local = getLocalCache<DBBadge[]>("cache_badges");
-    if (local) {
-      _cacheBadges = local;
-      return local;
-    }
-    return [];
+    return _cacheBadges || [];
   },
 
-  async getChampions(forceRefresh = false): Promise<DBChampion[]> {
-    if (!forceRefresh && _cacheChampions && _cacheChampions.length > 0) {
+  async getChampions(forceRefresh = true): Promise<DBChampion[]> {
+    if (!forceRefresh && _cacheChampions) {
       return _cacheChampions;
     }
-    const local = getLocalCache<DBChampion[]>("cache_champions");
-    if (!forceRefresh && local && local.length > 0) {
-      _cacheChampions = local;
-      handleQuery(supabase.from("tuong").select("*").order("ten_tuong")).then(
-        (data) => {
-          if (data && Array.isArray(data) && data.length > 0) {
-            _cacheChampions = data as DBChampion[];
-            setLocalCache("cache_champions", data);
-          }
-        },
-      );
-      return local;
-    }
-
     const data = await handleQuery(
       supabase.from("tuong").select("*").order("ten_tuong"),
     );
-    const result = (data || []) as DBChampion[];
-    if (result.length > 0) {
-      _cacheChampions = result;
-      setLocalCache("cache_champions", result);
+    if (data && Array.isArray(data)) {
+      _cacheChampions = data as DBChampion[];
+      return _cacheChampions;
     }
-    return result;
+    return _cacheChampions || [];
   },
 
-  async getItems(forceRefresh = false): Promise<DBItem[]> {
-    if (!forceRefresh && _cacheItems && _cacheItems.length > 0) {
+  async getItems(forceRefresh = true): Promise<DBItem[]> {
+    if (!forceRefresh && _cacheItems) {
       return _cacheItems;
     }
-    const local = getLocalCache<DBItem[]>("cache_items");
-    if (!forceRefresh && local && local.length > 0) {
-      _cacheItems = local;
-      handleQuery(
-        supabase
-          .from("trang_bi")
-          .select("*")
-          .order("cap", { ascending: false }),
-      ).then((data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          _cacheItems = data as DBItem[];
-          setLocalCache("cache_items", data);
-        }
-      });
-      return local;
-    }
-
     const data = await handleQuery(
       supabase.from("trang_bi").select("*").order("cap", { ascending: false }),
     );
-    const result = (data || []) as DBItem[];
-    if (result.length > 0) {
-      _cacheItems = result;
-      setLocalCache("cache_items", result);
+    if (data && Array.isArray(data)) {
+      _cacheItems = data as DBItem[];
+      return _cacheItems;
     }
-    return result;
+    return _cacheItems || [];
   },
 
-  async getSpells(forceRefresh = false): Promise<DBSpell[]> {
-    if (!forceRefresh && _cacheSpells && _cacheSpells.length > 0) {
+  async getSpells(forceRefresh = true): Promise<DBSpell[]> {
+    if (!forceRefresh && _cacheSpells) {
       return _cacheSpells;
     }
-    const local = getLocalCache<DBSpell[]>("cache_spells");
-    if (!forceRefresh && local && local.length > 0) {
-      _cacheSpells = local;
-      handleQuery(
-        supabase.from("phu_tro").select("*").order("ten_phu_tro"),
-      ).then((data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          _cacheSpells = data as DBSpell[];
-          setLocalCache("cache_spells", data);
-        }
-      });
-      return local;
-    }
-
     const data = await handleQuery(
       supabase.from("phu_tro").select("*").order("ten_phu_tro"),
     );
-    const result = (data || []) as DBSpell[];
-    if (result.length > 0) {
-      _cacheSpells = result;
-      setLocalCache("cache_spells", result);
+    if (data && Array.isArray(data)) {
+      _cacheSpells = data as DBSpell[];
+      return _cacheSpells;
     }
-    return result;
+    return _cacheSpells || [];
   },
 
-  async getBadges(forceRefresh = false): Promise<DBBadge[]> {
-    if (!forceRefresh && _cacheBadges && _cacheBadges.length > 0) {
+  async getBadges(forceRefresh = true): Promise<DBBadge[]> {
+    if (!forceRefresh && _cacheBadges) {
       return _cacheBadges;
     }
-    const local = getLocalCache<DBBadge[]>("cache_badges");
-    if (!forceRefresh && local && local.length > 0) {
-      _cacheBadges = local;
-      handleQuery(
-        supabase.from("phu_hieu").select("*").order("ten_phu_hieu"),
-      ).then((data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          _cacheBadges = data as DBBadge[];
-          setLocalCache("cache_badges", data);
-        }
-      });
-      return local;
-    }
-
     const data = await handleQuery(
       supabase.from("phu_hieu").select("*").order("ten_phu_hieu"),
     );
-    const result = (data || []) as DBBadge[];
-    if (result.length > 0) {
-      _cacheBadges = result;
-      setLocalCache("cache_badges", result);
+    if (data && Array.isArray(data)) {
+      _cacheBadges = data as DBBadge[];
+      return _cacheBadges;
     }
-    return result;
+    return _cacheBadges || [];
   },
 
   async getRunes(): Promise<DBRune[]> {
@@ -1052,37 +985,19 @@ export const dbService = {
   // 5. BUILD GUIDES (giao_an_de_cu)
   // ==========================================
   getBuildGuidesSync(): DBBuildGuide[] {
-    if (_cacheGuides && _cacheGuides.length > 0) return _cacheGuides;
-    const local = getLocalCache<DBBuildGuide[]>("cache_build_guides");
-    if (local) {
-      _cacheGuides = local;
-      return local;
-    }
-    return [];
+    return _cacheGuides || [];
   },
 
-  async getBuildGuides(forceRefresh = false): Promise<DBBuildGuide[]> {
-    if (!forceRefresh && _cacheGuides && _cacheGuides.length > 0) {
+  async getBuildGuides(forceRefresh = true): Promise<DBBuildGuide[]> {
+    if (!forceRefresh && _cacheGuides) {
       return _cacheGuides;
     }
-    const local = getLocalCache<DBBuildGuide[]>("cache_build_guides");
-    if (!forceRefresh && local && local.length > 0) {
-      _cacheGuides = local;
-      this.fetchBuildGuidesDirectly().then((fresh) => {
-        if (fresh && fresh.length > 0) {
-          _cacheGuides = fresh;
-          setLocalCache("cache_build_guides", fresh);
-        }
-      });
-      return local;
-    }
-
     const fresh = await this.fetchBuildGuidesDirectly();
-    if (fresh && fresh.length > 0) {
+    if (fresh !== null && Array.isArray(fresh)) {
       _cacheGuides = fresh;
-      setLocalCache("cache_build_guides", fresh);
+      return fresh;
     }
-    return fresh;
+    return _cacheGuides || [];
   },
 
   async fetchBuildGuidesDirectly(): Promise<DBBuildGuide[]> {
@@ -1378,10 +1293,7 @@ export const dbService = {
 
   async deleteBuildGuide(id: string): Promise<boolean> {
     if (!isUUID(id)) return true;
-    _cacheGuides = null;
-    try {
-      localStorage.removeItem("cache_build_guides");
-    } catch (e) {}
+    _cacheGuides = (_cacheGuides || []).filter((g) => g.id !== id);
     const { error } = await supabase
       .from("giao_an_de_cu")
       .delete()
@@ -1731,7 +1643,7 @@ export const dbService = {
             return String(data.alert_duration);
         }
       }
-      return localStorage.getItem(`cau_hinh_${key}`) || defaultValue;
+      return defaultValue;
     } catch {
       return defaultValue;
     }
@@ -1739,8 +1651,6 @@ export const dbService = {
 
   async saveCauHinhValue(key: string, value: string): Promise<boolean> {
     try {
-      localStorage.setItem(`cau_hinh_${key}`, value);
-
       if (
         key === "stream_alert_gif" ||
         key === "stream_alert_sound" ||
@@ -1834,47 +1744,22 @@ export const dbService = {
   // 12. KHẮC CHẾ & TOP TIER ACADEMY
   // ==========================================
   getKhacCheListSync(): DBKhacChe[] {
-    if (_cacheKhacChe && _cacheKhacChe.length > 0) return _cacheKhacChe;
-    const local = getLocalCache<DBKhacChe[]>("aov_khac_che");
-    if (local) {
-      _cacheKhacChe = local;
-      return local;
-    }
-    return [];
+    return _cacheKhacChe || [];
   },
 
   getTopTierListSync(): DBTopTier[] {
-    if (_cacheTopTier && _cacheTopTier.length > 0) return _cacheTopTier;
-    const local = getLocalCache<DBTopTier[]>("aov_top_tier");
-    if (local) {
-      _cacheTopTier = local;
-      return local;
-    }
-    return [];
+    return _cacheTopTier || [];
   },
 
-  async getKhacCheList(forceRefresh = false): Promise<DBKhacChe[]> {
-    if (!forceRefresh && _cacheKhacChe && _cacheKhacChe.length > 0) {
+  async getKhacCheList(forceRefresh = true): Promise<DBKhacChe[]> {
+    if (!forceRefresh && _cacheKhacChe) {
       return _cacheKhacChe;
     }
-    const local = getLocalCache<DBKhacChe[]>("aov_khac_che");
-    if (!forceRefresh && local && local.length > 0) {
-      _cacheKhacChe = local;
-      handleQuery(supabase.from("khac_che").select("*")).then((data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          _cacheKhacChe = data as DBKhacChe[];
-          setLocalCache("aov_khac_che", data);
-        }
-      });
-      return local;
-    }
-
     try {
       const data = await handleQuery(supabase.from("khac_che").select("*"));
-      if (data && Array.isArray(data) && data.length > 0) {
+      if (data && Array.isArray(data)) {
         _cacheKhacChe = data as DBKhacChe[];
-        setLocalCache("aov_khac_che", data);
-        return data as DBKhacChe[];
+        return _cacheKhacChe;
       }
     } catch (e) {
       console.warn("Lỗi lấy dữ liệu khac_che từ Supabase:", e);
@@ -1895,14 +1780,6 @@ export const dbService = {
       updated_at: new Date().toISOString(),
     };
 
-    // Backup to localStorage
-    try {
-      const existingList = await this.getKhacCheList();
-      const filtered = existingList.filter((x) => x.tuong_id !== item.tuong_id);
-      filtered.push(record);
-      localStorage.setItem("aov_khac_che", JSON.stringify(filtered));
-    } catch (e) {}
-
     // Upsert to Supabase
     try {
       const { data, error } = await supabase
@@ -1922,7 +1799,12 @@ export const dbService = {
         .select()
         .maybeSingle();
 
-      if (data && !error) return data as DBKhacChe;
+      const saved = data && !error ? (data as DBKhacChe) : record;
+      _cacheKhacChe = [
+        ...(_cacheKhacChe || []).filter((x) => x.tuong_id !== item.tuong_id),
+        saved,
+      ];
+      return saved;
     } catch (e) {
       console.warn("Lưu Supabase table khac_che chưa thành công:", e);
     }
@@ -1930,28 +1812,15 @@ export const dbService = {
     return record;
   },
 
-  async getTopTierList(forceRefresh = false): Promise<DBTopTier[]> {
-    if (!forceRefresh && _cacheTopTier && _cacheTopTier.length > 0) {
+  async getTopTierList(forceRefresh = true): Promise<DBTopTier[]> {
+    if (!forceRefresh && _cacheTopTier) {
       return _cacheTopTier;
     }
-    const local = getLocalCache<DBTopTier[]>("aov_top_tier");
-    if (!forceRefresh && local && local.length > 0) {
-      _cacheTopTier = local;
-      handleQuery(supabase.from("top_tier").select("*")).then((data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          _cacheTopTier = data as DBTopTier[];
-          setLocalCache("aov_top_tier", data);
-        }
-      });
-      return local;
-    }
-
     try {
       const data = await handleQuery(supabase.from("top_tier").select("*"));
-      if (data && Array.isArray(data) && data.length > 0) {
+      if (data && Array.isArray(data)) {
         _cacheTopTier = data as DBTopTier[];
-        setLocalCache("aov_top_tier", data);
-        return data as DBTopTier[];
+        return _cacheTopTier;
       }
     } catch (e) {
       console.warn("Lỗi lấy dữ liệu top_tier từ Supabase:", e);
@@ -1971,20 +1840,6 @@ export const dbService = {
       updated_at: new Date().toISOString(),
     };
 
-    // Backup to localStorage
-    try {
-      const existingList = await this.getTopTierList();
-      const filtered = existingList.filter(
-        (x) =>
-          !(
-            x.tuong_id === item.tuong_id &&
-            x.phandanh_lane === item.phandanh_lane
-          ),
-      );
-      filtered.push(record);
-      localStorage.setItem("aov_top_tier", JSON.stringify(filtered));
-    } catch (e) {}
-
     // Upsert to Supabase
     try {
       const { data, error } = await supabase
@@ -2003,7 +1858,18 @@ export const dbService = {
         .select()
         .maybeSingle();
 
-      if (data && !error) return data as DBTopTier;
+      const saved = data && !error ? (data as DBTopTier) : record;
+      _cacheTopTier = [
+        ...(_cacheTopTier || []).filter(
+          (x) =>
+            !(
+              x.tuong_id === item.tuong_id &&
+              x.phandanh_lane === item.phandanh_lane
+            ),
+        ),
+        saved,
+      ];
+      return saved;
     } catch (e) {
       console.warn("Lưu Supabase table top_tier chưa thành công:", e);
     }
@@ -2016,20 +1882,16 @@ export const dbService = {
     tuongId?: string,
     lane?: string,
   ): Promise<boolean> {
-    try {
-      const existingList = await this.getTopTierList();
-      const filtered = existingList.filter(
-        (x) =>
-          x.id !== id &&
-          !(
-            tuongId &&
-            lane &&
-            x.tuong_id === tuongId &&
-            x.phandanh_lane === lane
-          ),
-      );
-      localStorage.setItem("aov_top_tier", JSON.stringify(filtered));
-    } catch (e) {}
+    _cacheTopTier = (_cacheTopTier || []).filter(
+      (x) =>
+        x.id !== id &&
+        !(
+          tuongId &&
+          lane &&
+          x.tuong_id === tuongId &&
+          x.phandanh_lane === lane
+        ),
+    );
 
     try {
       if (isUUID(id)) {
@@ -2047,13 +1909,9 @@ export const dbService = {
   },
 
   async deleteKhacChe(id: string, tuongId?: string): Promise<boolean> {
-    try {
-      const existingList = await this.getKhacCheList();
-      const filtered = existingList.filter(
-        (x) => x.id !== id && !(tuongId && x.tuong_id === tuongId),
-      );
-      localStorage.setItem("aov_khac_che", JSON.stringify(filtered));
-    } catch (e) {}
+    _cacheKhacChe = (_cacheKhacChe || []).filter(
+      (x) => x.id !== id && !(tuongId && x.tuong_id === tuongId),
+    );
 
     try {
       if (isUUID(id)) {
@@ -2266,20 +2124,222 @@ export const dbService = {
 
   async deleteNotification(id: string): Promise<boolean> {
     try {
-      const existingStr = localStorage.getItem("aov_notifications");
-      if (existingStr) {
-        const list: DBNotification[] = JSON.parse(existingStr);
-        const filtered = list.filter((n) => n.id !== id);
-        localStorage.setItem("aov_notifications", JSON.stringify(filtered));
-      }
-    } catch (e) {}
-
-    try {
       if (isUUID(id)) {
         await supabase.from("thong_bao").delete().eq("id", id);
       }
     } catch (e) {}
 
     return true;
+  },
+
+  // ==========================================
+  // 14. KHO ACC (GAME ACCOUNTS FOR SALE)
+  // ==========================================
+  async getGameAccounts(
+    includeHidden: boolean = false,
+  ): Promise<DBGameAccount[]> {
+    try {
+      let query = supabase.from("kho_acc").select("*");
+      if (!includeHidden) {
+        query = query.eq("hien_thi", true);
+      }
+      query = query
+        .order("thu_tu_uu_tien", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      const { data, error } = await query;
+      if (!error && data && Array.isArray(data)) {
+        _cacheAccounts = data as DBGameAccount[];
+        return _cacheAccounts;
+      }
+    } catch (e) {
+      console.warn("Lỗi tải danh sách acc từ table kho_acc:", e);
+    }
+    return _cacheAccounts || [];
+  },
+
+  async saveGameAccount(
+    account: Partial<DBGameAccount>,
+  ): Promise<DBGameAccount | null> {
+    try {
+      let resultData: any = null;
+      if (account.id && isUUID(account.id)) {
+        const updatePayload: any = {
+          ten_acc: account.ten_acc,
+          gia: account.gia !== undefined ? Number(account.gia) : 0,
+          mo_ta: account.mo_ta ?? "",
+          url_hinh_anh: account.url_hinh_anh ?? "",
+          hien_thi: account.hien_thi !== undefined ? account.hien_thi : true,
+          da_ban: account.da_ban !== undefined ? account.da_ban : false,
+          lien_he: account.lien_he ?? "",
+          thu_tu_uu_tien: account.thu_tu_uu_tien ?? 0,
+          updated_at: new Date().toISOString(),
+        };
+
+        const { data, error } = await supabase
+          .from("kho_acc")
+          .update(updatePayload)
+          .eq("id", account.id)
+          .select()
+          .maybeSingle();
+
+        if (!error && data) {
+          resultData = data;
+        }
+      } else {
+        const insertPayload: any = {
+          ten_acc: account.ten_acc || "Acc Liên Quân",
+          gia: account.gia !== undefined ? Number(account.gia) : 0,
+          mo_ta: account.mo_ta ?? "",
+          url_hinh_anh: account.url_hinh_anh ?? "",
+          hien_thi: account.hien_thi !== undefined ? account.hien_thi : true,
+          da_ban: account.da_ban !== undefined ? account.da_ban : false,
+          lien_he: account.lien_he ?? "",
+          thu_tu_uu_tien: account.thu_tu_uu_tien ?? 0,
+        };
+
+        const { data, error } = await supabase
+          .from("kho_acc")
+          .insert(insertPayload)
+          .select()
+          .maybeSingle();
+
+        if (!error && data) {
+          resultData = data;
+        }
+      }
+
+      if (resultData) {
+        const saved = resultData as DBGameAccount;
+        if (_cacheAccounts) {
+          _cacheAccounts = [
+            saved,
+            ..._cacheAccounts.filter((a) => a.id !== saved.id),
+          ];
+        }
+        return saved;
+      }
+    } catch (err) {
+      console.warn("Lỗi lưu tài khoản kho_acc:", err);
+    }
+    return null;
+  },
+
+  async deleteGameAccount(id: string): Promise<boolean> {
+    try {
+      if (isUUID(id)) {
+        const { error } = await supabase.from("kho_acc").delete().eq("id", id);
+        if (!error) {
+          if (_cacheAccounts) {
+            _cacheAccounts = _cacheAccounts.filter((a) => a.id !== id);
+          }
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn("Lỗi xóa tài khoản kho_acc:", e);
+    }
+    return false;
+  },
+
+  async toggleAccountVisibility(
+    id: string,
+    currentStatus: boolean,
+  ): Promise<boolean> {
+    try {
+      if (isUUID(id)) {
+        const { error } = await supabase
+          .from("kho_acc")
+          .update({
+            hien_thi: !currentStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+        if (!error) {
+          if (_cacheAccounts) {
+            _cacheAccounts = _cacheAccounts.map((a) =>
+              a.id === id ? { ...a, hien_thi: !currentStatus } : a,
+            );
+          }
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  },
+
+  async toggleAccountSoldStatus(
+    id: string,
+    currentSold: boolean,
+  ): Promise<boolean> {
+    try {
+      if (isUUID(id)) {
+        const { error } = await supabase
+          .from("kho_acc")
+          .update({
+            da_ban: !currentSold,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+        if (!error) {
+          if (_cacheAccounts) {
+            _cacheAccounts = _cacheAccounts.map((a) =>
+              a.id === id ? { ...a, da_ban: !currentSold } : a,
+            );
+          }
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  },
+
+  async uploadAccountImage(file: File): Promise<string | null> {
+    try {
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const fileName = `acc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+      const filePath = `accounts/${fileName}`;
+
+      // Upload to Supabase Storage bucket 'images'
+      const { data, error } = await supabase.storage
+        .from("images")
+        .upload(filePath, file, { cacheControl: "3600", upsert: true });
+
+      if (!error && data) {
+        const { data: publicUrlData } = supabase.storage
+          .from("images")
+          .getPublicUrl(filePath);
+        if (publicUrlData?.publicUrl) {
+          return publicUrlData.publicUrl;
+        }
+      }
+    } catch (e) {
+      console.warn("Lỗi upload ảnh acc lên Supabase storage images:", e);
+    }
+
+    // Secondary fallback: Server-side upload via /api/upload endpoint
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.url) {
+          return json.url;
+        }
+      }
+    } catch (err) {
+      console.warn("Fallback upload via /api/upload failed:", err);
+    }
+
+    // Final fallback: Base64 data URL
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
   },
 };

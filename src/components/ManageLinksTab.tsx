@@ -223,14 +223,6 @@ export default function ManageLinksTab({
     <div className="space-y-6">
       {/* Header and Add Action */}
       <div className="flex flex-col justify-between gap-4">
-        <div>
-          <h2 className="font-display text-xl font-bold text-slate-800">
-            Quản lý liên kết
-          </h2>
-          <p className="text-slate-500 text-xs font-sans">
-            Sắp xếp và tùy chỉnh các liên kết của bạn.
-          </p>
-        </div>
         <button
           onClick={() => {
             setEditingLink(null);

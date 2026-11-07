@@ -299,3 +299,17 @@ export interface DBNotificationRead {
   user_id: string;
   da_doc_luc?: string;
 }
+
+export interface DBGameAccount {
+  id: string;
+  ten_acc: string;
+  gia: number;
+  mo_ta: string | null;
+  url_hinh_anh: string | null;
+  hien_thi: boolean;
+  da_ban?: boolean;
+  lien_he?: string | null;
+  thu_tu_uu_tien: number;
+  created_at?: string;
+  updated_at?: string;
+}

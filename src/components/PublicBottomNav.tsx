@@ -3,8 +3,24 @@ import { AppearanceSettings } from "../types";
 import LucideIcon from "./LucideIcon";
 
 interface PublicBottomNavProps {
-  publicTab: "links" | "guides" | "donate" | "posts";
-  setPublicTab: (tab: "links" | "guides" | "donate" | "posts") => void;
+  publicTab:
+    | "links"
+    | "guides"
+    | "donate"
+    | "posts"
+    | "profile"
+    | "notifications"
+    | "accounts";
+  setPublicTab: (
+    tab:
+      | "links"
+      | "guides"
+      | "donate"
+      | "posts"
+      | "profile"
+      | "notifications"
+      | "accounts",
+  ) => void;
   appearance: AppearanceSettings;
   postsCount: number;
 }
@@ -22,7 +38,7 @@ export default function PublicBottomNav({
         backgroundImage: `url('image/Decor/bg-header.jpg')`,
       }}
     >
-      <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
+      <div className="grid grid-cols-5 gap-1">
         {/* Button 1: Liên hệ / Liên kết */}
         <button
           onClick={() => setPublicTab("links")}
@@ -34,13 +50,13 @@ export default function PublicBottomNav({
         >
           <LucideIcon
             name="Link2"
-            size={18}
+            size={17}
             className={
               publicTab === "links" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
-            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+            className={`text-[9.5px] font-bold mt-0.5 tracking-wider uppercase ${
               publicTab === "links"
                 ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
@@ -61,13 +77,13 @@ export default function PublicBottomNav({
         >
           <LucideIcon
             name="GraduationCap"
-            size={18}
+            size={17}
             className={
               publicTab === "guides" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
-            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+            className={`text-[9.5px] font-bold mt-0.5 tracking-wider uppercase ${
               publicTab === "guides"
                 ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
@@ -77,7 +93,34 @@ export default function PublicBottomNav({
           </span>
         </button>
 
-        {/* Button 3: Bài viết */}
+        {/* Button 3: Kho Acc */}
+        <button
+          onClick={() => setPublicTab("accounts")}
+          className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
+            publicTab === "accounts"
+              ? "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] font-extrabold shadow-sm"
+              : "hover:opacity-80"
+          }`}
+        >
+          <LucideIcon
+            name="ShoppingBag"
+            size={17}
+            className={
+              publicTab === "accounts" ? "text-slate-950" : "stroke-[#bd9867]"
+            }
+          />
+          <span
+            className={`text-[9.5px] font-bold mt-0.5 tracking-wider uppercase ${
+              publicTab === "accounts"
+                ? "text-slate-950"
+                : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
+            }`}
+          >
+            Kho Acc
+          </span>
+        </button>
+
+        {/* Button 4: Bài viết */}
         <button
           onClick={() => setPublicTab("posts")}
           className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer relative ${
@@ -88,13 +131,13 @@ export default function PublicBottomNav({
         >
           <LucideIcon
             name="FileText"
-            size={18}
+            size={17}
             className={
               publicTab === "posts" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
-            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+            className={`text-[9.5px] font-bold mt-0.5 tracking-wider uppercase ${
               publicTab === "posts"
                 ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"
@@ -104,7 +147,7 @@ export default function PublicBottomNav({
           </span>
         </button>
 
-        {/* Button 4: Ủng hộ */}
+        {/* Button 5: Ủng hộ */}
         <button
           onClick={() => setPublicTab("donate")}
           className={`flex flex-col items-center justify-center py-1.5 transition-all cursor-pointer ${
@@ -115,13 +158,13 @@ export default function PublicBottomNav({
         >
           <LucideIcon
             name="Heart"
-            size={18}
+            size={17}
             className={
               publicTab === "donate" ? "text-slate-950" : "stroke-[#bd9867]"
             }
           />
           <span
-            className={`text-[10px] font-bold mt-1 tracking-wider uppercase ${
+            className={`text-[9.5px] font-bold mt-0.5 tracking-wider uppercase ${
               publicTab === "donate"
                 ? "text-slate-950"
                 : "bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent"

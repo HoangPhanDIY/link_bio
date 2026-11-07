@@ -33,6 +33,7 @@ import {
   DBDonation,
   DBPost,
   DBNotification,
+  DBGameAccount,
 } from "./supabase";
 import { isCustomIcon, getVisitorInfo, BANNER_OPTIONS } from "./utils";
 import PublicHeader from "./components/PublicHeader";
@@ -44,6 +45,8 @@ import PublicBottomNav from "./components/PublicBottomNav";
 import UserProfileTab from "./components/UserProfileTab";
 import NotificationsAdminTab from "./components/NotificationsAdminTab";
 import PublicNotificationsTab from "./components/PublicNotificationsTab";
+import AccountsAdminTab from "./components/AccountsAdminTab";
+import PublicAccountsTab from "./components/PublicAccountsTab";
 
 const STORAGE_KEY_LINKS = "vivid_persona_links";
 const STORAGE_KEY_APPEARANCE = "vivid_persona_appearance";
@@ -58,6 +61,7 @@ type TabType =
   | "donations"
   | "posts"
   | "notifications"
+  | "accounts"
   | "stream";
 
 declare global {
@@ -108,19 +112,11 @@ export default function App() {
   // --- Game Library & Guide States ---
   const [dbUser, setDbUser] = useState<DBUser | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<DBUser | null>(null);
-  const [champions, setChampions] = useState<DBChampion[]>(() =>
-    dbService.getChampionsSync(),
-  );
-  const [items, setItems] = useState<DBItem[]>(() => dbService.getItemsSync());
-  const [spells, setSpells] = useState<DBSpell[]>(() =>
-    dbService.getSpellsSync(),
-  );
-  const [badges, setBadges] = useState<DBBadge[]>(() =>
-    dbService.getBadgesSync(),
-  );
-  const [guides, setGuides] = useState<DBBuildGuide[]>(() =>
-    dbService.getBuildGuidesSync(),
-  );
+  const [champions, setChampions] = useState<DBChampion[]>([]);
+  const [items, setItems] = useState<DBItem[]>([]);
+  const [spells, setSpells] = useState<DBSpell[]>([]);
+  const [badges, setBadges] = useState<DBBadge[]>([]);
+  const [guides, setGuides] = useState<DBBuildGuide[]>([]);
   const [banners, setBanners] = useState<DBBanner[]>([]);
   const [messages, setMessages] = useState<DBMessage[]>([]);
   const [clickLogs, setClickLogs] = useState<any[]>([]);
@@ -135,10 +131,7 @@ export default function App() {
   // Lazy load flags & status indicators
   const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
   const [isGuidesLoading, setIsGuidesLoading] = useState<boolean>(false);
-  const [hasLoadedGuides, setHasLoadedGuides] = useState<boolean>(() => {
-    const syncGuides = dbService.getBuildGuidesSync();
-    return syncGuides.length > 0;
-  });
+  const [hasLoadedGuides, setHasLoadedGuides] = useState<boolean>(false);
   const [isClickLogsLoading, setIsClickLogsLoading] = useState<boolean>(false);
   const [hasLoadedClickLogs, setHasLoadedClickLogs] = useState<boolean>(false);
   const [isMessagesLoading, setIsMessagesLoading] = useState<boolean>(false);
@@ -171,11 +164,19 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("links");
   const [isAdminNavOpen, setIsAdminNavOpen] = useState<boolean>(false);
 
-  const [publicTab, setPublicTab] = useState<
-    "links" | "guides" | "donate" | "posts" | "profile" | "notifications"
-  >("links");
+  const [accounts, setAccounts] = useState<DBGameAccount[]>([]);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+
+  const [publicTab, setPublicTab] = useState<
+    | "links"
+    | "guides"
+    | "donate"
+    | "posts"
+    | "profile"
+    | "notifications"
+    | "accounts"
+  >("links");
 
   // --- Notifications State & Modal ---
   const [notificationsList, setNotificationsList] = useState<DBNotification[]>(
@@ -251,8 +252,18 @@ export default function App() {
   useEffect(() => {
     async function initAndLoadDb() {
       try {
-        // Fetch essential initial data (profile, links, banners, posts) concurrently in 1 parallel batch
-        const [profile, dbLinks, dbBanners, dbPosts] = await Promise.all([
+        // Fetch all essential initial data concurrently from database
+        const [
+          profile,
+          dbLinks,
+          dbBanners,
+          dbPosts,
+          champsData,
+          itemsData,
+          spellsData,
+          badgesData,
+          guidesData,
+        ] = await Promise.all([
           dbService.getProfile(),
           dbService.getLinks(),
           dbService.getBanners(),
@@ -260,6 +271,13 @@ export default function App() {
             console.warn("Initial posts fetch warning:", e);
             return [];
           }),
+          dbService.getChampions(),
+          dbService.getItems(),
+          dbService.getSpells(),
+          dbService.getBadges(),
+          dbService.getBuildGuides(),
+          dbService.getKhacCheList(),
+          dbService.getTopTierList(),
         ]);
 
         if (profile) {
@@ -301,7 +319,7 @@ export default function App() {
           }));
         }
 
-        if (dbLinks && dbLinks.length > 0) {
+        if (dbLinks) {
           const mappedLinks: BioLink[] = dbLinks.map((dbl) => ({
             id: dbl.id,
             title: dbl.tieu_de,
@@ -316,49 +334,42 @@ export default function App() {
           setLinks(mappedLinks);
         }
 
-        if (dbBanners && dbBanners.length > 0) {
+        if (dbBanners) {
           setBanners(dbBanners);
           const activeBanners = dbBanners
             .filter((b) => b.kich_hoat)
             .map((b) => b.url_hinh_anh);
-          if (activeBanners.length > 0) {
-            setAppearance((prev) => ({
-              ...prev,
-              selectedBanners: activeBanners,
-              bannerUrl: prev.bannerUrl || activeBanners[0],
-            }));
-          }
+          setAppearance((prev) => ({
+            ...prev,
+            selectedBanners: activeBanners,
+            bannerUrl: activeBanners[0] || "",
+          }));
         }
 
         if (dbPosts) {
           setPosts(dbPosts);
           setHasLoadedPosts(true);
         }
+
+        if (champsData) setChampions(champsData);
+        if (itemsData) setItems(itemsData);
+        if (spellsData) setSpells(spellsData);
+        if (badgesData) setBadges(badgesData);
+        if (guidesData) setGuides(guidesData);
+        setHasLoadedGuides(true);
+
+        // Load Game Accounts
+        dbService
+          .getGameAccounts(true)
+          .then((accs) => {
+            if (accs) setAccounts(accs);
+          })
+          .catch((e) => console.warn("Initial accounts fetch warning:", e));
       } catch (err) {
         console.error("Error during initial DB load:", err);
       } finally {
         setIsAppLoading(false);
       }
-
-      // Non-blocking background pre-fetch of Academy & Game Library data for instant loading
-      Promise.all([
-        dbService.getChampions(),
-        dbService.getItems(),
-        dbService.getSpells(),
-        dbService.getBadges(),
-        dbService.getBuildGuides(),
-        dbService.getKhacCheList(),
-        dbService.getTopTierList(),
-      ])
-        .then(([champsData, itemsData, spellsData, badgesData, guidesData]) => {
-          if (champsData && champsData.length > 0) setChampions(champsData);
-          if (itemsData && itemsData.length > 0) setItems(itemsData);
-          if (spellsData && spellsData.length > 0) setSpells(spellsData);
-          if (badgesData && badgesData.length > 0) setBadges(badgesData);
-          if (guidesData && guidesData.length > 0) setGuides(guidesData);
-          setHasLoadedGuides(true);
-        })
-        .catch((e) => console.warn("Academy background preload warning:", e));
 
       // Non-blocking background session restore
       const savedSessionStr = localStorage.getItem("vivid_persona_session");
@@ -487,13 +498,13 @@ export default function App() {
     hasLoadedPosts,
   ]);
 
-  // Lazy load Posts when entering posts tab in Admin or Public view
+  // Load Posts when entering posts tab in Admin or Public view
   useEffect(() => {
     const isPostsTabActive =
       (isAdminMode && activeTab === "posts") ||
       (!isAdminMode && publicTab === "posts");
 
-    if (isPostsTabActive && !hasLoadedPosts) {
+    if (isPostsTabActive) {
       async function fetchPosts() {
         setIsPostsLoading(true);
         try {
@@ -510,11 +521,32 @@ export default function App() {
       }
       fetchPosts();
     }
-  }, [activeTab, publicTab, isAdminMode, hasLoadedPosts]);
+  }, [activeTab, publicTab, isAdminMode]);
 
-  // Lazy load Messages when entering messages tab
+  // Load Game Accounts when entering accounts tab in Admin or Public view
   useEffect(() => {
-    if (activeTab === "messages" && !hasLoadedMessages) {
+    const isAccountsTabActive =
+      (isAdminMode && activeTab === "accounts") ||
+      (!isAdminMode && publicTab === "accounts");
+
+    if (isAccountsTabActive) {
+      async function fetchAccounts() {
+        try {
+          const freshAccounts = await dbService.getGameAccounts(isAdminMode);
+          if (freshAccounts) {
+            setAccounts(freshAccounts);
+          }
+        } catch (err) {
+          console.warn("Could not fetch game accounts from DB:", err);
+        }
+      }
+      fetchAccounts();
+    }
+  }, [activeTab, publicTab, isAdminMode]);
+
+  // Load Messages when entering messages tab
+  useEffect(() => {
+    if (activeTab === "messages") {
       async function fetchMessages() {
         setIsMessagesLoading(true);
         try {
@@ -531,11 +563,11 @@ export default function App() {
       }
       fetchMessages();
     }
-  }, [activeTab, hasLoadedMessages]);
+  }, [activeTab]);
 
-  // Lazy load Donations when entering donations tab
+  // Load Donations when entering donations tab
   useEffect(() => {
-    if (activeTab === "donations" && !hasLoadedDonations) {
+    if (activeTab === "donations") {
       async function fetchDonations() {
         setIsDonationsLoading(true);
         try {
@@ -552,14 +584,14 @@ export default function App() {
       }
       fetchDonations();
     }
-  }, [activeTab, hasLoadedDonations]);
+  }, [activeTab]);
 
-  // Lazy load Guides & Game Library when entering guides tab in Admin, or guides in Public View
+  // Load Guides & Game Library when entering guides tab in Admin, or guides in Public View
   useEffect(() => {
     const isGuidesTabActive =
       (isAdminMode && activeTab === "guides") ||
       (!isAdminMode && publicTab === "guides");
-    if (isGuidesTabActive && !hasLoadedGuides) {
+    if (isGuidesTabActive) {
       async function fetchGuidesAndLibrary() {
         setIsGuidesLoading(true);
         try {
@@ -577,23 +609,6 @@ export default function App() {
           if (spellsData) setSpells(spellsData);
           if (badgesData) setBadges(badgesData);
           if (guidesData) setGuides(guidesData);
-
-          // Seed game library if champions/items are empty in DB
-          if (!champsData || champsData.length === 0) {
-            dbService
-              .seedGameLibraryIfNeeded()
-              .then(async () => {
-                const freshChamps = await dbService.getChampions();
-                const freshItems = await dbService.getItems();
-                const freshSpells = await dbService.getSpells();
-                const freshBadges = await dbService.getBadges();
-                if (freshChamps) setChampions(freshChamps);
-                if (freshItems) setItems(freshItems);
-                if (freshSpells) setSpells(freshSpells);
-                if (freshBadges) setBadges(freshBadges);
-              })
-              .catch((e) => console.warn(e));
-          }
         } catch (err) {
           console.warn("Could not fetch guides & library from DB:", err);
         } finally {
@@ -603,7 +618,7 @@ export default function App() {
       }
       fetchGuidesAndLibrary();
     }
-  }, [activeTab, publicTab, isAdminMode, hasLoadedGuides]);
+  }, [activeTab, publicTab, isAdminMode]);
 
   // --- Handlers for App state modifications ---
 
@@ -1566,6 +1581,7 @@ export default function App() {
               <h2 className="font-extrabold text-xl bg-gradient-to-t from-[#bd9867] to-[#fce3bc] bg-clip-text text-transparent uppercase truncate">
                 {publicTab === "links" && "LIÊN KẾT CÁ NHÂN"}
                 {publicTab === "guides" && "HỌC VIỆN LIÊN QUÂN"}
+                {publicTab === "accounts" && "KHO ACC LIÊN QUÂN"}
                 {publicTab === "posts" && "BÀI VIẾT"}
                 {publicTab === "donate" && " ỦNG HỘ"}
                 {publicTab === "profile" && "THÔNG TIN CÁ NHÂN"}
@@ -1867,6 +1883,13 @@ export default function App() {
                         },
                         { id: "links", label: "Links", icon: "Link2" },
                         {
+                          id: "accounts",
+                          label: "Kho Acc",
+                          icon: "ShoppingBag",
+                          badge: accounts.filter((a) => !a.da_ban && a.hien_thi)
+                            .length,
+                        },
+                        {
                           id: "appearance",
                           label: "Giao diện",
                           icon: "Palette",
@@ -1993,6 +2016,12 @@ export default function App() {
             {[
               { id: "dashboard", label: "Dashboard", icon: "Activity" },
               { id: "links", label: "Links", icon: "Link2" },
+              {
+                id: "accounts",
+                label: "Kho Acc",
+                icon: "ShoppingBag",
+                badge: accounts.filter((a) => !a.da_ban && a.hien_thi).length,
+              },
               { id: "appearance", label: "Giao diện", icon: "Palette" },
               { id: "posts", label: "Bài viết", icon: "FileText" },
               {
@@ -2198,6 +2227,15 @@ export default function App() {
                   adminUser={loggedInUser}
                 />
               )}
+
+              {activeTab === "accounts" && (
+                <AccountsAdminTab
+                  accounts={accounts}
+                  links={links}
+                  onUpdateAccounts={setAccounts}
+                  showNotification={showNotification}
+                />
+              )}
             </div>
 
             {/* Right Column: Live Sticky Mockup Preview (Only visible in Links & Appearance) */}
@@ -2281,6 +2319,22 @@ export default function App() {
                   hasLoadedDonations={hasLoadedDonations}
                   onSuccessRedirect={() => setPublicTab("links")}
                   loggedInUser={loggedInUser}
+                />
+              )}
+
+              {publicTab === "accounts" && (
+                <PublicAccountsTab
+                  accounts={accounts}
+                  links={links}
+                  showNotification={showNotification}
+                  contactLink={
+                    links.find(
+                      (l) =>
+                        l.url.toLowerCase().includes("zalo") ||
+                        l.url.toLowerCase().includes("facebook") ||
+                        l.url.toLowerCase().includes("fb.com"),
+                    )?.url || ""
+                  }
                 />
               )}
 
